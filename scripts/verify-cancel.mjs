@@ -38,6 +38,7 @@ try {
   await sender.goto(baseUrl);
   await sender.locator('.workbench:not([inert])').waitFor();
   await sender.locator('#file-input').setInputFiles(sourcePath);
+  await sender.locator('#start-share-btn').click();
   await sender.locator('#sender-code-section:not(.hidden)').waitFor();
   const code = (await sender.locator('#share-code').textContent()).trim();
   await receiver.goto(baseUrl);
@@ -45,6 +46,8 @@ try {
   await receiver.locator('#receive-mode-btn').click();
   await receiver.locator('#code-input').fill(code);
   await receiver.locator('#connect-btn').click();
+  await receiver.locator('#receiver-consent:not(.hidden)').waitFor();
+  await receiver.locator('#consent-accept-btn').click();
   await receiver.waitForFunction(() => window.__opfsPending === true);
   await receiver.locator('#receiver-cancel-btn').click();
   await receiver.evaluate(() => window.__releaseOPFS?.());
@@ -62,12 +65,15 @@ try {
   await sender2.goto(baseUrl);
   await sender2.locator('.workbench:not([inert])').waitFor();
   await sender2.locator('#file-input').setInputFiles(sourcePath);
+  await sender2.locator('#start-share-btn').click();
   await sender2.locator('#sender-code-section:not(.hidden)').waitFor();
   const code2 = (await sender2.locator('#share-code').textContent()).trim();
   await receiver.locator('#code-input').fill(code2);
   const downloadEvent = receiver.waitForEvent('download', { timeout: 120_000 });
   downloadEvent.catch(() => {});
   await receiver.locator('#connect-btn').click();
+  await receiver.locator('#receiver-consent:not(.hidden)').waitFor({ timeout: 120_000 });
+  await receiver.locator('#consent-accept-btn').click();
   await receiver.locator('#receiver-complete:not(.hidden)').waitFor({ timeout: 120_000 });
   const download = await downloadEvent;
   const receivedPath = join(work, 'received.bin');

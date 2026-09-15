@@ -112,9 +112,10 @@ async function transferOnce(browser, work, baseUrl, sourcePath, source, mode) {
     await sender.goto(baseUrl);
     await sender.locator('.workbench:not([inert])').waitFor();
     await sender.locator('#file-input').setInputFiles(sourcePath);
+    await sender.locator('#start-share-btn').click();
     await sender.locator('#sender-code-section:not(.hidden)').waitFor();
     const code = (await sender.locator('#share-code').textContent()).trim();
-    assert.match(code, /^[a-z]{3,5}$/);
+    assert.match(code, /^[A-Z2-9]{5}$/);
     await receiver.goto(baseUrl);
     await receiver.locator('.workbench:not([inert])').waitFor();
     await receiver.locator('#receive-mode-btn').click();
@@ -127,6 +128,8 @@ async function transferOnce(browser, work, baseUrl, sourcePath, source, mode) {
     let download;
     try {
       await receiver.locator('#connect-btn').click();
+      await receiver.locator('#receiver-consent:not(.hidden)').waitFor({ timeout: 120_000 });
+      await receiver.locator('#consent-accept-btn').click();
       await Promise.race([
         receiver.locator('#receiver-complete:not(.hidden)').waitFor({ timeout: 120_000 }),
         receiver.locator('#receiver-error:not(.hidden)').waitFor({ timeout: 120_000 }).then(() => {

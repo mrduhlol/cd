@@ -48,6 +48,9 @@ try {
   await page.goto(baseUrl);
   await page.locator('.workbench:not([inert])').waitFor();
   await page.locator('#file-input').setInputFiles(sourcePath);
+  // Staging alone shares nothing: the code waits for Send, then for OPEN.
+  assert.equal(await page.locator('#sender-code-section').isVisible(), false);
+  await page.locator('#start-share-btn:not(.hidden)').click();
   await openSeen;
 
   assert.equal(await page.locator('#sender-code-section').isVisible(), false);
@@ -56,7 +59,7 @@ try {
   deliverOpen?.();
   await page.locator('#sender-code-section:not(.hidden)').waitFor();
   assert.equal(await page.locator('#sender-code-section').isVisible(), true);
-  assert.match((await page.locator('#share-code').textContent()).trim(), /^[a-z]{3,5}$/);
+  assert.match((await page.locator('#share-code').textContent()).trim(), /^[A-Z2-9]{5}$/);
   console.log('verified sender code waits for PeerJS registration OPEN');
   await context.close();
 } finally {

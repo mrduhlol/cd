@@ -104,6 +104,7 @@ const els = {
   selectFileBtn: document.getElementById('select-file-btn'),
   senderFileInfo: document.getElementById('sender-file-info'),
   senderFileList: document.getElementById('sender-file-list'),
+  startShareBtn: document.getElementById('start-share-btn'),
   senderCodeSection: document.getElementById('sender-code-section'),
   shareCode: document.getElementById('share-code'),
   shareLink: document.getElementById('share-link'),
@@ -261,15 +262,28 @@ const Sender = (() => {
   let transferAckResolve = null;
   const lastProgressUpdate = { value: 0 };
 
-  function init(selectedFiles) {
-    reset();
-    files = selectedFiles.filter(Boolean);
-    if (files.length === 0) return;
+  // Staging: picking files only queues them. Nothing is shared until Send.
+  function stage(selectedFiles) {
+    const fresh = selectedFiles.filter(Boolean);
+    if (fresh.length === 0) return;
+    if (code) reset();
+    files.push(...fresh);
+    totalSize = files.reduce((sum, item) => sum + item.size, 0);
+    transferFinished = false;
+    transferCancelled = false;
+
+    renderSelectionSummary();
+    els.dropZone.classList.remove('hidden');
+    setState('idle');
+  }
+
+  // Send: lock the queue, mint the 5-letter code, and wait for a receiver.
+  function start() {
+    if (files.length === 0 || code) return;
 
     code = generateCode();
     bytesSent = 0;
     bytesConfirmed = 0;
-    totalSize = files.reduce((sum, item) => sum + item.size, 0);
     transferFinished = false;
     transferCancelled = false;
 
@@ -283,9 +297,18 @@ const Sender = (() => {
   }
 
   function renderSelectionSummary() {
-    renderFileList();
+    const locked = code !== null;
+    renderFileList(locked);
+    if (els.startShareBtn) {
+      els.startShareBtn.classList.toggle('hidden', locked || files.length === 0);
+      if (files.length > 0) {
+        els.startShareBtn.textContent = files.length === 1
+          ? `Send ${files[0].name}`
+          : `Send ${files.length} files · ${formatSize(totalSize)}`;
+      }
+    }
     if (files.length === 1) {
-      setFileInfo(els.senderFileInfo, files[0].name, formatSize(files[0].size), 'Ready to send');
+      setFileInfo(els.senderFileInfo, files[0].name, formatSize(files[0].size), locked ? 'Locked in — share the code below.' : 'Ready to send');
       return;
     }
 
@@ -293,11 +316,11 @@ const Sender = (() => {
       els.senderFileInfo,
       `${files.length} files selected`,
       formatSize(totalSize),
-      'Review below — remove anything you did not mean to share.'
+      locked ? 'Locked in — share the code below.' : 'Review below — remove anything you did not mean to share, then hit Send.'
     );
   }
 
-  function renderFileList() {
+  function renderFileList(locked = false) {
     if (!els.senderFileList) return;
     els.senderFileList.replaceChildren();
     files.forEach((item, index) => {
@@ -309,6 +332,11 @@ const Sender = (() => {
       const size = document.createElement('span');
       size.className = 'fsize';
       size.textContent = formatSize(item.size);
+      row.append(name, size);
+      if (locked) {
+        els.senderFileList.appendChild(row);
+        return;
+      }
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'rm';
@@ -325,7 +353,7 @@ const Sender = (() => {
         totalSize = files.reduce((sum, entry) => sum + entry.size, 0);
         renderSelectionSummary();
       });
-      row.append(name, size, remove);
+      row.append(remove);
       els.senderFileList.appendChild(row);
     });
   }
@@ -625,7 +653,8 @@ const Sender = (() => {
   }
 
   return {
-    init,
+    stage,
+    start,
     reset,
     cancel,
     copyCode: () => code && copyText(code, els.copyCodeBtn, 'Copied'),
@@ -1317,7 +1346,7 @@ els.dropZone.addEventListener('keydown', (event) => {
     els.fileInput.click();
   }
 });
-els.fileInput.addEventListener('change', (event) => Sender.init(Array.from(event.target.files)));
+els.fileInput.addEventListener('change', (event) => Sender.stage(Array.from(event.target.files)));
 
 els.dropZone.addEventListener('dragover', (event) => {
   event.preventDefault();
@@ -1327,8 +1356,10 @@ els.dropZone.addEventListener('dragleave', () => els.dropZone.classList.remove('
 els.dropZone.addEventListener('drop', (event) => {
   event.preventDefault();
   els.dropZone.classList.remove('drag-over');
-  Sender.init(Array.from(event.dataTransfer.files));
+  Sender.stage(Array.from(event.dataTransfer.files));
 });
+
+els.startShareBtn.addEventListener('click', () => Sender.start());
 
 els.copyCodeBtn.addEventListener('click', () => void Sender.copyCode());
 els.copyLinkBtn.addEventListener('click', () => void Sender.copyLink());
@@ -1377,11 +1408,11 @@ els.receiverConnectingCancelBtn.addEventListener('click', () => Receiver.reset()
 els.consentAcceptBtn.addEventListener('click', () => void Receiver.acceptConsent());
 els.consentDeclineBtn.addEventListener('click', () => Receiver.declineConsent());
 
-// Pasting files anywhere on the Send tab starts a transfer immediately.
+// Pasting files anywhere on the Send tab stages them for the next Send.
 window.addEventListener('paste', (event) => {
   if (!els.senderView.classList.contains('active')) return;
   const files = Array.from(event.clipboardData?.files || []).filter(Boolean);
-  if (files.length > 0) Sender.init(files);
+  if (files.length > 0) Sender.stage(files);
 });
 
 window.addEventListener('dragover', (event) => event.preventDefault());

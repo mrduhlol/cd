@@ -93,6 +93,7 @@ body::before{content:"";position:fixed;z-index:0;inset:0 0 auto;height:58vh;poin
 .file-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;font-weight:500}
 .file-size{color:var(--accent);font:12px ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap}
 .file-subtext{display:block;margin-top:4px;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.send-staged-btn{width:100%;margin-top:14px;min-height:52px;font-size:15px}
 
 /* Share: code is the hero, link is visible + readonly, QR is black-on-white. */
 .share-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:stretch}
