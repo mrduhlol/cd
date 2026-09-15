@@ -94,6 +94,7 @@ function peerOptions() {
 
 const els = {
   appState: document.getElementById('app-state'),
+  appDot: document.getElementById('app-dot'),
   sendModeBtn: document.getElementById('send-mode-btn'),
   receiveModeBtn: document.getElementById('receive-mode-btn'),
   senderView: document.getElementById('sender-view'),
@@ -102,17 +103,22 @@ const els = {
   fileInput: document.getElementById('file-input'),
   selectFileBtn: document.getElementById('select-file-btn'),
   senderFileInfo: document.getElementById('sender-file-info'),
+  senderFileList: document.getElementById('sender-file-list'),
   senderCodeSection: document.getElementById('sender-code-section'),
   shareCode: document.getElementById('share-code'),
+  shareLink: document.getElementById('share-link'),
   shareQr: document.getElementById('share-qr'),
   copyCodeBtn: document.getElementById('copy-code-btn'),
   copyLinkBtn: document.getElementById('copy-link-btn'),
   senderStatus: document.getElementById('sender-status'),
   senderProgress: document.getElementById('sender-progress'),
+  senderProgressFile: document.getElementById('sender-progress-file'),
   senderCancelBtn: document.getElementById('sender-cancel-btn'),
   senderComplete: document.getElementById('sender-complete'),
   senderCompleteMessage: document.getElementById('sender-complete-message'),
   sendAnotherBtn: document.getElementById('send-another-btn'),
+  senderError: document.getElementById('sender-error'),
+  senderRetryBtn: document.getElementById('sender-retry-btn'),
   receiverInputSection: document.getElementById('receiver-input-section'),
   codeInput: document.getElementById('code-input'),
   connectBtn: document.getElementById('connect-btn'),
@@ -122,8 +128,12 @@ const els = {
   qrReader: document.getElementById('qr-reader'),
   receiverConnecting: document.getElementById('receiver-connecting'),
   receiverConnectingCancelBtn: document.getElementById('receiver-connecting-cancel-btn'),
+  receiverConsent: document.getElementById('receiver-consent'),
+  consentAcceptBtn: document.getElementById('consent-accept-btn'),
+  consentDeclineBtn: document.getElementById('consent-decline-btn'),
   receiverFileInfo: document.getElementById('receiver-file-info'),
   receiverProgress: document.getElementById('receiver-progress'),
+  receiverProgressFile: document.getElementById('receiver-progress-file'),
   receiverCancelBtn: document.getElementById('receiver-cancel-btn'),
   receiverComplete: document.getElementById('receiver-complete'),
   receiverCompleteMessage: document.getElementById('receiver-complete-message'),
@@ -134,6 +144,11 @@ const els = {
 
 function setState(state) {
   els.appState.textContent = state;
+  if (!els.appDot) return;
+  els.appDot.className = 'state-dot'
+    + (state === 'complete' ? ' done'
+      : state === 'failed' || state === 'offline' ? ' bad'
+      : state === 'idle' ? '' : ' live');
 }
 
 function formatSize(bytes) {
@@ -260,6 +275,7 @@ const Sender = (() => {
 
     renderSelectionSummary();
     els.shareCode.textContent = code;
+    if (els.shareLink) els.shareLink.value = receiveLinkFor(code, window.location.href);
     void renderQr().catch(() => { els.shareQr.hidden = true; });
     createPeer();
     setState('connecting');
@@ -267,15 +283,51 @@ const Sender = (() => {
   }
 
   function renderSelectionSummary() {
+    renderFileList();
     if (files.length === 1) {
       setFileInfo(els.senderFileInfo, files[0].name, formatSize(files[0].size), 'Ready to send');
       return;
     }
 
-    const previewNames = files.slice(0, 3).map((item) => item.name).join(', ');
-    const remaining = files.length - 3;
-    const suffix = remaining > 0 ? ` + ${remaining} more` : '';
-    setFileInfo(els.senderFileInfo, `${files.length} files selected`, formatSize(totalSize), previewNames + suffix);
+    setFileInfo(
+      els.senderFileInfo,
+      `${files.length} files selected`,
+      formatSize(totalSize),
+      'Review below — remove anything you did not mean to share.'
+    );
+  }
+
+  function renderFileList() {
+    if (!els.senderFileList) return;
+    els.senderFileList.replaceChildren();
+    files.forEach((item, index) => {
+      const row = document.createElement('li');
+      const name = document.createElement('span');
+      name.className = 'fname';
+      name.textContent = item.name;
+      name.title = item.name;
+      const size = document.createElement('span');
+      size.className = 'fsize';
+      size.textContent = formatSize(item.size);
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'rm';
+      remove.textContent = 'Remove';
+      remove.setAttribute('aria-label', `Remove ${item.name}`);
+      remove.addEventListener('click', (event) => {
+        event.stopPropagation();
+        files.splice(index, 1);
+        if (files.length === 0) {
+          reset();
+          setState('idle');
+          return;
+        }
+        totalSize = files.reduce((sum, entry) => sum + entry.size, 0);
+        renderSelectionSummary();
+      });
+      row.append(name, size, remove);
+      els.senderFileList.appendChild(row);
+    });
   }
 
   function showCurrentFile(index) {
@@ -286,6 +338,7 @@ const Sender = (() => {
       formatSize(currentFile.size),
       `File ${index + 1} of ${files.length}`
     );
+    if (els.senderProgressFile) els.senderProgressFile.textContent = `${currentFile.name} — file ${index + 1} of ${files.length}`;
   }
 
   async function renderQr() {
@@ -297,8 +350,8 @@ const Sender = (() => {
       margin: 1,
       width: 180,
       color: {
-        dark: '#0d0503',
-        light: '#e4d4b6'
+        dark: '#000000',
+        light: '#ffffff'
       }
     });
   }
@@ -335,8 +388,7 @@ const Sender = (() => {
 
       conn.on('error', () => {
         if (peer !== activePeer || connection !== conn) return;
-        els.senderStatus.textContent = 'Connection got grumpy. Try again.';
-        setState('failed');
+        showSenderError('Connection got grumpy. Try again with a fresh code.');
       });
 
       conn.on('data', (data) => {
@@ -378,8 +430,7 @@ const Sender = (() => {
           transferCancelled = true;
           transferAckResolve?.();
           transferAckResolve = null;
-          els.senderStatus.textContent = 'Connection vanished mid-send.';
-          setState('failed');
+          showSenderError('Connection vanished mid-send. Choose files to try again.');
         }
       });
     });
@@ -389,16 +440,13 @@ const Sender = (() => {
       if (err.type === 'unavailable-id') {
         code = generateCode();
         els.shareCode.textContent = code;
+        if (els.shareLink) els.shareLink.value = receiveLinkFor(code, window.location.href);
         void renderQr().catch(() => { els.shareQr.hidden = true; });
         createPeer();
         return;
       }
 
-      els.senderStatus.textContent = 'Connection failed. Give it a refresh.';
-      els.senderFileInfo.querySelector('.file-subtext').textContent = 'Connection failed. Choose files to try again.';
-      els.dropZone.classList.remove('hidden');
-      els.senderCodeSection.classList.add('hidden');
-      setState('failed');
+      showSenderError('Connection failed. Check your network and try again.');
     });
   }
 
@@ -520,6 +568,14 @@ const Sender = (() => {
     });
   }
 
+  function showSenderError(message) {
+    els.senderCodeSection.classList.add('hidden');
+    els.senderProgress.classList.add('hidden');
+    els.senderComplete.classList.add('hidden');
+    els.senderError.querySelector('.error-message').textContent = message;
+    els.senderError.classList.remove('hidden');
+    setState('failed');
+  }
   function showComplete() {
     els.senderProgress.classList.add('hidden');
     els.senderComplete.classList.remove('hidden');
@@ -561,8 +617,10 @@ const Sender = (() => {
     els.senderCodeSection.classList.add('hidden');
     els.senderProgress.classList.add('hidden');
     els.senderComplete.classList.add('hidden');
+    els.senderError.classList.add('hidden');
     els.senderStatus.textContent = 'Waiting for receiver...';
     els.senderCompleteMessage.textContent = 'Sent. Nice.';
+    if (els.senderProgressFile) els.senderProgressFile.textContent = '';
     resetProgress(els.senderProgress);
   }
 
@@ -571,7 +629,7 @@ const Sender = (() => {
     reset,
     cancel,
     copyCode: () => code && copyText(code, els.copyCodeBtn, 'Copied'),
-    copyLink: () => code && copyText(receiveLinkFor(code), els.copyLinkBtn, 'Copied')
+    copyLink: () => code && copyText(receiveLinkFor(code, window.location.href), els.copyLinkBtn, 'Copied')
   };
 })();
 
@@ -595,12 +653,14 @@ const Receiver = (() => {
   let pendingReceiveBytes = 0;
   let transferGeneration = 0;
   let timeoutId = null;
+  let consentDecided = false;
+  let earlyFrames = [];
   const lastProgressUpdate = { value: 0 };
 
   function connect(rawCode) {
     const code = codeFromUrl(rawCode, window.location.href);
     if (!isValidCode(code)) {
-      els.scannerStatus.textContent = 'Paste the sender’s code or their link.';
+      els.scannerStatus.textContent = 'Enter the 5-letter code — e.g. K7Q2M — or paste the sender’s link.';
       els.codeInput.setAttribute('aria-invalid', 'true');
       els.codeInput.focus();
       return;
@@ -666,10 +726,10 @@ const Receiver = (() => {
     peer.on('error', (err) => {
       if (connectionGeneration !== transferGeneration || transferCancelled) return;
       if (err.type === 'peer-unavailable') {
-        showError('Bad code, or the sender wandered off.');
+        showError('Wrong code, or the sender closed their tab. Check the 5 letters and try again.');
         return;
       }
-      showError('Connection failed. Try again.');
+      showError('Connection failed. Check your network and try again.');
     });
 
     timeoutId = setTimeout(() => {
@@ -681,6 +741,16 @@ const Receiver = (() => {
 
   async function handleData(data) {
     if (transferCancelled) return;
+
+    // Consent gate: nothing downloads itself. Frames arriving before the
+    // receiver accepts are staged in order and replayed on accept.
+    if (!consentDecided && manifest) {
+      const isBinary = data instanceof ArrayBuffer || ArrayBuffer.isView(data) || data instanceof Blob;
+      if (isBinary || data?.type !== 'manifest') {
+        earlyFrames.push(data);
+        return;
+      }
+    }
 
     if (data instanceof ArrayBuffer || ArrayBuffer.isView(data) || data instanceof Blob) {
       await handleChunk(data);
@@ -713,12 +783,44 @@ const Receiver = (() => {
     if (manifest) throw new Error('duplicate manifest');
     manifest = parseManifest(data);
     totalBytesReceived = 0;
-    transferStartTime = Date.now();
-    transferCancelled = false;
     lastProgressAckAt = 0;
     nextFileIndex = 0;
     lastProgressUpdate.value = 0;
+    earlyFrames = [];
 
+    // Explicit consent: show what is coming, start nothing until Accept.
+    const title = manifest.totalFiles === 1
+      ? manifest.files[0].name
+      : `${manifest.totalFiles} files`;
+    els.receiverConsent.querySelector('.consent-name').textContent = title;
+    els.receiverConsent.querySelector('.consent-meta').textContent =
+      `${manifest.totalFiles === 1 ? formatSize(manifest.files[0].size) : `${manifest.totalFiles} files · ${formatSize(manifest.totalSize)}`} · nothing moves until you accept`;
+    els.receiverConnecting.classList.add('hidden');
+    els.receiverConsent.classList.remove('hidden');
+    setState('review');
+  }
+
+  function setManifestSummary() {
+    if (!manifest) return;
+
+    if (manifest.totalFiles === 1) {
+      const onlyFile = manifest.files[0];
+      setFileInfo(els.receiverFileInfo, onlyFile.name, formatSize(onlyFile.size), 'Receiving');
+      if (els.receiverProgressFile) els.receiverProgressFile.textContent = onlyFile.name;
+      return;
+    }
+
+    const names = manifest.files.map((item) => item.name).join(', ');
+    setFileInfo(els.receiverFileInfo, `${manifest.totalFiles} files incoming`, formatSize(manifest.totalSize), names);
+    if (els.receiverProgressFile) els.receiverProgressFile.textContent = `${manifest.totalFiles} files · ${formatSize(manifest.totalSize)}`;
+  }
+
+  async function acceptConsent() {
+    if (!manifest || consentDecided || transferCancelled) return;
+    const generation = transferGeneration;
+    consentDecided = true;
+    transferStartTime = Date.now();
+    els.receiverConsent.classList.add('hidden');
     setManifestSummary();
     els.receiverProgress.classList.remove('hidden');
     lastProgressUpdate.value = updateProgress(
@@ -730,21 +832,31 @@ const Receiver = (() => {
       lastProgressUpdate
     );
     setState('transferring');
+    const frames = earlyFrames;
+    earlyFrames = [];
+    for (const frame of frames) {
+      if (generation !== transferGeneration || transferCancelled) return;
+      try {
+        await handleData(frame);
+      } catch (error) {
+        if (generation !== transferGeneration) return;
+        if (error?.message === DOWNLOAD_TOO_LARGE) refuseTransfer(DOWNLOAD_TOO_LARGE);
+        else failProtocol();
+        return;
+      }
+    }
   }
 
-  function setManifestSummary() {
-    if (!manifest) return;
-
-    if (manifest.totalFiles === 1) {
-      const onlyFile = manifest.files[0];
-      setFileInfo(els.receiverFileInfo, onlyFile.name, formatSize(onlyFile.size), 'Getting ready');
-      return;
+  function declineConsent() {
+    if (consentDecided) return;
+    consentDecided = true;
+    earlyFrames = [];
+    try {
+      connection?.send({ type: 'cancel' });
+    } catch {
+      // The connection may already be closing.
     }
-
-    const previewNames = manifest.files.slice(0, 3).map((item) => item.name).join(', ');
-    const remaining = manifest.totalFiles - 3;
-    const suffix = remaining > 0 ? ` + ${remaining} more` : '';
-    setFileInfo(els.receiverFileInfo, `${manifest.totalFiles} files incoming`, formatSize(manifest.totalSize), previewNames + suffix);
+    reset();
   }
 
   async function handleFileStart(data) {
@@ -978,6 +1090,7 @@ const Receiver = (() => {
     clearTimeout(timeoutId);
     els.receiverConnecting.classList.add('hidden');
     els.receiverInputSection.classList.add('hidden');
+    els.receiverConsent.classList.add('hidden');
     els.receiverFileInfo.classList.add('hidden');
     els.receiverProgress.classList.add('hidden');
     els.receiverComplete.classList.add('hidden');
@@ -1014,6 +1127,8 @@ const Receiver = (() => {
   function resetConnectionOnly() {
     transferGeneration += 1;
     transferCancelled = true;
+    consentDecided = false;
+    earlyFrames = [];
     peer?.destroy();
     peer = null;
     connection = null;
@@ -1043,12 +1158,14 @@ const Receiver = (() => {
     resetConnectionOnly();
     els.receiverInputSection.classList.remove('hidden');
     els.receiverConnecting.classList.add('hidden');
+    els.receiverConsent.classList.add('hidden');
     els.receiverFileInfo.classList.add('hidden');
     els.receiverProgress.classList.add('hidden');
     els.receiverComplete.classList.add('hidden');
     els.receiverError.classList.add('hidden');
     els.receiverCompleteMessage.textContent = 'All here. Nice.';
     els.codeInput.value = '';
+    if (els.receiverProgressFile) els.receiverProgressFile.textContent = '';
     resetProgress(els.receiverProgress);
     setState('idle');
   }
@@ -1056,7 +1173,9 @@ const Receiver = (() => {
   return {
     connect,
     reset,
-    cancel
+    cancel,
+    acceptConsent,
+    declineConsent
   };
 })();
 
@@ -1192,6 +1311,12 @@ els.selectFileBtn.addEventListener('click', (event) => {
   els.fileInput.click();
 });
 els.dropZone.addEventListener('click', () => els.fileInput.click());
+els.dropZone.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    els.fileInput.click();
+  }
+});
 els.fileInput.addEventListener('change', (event) => Sender.init(Array.from(event.target.files)));
 
 els.dropZone.addEventListener('dragover', (event) => {
@@ -1207,12 +1332,19 @@ els.dropZone.addEventListener('drop', (event) => {
 
 els.copyCodeBtn.addEventListener('click', () => void Sender.copyCode());
 els.copyLinkBtn.addEventListener('click', () => void Sender.copyLink());
+els.shareLink?.addEventListener('click', () => els.shareLink.select());
 els.sendAnotherBtn.addEventListener('click', () => {
   Sender.reset();
   els.fileInput.value = '';
   setState('idle');
 });
 els.senderCancelBtn.addEventListener('click', () => Sender.cancel());
+els.senderRetryBtn.addEventListener('click', () => {
+  Sender.reset();
+  els.fileInput.value = '';
+  setState('idle');
+  els.dropZone.focus();
+});
 
 els.connectBtn.addEventListener('click', () => Receiver.connect(els.codeInput.value));
 els.codeInput.addEventListener('keydown', (event) => {
@@ -1222,12 +1354,14 @@ els.codeInput.addEventListener('input', (event) => {
   const raw = event.target.value;
   // Pasting a full link via autofill/drag doesn't fire a paste event, so
   // detect link characters and extract the code instead of mangling it.
-  event.target.value = /[:\/#.]/.test(raw) ? codeFromUrl(raw, window.location.href) : cleanCode(raw);
+  // Codes are CAPS-only: lowercase typing auto-upgrades.
+  const next = /[:\/#.]/.test(raw) ? codeFromUrl(raw, window.location.href) : cleanCode(raw);
+  event.target.value = next.toUpperCase();
   els.codeInput.removeAttribute('aria-invalid');
 });
 els.codeInput.addEventListener('paste', (event) => {
   event.preventDefault();
-  els.codeInput.value = codeFromUrl((event.clipboardData || window.clipboardData).getData('text'));
+  els.codeInput.value = codeFromUrl((event.clipboardData || window.clipboardData).getData('text')).toUpperCase();
   els.codeInput.removeAttribute('aria-invalid');
 });
 
@@ -1239,6 +1373,8 @@ els.receiveAnotherBtn.addEventListener('click', () => Receiver.reset());
 els.retryBtn.addEventListener('click', () => Receiver.reset());
 els.receiverCancelBtn.addEventListener('click', () => Receiver.cancel());
 els.receiverConnectingCancelBtn.addEventListener('click', () => Receiver.reset());
+els.consentAcceptBtn.addEventListener('click', () => void Receiver.acceptConsent());
+els.consentDeclineBtn.addEventListener('click', () => Receiver.declineConsent());
 
 // Pasting files anywhere on the Send tab starts a transfer immediately.
 window.addEventListener('paste', (event) => {
