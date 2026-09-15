@@ -43,6 +43,12 @@ test('generates a 5-char code deterministically', () => {
   assert.equal(isValidCode(a), true);
 });
 
+test('codes are letters and numbers only', () => {
+  // cleanCode strips specials; the receive input uppercases after.
+  assert.equal(cleanCode('ab!12#'), 'ab12');
+  assert.equal(cleanCode('k-7_q.2'), 'k7q2');
+  assert.equal(isValidCode('K7-2M'), false);
+});
 test('lowercase typing auto-upgrades to CAPS', () => {
   const code = generateCode();
   assert.equal(isValidCode(code.toLowerCase()), true);

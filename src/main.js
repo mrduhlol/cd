@@ -1354,9 +1354,10 @@ els.codeInput.addEventListener('input', (event) => {
   const raw = event.target.value;
   // Pasting a full link via autofill/drag doesn't fire a paste event, so
   // detect link characters and extract the code instead of mangling it.
-  // Codes are CAPS-only: lowercase typing auto-upgrades.
+  // Codes are CAPS-only letters + numbers, max 5 chars: lowercase typing
+  // auto-upgrades, anything else is dropped.
   const next = /[:\/#.]/.test(raw) ? codeFromUrl(raw, window.location.href) : cleanCode(raw);
-  event.target.value = next.toUpperCase();
+  event.target.value = next.toUpperCase().slice(0, 5);
   els.codeInput.removeAttribute('aria-invalid');
 });
 els.codeInput.addEventListener('paste', (event) => {

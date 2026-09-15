@@ -80,7 +80,8 @@ export function generateEphemeralId(random = crypto) {
 }
 
 export function cleanCode(value) {
-  const cleaned = String(value ?? '').trim().replace(/[^A-Za-z0-9_-]/g, '').slice(0, P2P_MAX_CODE_LENGTH);
+  // Receive codes are letters + numbers only — no special characters.
+  const cleaned = String(value ?? '').trim().replace(/[^A-Za-z0-9]/g, '').slice(0, P2P_MAX_CODE_LENGTH);
   // New codes are CAPS-only: lowercase typing auto-upgrades.
   if (/^[A-Za-z0-9]{1,5}$/.test(cleaned) && isNewCode(cleaned.toUpperCase())) return cleaned.toUpperCase();
   if (/^[a-zA-Z]{3,5}$/.test(cleaned)) return cleaned.toUpperCase();
