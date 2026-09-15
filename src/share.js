@@ -25,9 +25,7 @@ let failureShown = false;
 document.body.innerHTML = `
   <main class="shell share-transfer-page">
     <header class="brand-rail">
-      <div class="brand-lockup"><h1>cd</h1><span class="tagline">/di·rect/</span></div>
-      <p class="brand-note">private CD relay</p>
-      <p class="share-description">A file is being handed to you through CD.</p>
+      <div class="brand-lockup"><h1>cd</h1><p class="tagline">/di·rect/ — no cloud detour</p></div>
     </header>
     <section class="workbench">
       <div class="share-panel">
@@ -36,15 +34,21 @@ document.body.innerHTML = `
         <div id="offer" class="agent-offer" hidden>
           <strong id="file-name"></strong>
           <span id="file-size"></span>
-          <button id="accept" class="primary-btn" type="button">Receive file</button>
+          <button id="accept" class="primary-btn" type="button">Accept &amp; download</button>
         </div>
         <div id="receive-progress" class="agent-progress" hidden>
           <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             <div class="progress-fill"></div>
+            <span class="progress-dino" aria-hidden="true">🦕</span>
           </div>
           <span id="progress-copy">0%</span>
         </div>
         <a id="download" class="primary-btn share-download" hidden>Download file</a>
+        <ul class="trust-strip" aria-label="privacy guarantees">
+          <li>key stays in link</li>
+          <li>never stored</li>
+          <li>nothing moves until you accept</li>
+        </ul>
       </div>
     </section>
     <p class="watermark">encrypted in your browser · <a href="/">cd.yash0.in</a></p>
@@ -126,6 +130,7 @@ function renderProgress(received, total) {
   const percent = total === 0n ? 100 : Math.min(Number(received * 1000n / total) / 10, 100);
   elements.progress.hidden = false;
   elements.progressFill.style.transform = `scaleX(${percent / 100})`;
+  elements.progressBar.style.setProperty('--progress', `${percent}%`);
   elements.progressBar.setAttribute('aria-valuenow', percent.toFixed(1));
   elements.progressCopy.textContent = `${percent.toFixed(1)}% · ${formatSize(received)} / ${formatSize(total)}`;
 }
