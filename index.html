@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
-      content="Send files directly between browsers with a private code or QR link. No upload queue, no cloud detour."
+      content="Send files directly between browsers with a 5-letter private code or QR link. No upload queue, no cloud detour."
     />
     <meta name="theme-color" content="#0d0503" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -15,7 +15,7 @@
     <meta property="og:title" content="cd | direct browser transfer" />
     <meta
       property="og:description"
-      content="Send files directly between browsers with a private code or QR link."
+      content="Send files directly between browsers with a 5-letter private code or QR link."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://cd.yash0.in/" />
@@ -28,21 +28,16 @@
   </head>
   <body>
     <main class="shell">
-      <section class="brand-rail" aria-label="cd status board">
+      <header class="brand-rail">
         <div class="brand-lockup">
-          <div class="brand-mark"><span></span><span></span><span></span></div>
-          <div>
-            <h1>cd</h1>
-          <p class="tagline">/di·rect/</p>
-          </div>
-          <p class="brand-note">no cloud detour</p>
+          <h1>cd</h1>
+          <p class="tagline">/di·rect/ — no cloud detour</p>
         </div>
-
         <div class="state-board" aria-live="polite">
-          <span class="state-label">state</span>
-          <strong id="app-state">loading</strong>
+          <span class="state-dot" id="app-dot" aria-hidden="true"></span>
+          <strong id="app-state">idle</strong>
         </div>
-      </section>
+      </header>
 
       <section class="workbench" aria-label="file transfer app" inert aria-busy="true">
         <div class="mode-selector" role="tablist" aria-label="Choose transfer mode">
@@ -55,18 +50,19 @@
         </div>
 
         <section id="sender-view" class="view active" role="tabpanel" aria-labelledby="send-mode-btn">
-          <div id="drop-zone" class="drop-zone">
-            <input id="file-input" type="file" multiple hidden />
+          <div id="drop-zone" class="drop-zone" role="button" tabindex="0" aria-label="Choose files to send. You can also drag and drop files here.">
+            <input id="file-input" type="file" multiple hidden tabindex="-1" />
             <span class="drop-mark" aria-hidden="true">+</span>
             <div>
-            <h2>Send a file</h2>
-            <p>Drop files here, or choose them below. Keep this tab open until they arrive.</p>
+              <h2>Send a file</h2>
+              <p>Drop files here, paste them, or choose below. Keep this tab open until they arrive.</p>
             </div>
             <button id="select-file-btn" class="primary-btn" type="button">Choose files</button>
           </div>
 
           <div id="sender-file-info" class="file-info hidden">
             <span class="panel-kicker">payload</span>
+            <ul id="sender-file-list" class="file-list"></ul>
             <div class="file-header">
               <span class="file-name"></span>
               <span class="file-size"></span>
@@ -78,7 +74,9 @@
             <div class="share-grid">
               <div class="code-block">
                 <span class="panel-kicker">share this code</span>
-                <strong id="share-code"></strong>
+                <strong id="share-code" aria-live="polite"></strong>
+                <label class="link-label" for="share-link">or share this link</label>
+                <input id="share-link" class="link-field" type="text" readonly spellcheck="false" aria-label="Share link" />
               </div>
               <div class="qr-block">
                 <span class="panel-kicker">or scan it</span>
@@ -92,6 +90,11 @@
             </div>
 
             <p class="status" role="status" id="sender-status">Waiting for receiver...</p>
+            <ul class="trust-strip" aria-label="privacy guarantees">
+              <li>key stays in link</li>
+              <li>never stored</li>
+              <li>expires fast</li>
+            </ul>
           </div>
 
           <div id="sender-progress" class="progress-section hidden">
@@ -100,9 +103,9 @@
               <strong class="progress-percent">0%</strong>
               <button id="sender-cancel-btn" class="cancel-btn" type="button">Cancel</button>
             </div>
+            <p class="progress-file" id="sender-progress-file"></p>
             <div class="progress-bar" role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
               <div class="progress-fill"></div>
-              <span class="progress-dino" aria-hidden="true">🦕</span>
             </div>
             <div class="progress-stats">
               <span><b>speed</b><em class="progress-speed">0 MB/s</em></span>
@@ -116,19 +119,26 @@
             <p id="sender-complete-message">Sent. Nice.</p>
             <button id="send-another-btn" class="primary-btn" type="button">Send more stuff</button>
           </div>
+
+          <div id="sender-error" class="result-section error hidden" role="alert">
+            <span class="result-mark">ERR</span>
+            <p class="error-message"></p>
+            <button id="sender-retry-btn" class="primary-btn" type="button">Try again</button>
+          </div>
         </section>
 
         <section id="receiver-view" class="view hidden" role="tabpanel" aria-labelledby="receive-mode-btn">
           <div id="receiver-input-section" class="input-section">
-              <label for="code-input">Enter the share code</label>
+            <label for="code-input">Enter the 5-letter code</label>
             <div class="code-input-wrapper">
               <input
                 id="code-input"
                 type="text"
                 maxlength="512"
-                placeholder="Paste a code or link" aria-describedby="scanner-status"
+                placeholder="e.g. K7Q2M"
+                aria-describedby="scanner-status"
                 autocomplete="off"
-                autocapitalize="none"
+                autocapitalize="characters"
                 autocorrect="off"
                 enterkeyhint="go"
                 spellcheck="false"
@@ -136,6 +146,7 @@
               />
               <button id="connect-btn" class="primary-btn" type="button">Connect</button>
             </div>
+            <p class="input-hint">Caps only — lowercase works too, we fix it. Links paste fine.</p>
 
             <div class="scanner-panel">
               <button id="scan-qr-btn" class="secondary-btn" type="button">Scan code</button>
@@ -149,6 +160,20 @@
             <div class="spinner" aria-hidden="true"></div>
             <p>Finding the sender...</p>
             <button id="receiver-connecting-cancel-btn" class="secondary-btn" type="button">Cancel</button>
+          </div>
+
+          <div id="receiver-consent" class="consent-panel hidden" role="dialog" aria-labelledby="consent-title">
+            <span class="panel-kicker">incoming stuff</span>
+            <h3 id="consent-title" class="consent-name"></h3>
+            <p class="consent-meta"></p>
+            <ul class="trust-strip" aria-label="privacy guarantees">
+              <li>nothing downloads itself</li>
+              <li>verify before you accept</li>
+            </ul>
+            <div class="consent-actions">
+              <button id="consent-accept-btn" class="primary-btn" type="button">Accept &amp; download</button>
+              <button id="consent-decline-btn" class="secondary-btn" type="button">Decline</button>
+            </div>
           </div>
 
           <div id="receiver-file-info" class="file-info hidden">
@@ -166,9 +191,9 @@
               <strong class="progress-percent">0%</strong>
               <button id="receiver-cancel-btn" class="cancel-btn" type="button">Cancel</button>
             </div>
+            <p class="progress-file" id="receiver-progress-file"></p>
             <div class="progress-bar" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
               <div class="progress-fill"></div>
-              <span class="progress-dino" aria-hidden="true">🦕</span>
             </div>
             <div class="progress-stats">
               <span><b>speed</b><em class="progress-speed">0 MB/s</em></span>
