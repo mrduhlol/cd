@@ -1,18 +1,33 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  P2P_CODE_ALPHABET,
+  P2P_CODE_LENGTH,
   P2P_WORDS,
   cleanCode,
   codeFromUrl,
   generateCode,
   generateEphemeralId,
   isValidCode,
+  isNewCode,
   normalizeCode,
   peerIdFor,
   receiveLinkFor,
 } from './p2p-code.js';
 
-test('word list is short plain words', () => {
+test('new codes are 5-char CAPS without ambiguous chars', () => {
+  assert.equal(P2P_CODE_LENGTH, 5);
+  for (const ch of ['I', 'L', 'O', '0', '1']) {
+    assert.ok(!P2P_CODE_ALPHABET.includes(ch), `${ch} must be excluded`);
+  }
+  const code = generateCode();
+  assert.equal(code.length, 5);
+  assert.match(code, /^[A-Z2-9]{5}$/);
+  assert.equal(isNewCode(code), true);
+  assert.equal(isValidCode(code), true);
+});
+
+test('legacy word list stays short plain words', () => {
   assert.ok(P2P_WORDS.length >= 100);
   assert.equal(new Set(P2P_WORDS).size, P2P_WORDS.length);
   for (const word of P2P_WORDS) {
@@ -20,12 +35,24 @@ test('word list is short plain words', () => {
   }
 });
 
-test('generates a short word deterministically', () => {
-  const a = generateCode({ getRandomValues: (bytes) => bytes.fill(0xff) });
-  const b = generateCode({ getRandomValues: (bytes) => bytes.fill(0xff) });
+test('generates a 5-char code deterministically', () => {
+  const a = generateCode({ getRandomValues: (bytes) => bytes.fill(0) });
+  const b = generateCode({ getRandomValues: (bytes) => bytes.fill(0) });
   assert.equal(a, b);
-  assert.ok(P2P_WORDS.includes(a));
+  assert.equal(a, P2P_CODE_ALPHABET[0].repeat(5));
   assert.equal(isValidCode(a), true);
+});
+
+test('lowercase typing auto-upgrades to CAPS', () => {
+  const code = generateCode();
+  assert.equal(isValidCode(code.toLowerCase()), true);
+  assert.equal(normalizeCode(code.toLowerCase()), code);
+  assert.equal(cleanCode(code.toLowerCase()), code);
+  assert.equal(cleanCode(' ' + code.toLowerCase() + '!'), code);
+  assert.equal(peerIdFor(code.toLowerCase()), `cd-${code}`);
+  const link = receiveLinkFor(code.toLowerCase(), 'https://cd.yash0.in/anything?old=1');
+  assert.ok(link.includes(`#p2p.${code}`));
+  assert.equal(codeFromUrl(link), code);
 });
 
 test('ephemeral ids stay random base64url', () => {
@@ -47,8 +74,11 @@ test('codes are case-insensitive but links stay lowercase', () => {
 
 test('rejects random short strings that are not words', () => {
   assert.equal(isValidCode('waffle'), false);
-  assert.equal(isValidCode('zzzz'), false);
-  assert.equal(cleanCode(' mango!'), 'mango');
+  assert.equal(isValidCode('HELLO'), false);
+  assert.equal(isValidCode('AB12C'), false);
+  // cleanCode surfaces CAPS for display; normalize keeps legacy words lowercase.
+  assert.equal(cleanCode(' river!'), 'RIVER');
+  assert.equal(normalizeCode(cleanCode(' river!')), 'river');
 });
 
 test('still accepts legacy random codes', () => {
