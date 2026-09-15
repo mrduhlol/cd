@@ -55,8 +55,10 @@ Repository agents should follow [AGENTS.md](AGENTS.md) and the reusable
 ## Browser-to-browser sharing
 
 Open [cd.yash0.in](https://cd.yash0.in), choose files, and share the displayed
-short private code (e.g. `river`, `mango`, `piano`), link, or QR code. The private code is placed in the URL
-fragment so it is not sent in HTTP requests. Keep both tabs open until the
+5-letter private code (e.g. `K7Q2M`), link, or QR code. The private code is placed in the URL
+fragment so it is not sent in HTTP requests. Codes are CAPS-only and exclude
+lookalike characters (no I/L/O/0/1) so they are easy to read out loud.
+Keep both tabs open until the
 WebRTC transfer finishes. CD coordinates the connection through its own
 `cd.yash0.in` Worker; file bytes travel over the encrypted WebRTC data channel.
 WebRTC may use public STUN servers for NAT discovery, but they do not receive
