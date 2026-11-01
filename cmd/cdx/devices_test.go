@@ -441,7 +441,7 @@ func TestDeviceSenderPipelinesChunksAndRejectsInvalidACK(t *testing.T) {
 	}
 }
 
-func TestDeviceTargetedSendRejectsBackgroundOptionsBeforeNetwork(t *testing.T) {
+func TestDeviceTargetedSendValidatesBackgroundRequestsBeforeNetwork(t *testing.T) {
 	output := deviceTestOutput(t)
 	for _, request := range []sendRequest{{to: "phone", detach: true, jsonOutput: true}, {to: "phone", requestID: "stable", jsonOutput: true}} {
 		if code := runDeviceSend(request); code != 1 {
@@ -449,7 +449,18 @@ func TestDeviceTargetedSendRejectsBackgroundOptionsBeforeNetwork(t *testing.T) {
 		}
 	}
 	data := deviceOutputBytes(t, output)
-	if bytes.Count(data, []byte("targeted sends currently stay in the foreground")) != 2 {
+	if !bytes.Contains(data, []byte("missing file to send")) || !bytes.Contains(data, []byte("targeted sends do not support --request-id")) {
 		t.Fatalf("missing actionable option errors: %s", data)
+	}
+}
+
+func TestPairedDeviceNames(t *testing.T) {
+	existing := []devices.DeviceSummary{{Name: "phone"}, {Name: "Galaxy-S24"}, {Name: "Galaxy-S24-2"}}
+	for _, test := range []struct{ model, want string }{
+		{"Pixel 9 Pro", "Pixel-9-Pro"}, {"Galaxy S24", "Galaxy-S24-3"}, {"../../", "Android"}, {"", "Android"},
+	} {
+		if got := pairedDeviceName(test.model, existing); got != test.want {
+			t.Errorf("%q: got %q, want %q", test.model, got, test.want)
+		}
 	}
 }

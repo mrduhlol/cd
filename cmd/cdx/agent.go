@@ -29,7 +29,7 @@ const (
 const agentBlock = agentBlockBegin + `
 ## Sharing files
 
-When the user asks to send, share, or hand off a file, run ` + "`cdx send <path>`" + `
+When the user asks to send to their phone, run ` + "`cdx send --to phone --json <path>`" + ` and read the returned private log to confirm delivery. Otherwise, when the user asks to send, share, or hand off a file, run ` + "`cdx send <path>`" + `
 and reply with the link https://cd.yash0.in/#<code>, using the code it prints;
 opening the link starts the download (or they run ` + "`cdx receive <code>`" + `). Prefer it over upload sites: no account, nothing stored.
 For a QR in chat, run ` + "`cdx send --json --qr <fresh-png-path> <path>`" + ` and embed

@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -170,10 +171,38 @@ func deviceConnections(ctx context.Context, runtime *deviceRuntime) <-chan devic
 	return messages
 }
 
+func pairedDeviceName(model string, existing []devices.DeviceSummary) string {
+	var b strings.Builder
+	for _, r := range model {
+		if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' {
+			b.WriteRune(r)
+		} else if b.Len() > 0 && !strings.HasSuffix(b.String(), "-") {
+			b.WriteByte('-')
+		}
+		if b.Len() >= 48 {
+			break
+		}
+	}
+	base := strings.Trim(b.String(), "-")
+	if base == "" {
+		base = "Android"
+	}
+	used := map[string]bool{}
+	for _, device := range existing {
+		used[device.Name] = true
+	}
+	name := base
+	for n := 2; used[name]; n++ {
+		name = fmt.Sprintf("%s-%d", base, n)
+	}
+	return name
+}
+
 func runPair(args []string) int {
 	flags := flag.NewFlagSet("pair", flag.ContinueOnError)
 	flags.SetOutput(os.Stderr)
-	name := flags.String("name", "phone", "name to use with send --to")
+	name := flags.String("name", "", "optional alias; defaults to the phone device name")
+	account := flags.Bool("account", false, "pair with a phone signed into your Clerk account")
 	listen := flags.String("listen", "0.0.0.0:53318", "local address to listen on")
 	advertised := flags.String("advertise-host", "", "explicit LAN address for QR or emulator development")
 	jsonOutput := flags.Bool("json", false, "print a machine-readable pairing QR")
@@ -192,10 +221,12 @@ func runPair(args []string) int {
 	if err != nil {
 		return deviceFailure(err, *jsonOutput)
 	}
-	if _, err = store.Load(*name); err == nil {
-		return deviceFailure(fmt.Errorf("device %q already paired; forget it before pairing again", *name), *jsonOutput)
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return deviceFailure(err, *jsonOutput)
+	if *name != "" {
+		if _, err = store.Load(*name); err == nil {
+			return deviceFailure(fmt.Errorf("device %q already paired; forget it before pairing again", *name), *jsonOutput)
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return deviceFailure(err, *jsonOutput)
+		}
 	}
 	relay, _, err := endpointBase()
 	if err != nil {
@@ -228,15 +259,56 @@ func runPair(args []string) int {
 	}
 	defer runtime.close()
 	incoming := deviceConnections(ctx, runtime)
+	if *account {
+		pair.AccountSubject, err = accountIdentity(ctx)
+		if err != nil {
+			return deviceFailure(err, *jsonOutput)
+		}
+	}
 	qr, err := pair.QR()
 	if err != nil {
 		return deviceFailure(err, *jsonOutput)
+	}
+	if *account {
+		var directory struct {
+			Phones []struct {
+				ID        string `json:"id"`
+				Name      string `json:"name"`
+				PublicKey string `json:"publicKey"`
+			} `json:"phones"`
+		}
+		if err = accountRequest(ctx, "GET", "", nil, &directory); err != nil {
+			return deviceFailure(err, *jsonOutput)
+		}
+		target := ""
+		publicKey := ""
+		for _, phone := range directory.Phones {
+			if phone.Name == *name || (*name == "" && len(directory.Phones) == 1) {
+				*name = phone.Name
+				target = phone.ID
+				publicKey = phone.PublicKey
+			}
+		}
+		if target == "" {
+			return deviceFailure(fmt.Errorf("no account device named %q; sign in and enable account receiving on your phone", *name), *jsonOutput)
+		}
+		envelope, sealErr := sealAccountPair(publicKey, target, pair.PairID, qr)
+		if sealErr != nil {
+			return deviceFailure(sealErr, *jsonOutput)
+		}
+		if err = accountRequest(ctx, "POST", "/pair", map[string]string{"id": pair.PairID, "target": target, "envelope": envelope}, nil); err != nil {
+			return deviceFailure(err, *jsonOutput)
+		}
+		defer accountRequest(context.Background(), "DELETE", "/pair", map[string]string{"id": pair.PairID}, nil)
+		fmt.Fprintln(os.Stderr, "Waiting for account device", *name)
 	}
 	ready := readyOutput{URL: qr}
 	if err = saveReadyQR(&ready, *qrPath); err != nil {
 		return deviceFailure(err, *jsonOutput)
 	}
-	if *jsonOutput {
+	if *account {
+		// Account receiving imports the invitation privately over authenticated HTTPS.
+	} else if *jsonOutput {
 		err = json.NewEncoder(os.Stdout).Encode(map[string]any{"version": 1, "phase": "pairing", "name": *name, "qr": qr, "qrPath": ready.QRPath, "expiresAt": pair.ExpiresAt})
 	} else {
 		fmt.Fprintln(os.Stdout, "Open CD on your phone, scan this QR, and approve this laptop.")
@@ -251,19 +323,29 @@ func runPair(args []string) int {
 	for {
 		select {
 		case <-ctx.Done():
+			if *account && errors.Is(ctx.Err(), context.DeadlineExceeded) {
+				return 3
+			}
 			return deviceFailure(fmt.Errorf("pairing stopped or expired: %w", ctx.Err()), *jsonOutput)
 		case result := <-incoming:
 			if result.message.Type != "paired" {
 				continue
 			}
 			pair.Name = result.message.Name
+			if *name == "" {
+				existing, listErr := store.List()
+				if listErr != nil {
+					return deviceFailure(listErr, *jsonOutput)
+				}
+				*name = pairedDeviceName(pair.Name, existing)
+			}
 			if err = store.Save(*name, pair); err != nil {
 				return deviceFailure(err, *jsonOutput)
 			}
 			if *jsonOutput {
 				json.NewEncoder(os.Stdout).Encode(map[string]any{"version": 1, "phase": "paired", "name": *name, "deviceName": pair.Name, "pairId": pair.PairID})
 			} else {
-				fmt.Fprintf(os.Stdout, "Paired %s. Send with: cdx send --to %s <file>\n", pair.Name, *name)
+				fmt.Fprintf(os.Stdout, "Paired %s. Send with: cdx send --to %q <file>\n", pair.Name, *name)
 			}
 			return 0
 		}
@@ -320,16 +402,51 @@ func runDevices(args []string) int {
 }
 
 func runDeviceSend(request sendRequest) int {
-	if request.detach || request.requestID != "" {
-		return deviceFailure(errors.New("targeted sends currently stay in the foreground; remove --detach and --request-id"), request.jsonOutput)
+	if request.requestID != "" {
+		return deviceFailure(errors.New("targeted sends do not support --request-id"), request.jsonOutput)
+	}
+	if shouldDetach(request, isTerminal(os.Stdout)) {
+		if err := validateSourcePaths(request.files); err != nil {
+			return deviceFailure(err, request.jsonOutput)
+		}
+		args := []string{"send", "--to", request.to, "--wait", "--json"}
+		if request.resumeID != "" {
+			args = append(args, "--resume", request.resumeID)
+		}
+		args = append(args, "--")
+		args = append(args, request.files...)
+		return runBackgroundTransfer(args, request.jsonOutput, "device-send")
 	}
 	store, err := deviceStore()
 	if err != nil {
 		return deviceFailure(err, request.jsonOutput)
 	}
 	pair, err := store.Load(request.to)
+	if errors.Is(err, os.ErrNotExist) {
+		for {
+			code := runPair([]string{"--account", "--name", request.to, "--listen", "0.0.0.0:0"})
+			if code == 3 {
+				fmt.Fprintln(os.Stderr, "Phone is offline. Renewing private pairing invitation.")
+				continue
+			}
+			if code != 0 {
+				return code
+			}
+			break
+		}
+		pair, err = store.Load(request.to)
+	}
 	if err != nil {
 		return deviceFailure(fmt.Errorf("load paired device %q: %w", request.to, err), request.jsonOutput)
+	}
+	if pair.AccountSubject != "" {
+		subject, authErr := accountIdentity(context.Background())
+		if authErr != nil {
+			return deviceFailure(authErr, request.jsonOutput)
+		}
+		if subject != pair.AccountSubject {
+			return deviceFailure(errors.New("this device belongs to a different Clerk account; forget and pair it again"), request.jsonOutput)
+		}
 	}
 	if err = validateSourcePaths(request.files); err != nil {
 		reportFailure(os.Stdout, os.Stderr, err, request.jsonOutput)
