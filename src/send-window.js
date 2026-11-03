@@ -58,7 +58,10 @@ export function createSendWindow({ minBytes = MiB, maxBytes = 12 * MiB, initialB
       offset = count(offset, 'acknowledged offset');
       at = time(at);
       if (offset < acknowledged || offset > sent) throw new RangeError('acknowledgement must be monotonic and not exceed sent bytes');
-      if (offset === acknowledged) return false;
+      if (offset === acknowledged) {
+        lastTime = at;
+        return false;
+      }
       let covered = -1;
       for (let i = 0; i < samples.length && samples[i].offset <= offset; i++) covered = i;
       if (samples.length > 0) {

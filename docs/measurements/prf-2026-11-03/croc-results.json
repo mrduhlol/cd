@@ -1,0 +1,1377 @@
+{
+  "method": "Local loopback; disk output; local Worker; private croc relay; 3 rotated trials per tool/case/route. Hash verification outside timing. Busy shared host, not a physical-network result.",
+  "base": "7e4e2d2",
+  "summary": [
+    {
+      "case": "disk/auto/random-4k",
+      "tools": {
+        "cd": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 18.14898599999924,
+          "receiverMs": 30.297891999999592,
+          "durableMs": 32.891208999999435,
+          "totalMs": 51.0495379999993,
+          "spread": {
+            "readyMs": {
+              "min": 17.31148200000007,
+              "max": 24.36091600000009
+            },
+            "receiverMs": {
+              "min": 26.47845200000006,
+              "max": 30.333772000000863
+            },
+            "durableMs": {
+              "min": 29.52747199999999,
+              "max": 32.90055200000006
+            },
+            "totalMs": {
+              "min": 50.202690999999504,
+              "max": 53.88838800000008
+            }
+          }
+        },
+        "croc": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 9.329596000000038,
+          "receiverMs": 544.294449,
+          "durableMs": 547.8206719999998,
+          "totalMs": 559.1622690000004,
+          "spread": {
+            "readyMs": {
+              "min": 8.169043999999985,
+              "max": 11.341597000000547
+            },
+            "receiverMs": {
+              "min": 526.2713570000001,
+              "max": 551.6269710000001
+            },
+            "durableMs": {
+              "min": 529.354906,
+              "max": 554.609422
+            },
+            "totalMs": {
+              "min": 537.52395,
+              "max": 563.939018
+            }
+          }
+        },
+        "croc-no-compress": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 10.478724000000057,
+          "receiverMs": 538.368802,
+          "durableMs": 541.6905999999999,
+          "totalMs": 552.2219470000005,
+          "spread": {
+            "readyMs": {
+              "min": 8.42744300000004,
+              "max": 11.686972000000424
+            },
+            "receiverMs": {
+              "min": 532.3630509999998,
+              "max": 540.5918499999998
+            },
+            "durableMs": {
+              "min": 535.457132,
+              "max": 543.7945040000004
+            },
+            "totalMs": {
+              "min": 545.9358560000001,
+              "max": 553.3775720000003
+            }
+          }
+        }
+      },
+      "speedup": {
+        "croc": {
+          "readyMs": 0.514056046987993,
+          "receiverMs": 17.96476299407257,
+          "durableMs": 16.65553467493424,
+          "totalMs": 10.95332672746241
+        },
+        "croc-no-compress": {
+          "readyMs": 0.5773724217981376,
+          "receiverMs": 17.769183479827813,
+          "durableMs": 16.46916049817473,
+          "totalMs": 10.817374037743653
+        }
+      },
+      "pass1_5": false,
+      "pass2": false
+    },
+    {
+      "case": "disk/relay/random-4k",
+      "tools": {
+        "cd": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 20.24282099999982,
+          "receiverMs": 27.243633000000045,
+          "durableMs": 29.80766600000061,
+          "totalMs": 50.05048700000043,
+          "spread": {
+            "readyMs": {
+              "min": 15.162815000000592,
+              "max": 23.950831999999536
+            },
+            "receiverMs": {
+              "min": 23.58134699999937,
+              "max": 30.54475900000034
+            },
+            "durableMs": {
+              "min": 27.27961199999936,
+              "max": 36.34808500000054
+            },
+            "totalMs": {
+              "min": 42.44242699999995,
+              "max": 60.298917000000074
+            }
+          }
+        },
+        "croc": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 9.968701999999212,
+          "receiverMs": 238.88162300000022,
+          "durableMs": 243.34740200000033,
+          "totalMs": 253.31610399999954,
+          "spread": {
+            "readyMs": {
+              "min": 9.739629000000605,
+              "max": 10.541071999999986
+            },
+            "receiverMs": {
+              "min": 237.6382279999998,
+              "max": 240.5837590000001
+            },
+            "durableMs": {
+              "min": 240.8034550000002,
+              "max": 244.93555399999968
+            },
+            "totalMs": {
+              "min": 251.3445270000002,
+              "max": 254.6751830000003
+            }
+          }
+        },
+        "croc-no-compress": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 8.95991900000081,
+          "receiverMs": 236.04204799999934,
+          "durableMs": 238.9541279999994,
+          "totalMs": 247.9140470000002,
+          "spread": {
+            "readyMs": {
+              "min": 8.063691999999719,
+              "max": 9.530076999999437
+            },
+            "receiverMs": {
+              "min": 232.94746100000066,
+              "max": 241.6893570000002
+            },
+            "durableMs": {
+              "min": 235.64066600000024,
+              "max": 245.1071149999998
+            },
+            "totalMs": {
+              "min": 245.17074299999967,
+              "max": 253.1708069999995
+            }
+          }
+        }
+      },
+      "speedup": {
+        "croc": {
+          "readyMs": 0.4924561650769574,
+          "receiverMs": 8.768346828046019,
+          "durableMs": 8.16392004660799,
+          "totalMs": 5.061211572227006
+        },
+        "croc-no-compress": {
+          "readyMs": 0.44262205351718953,
+          "receiverMs": 8.664117887654665,
+          "durableMs": 8.016532659752512,
+          "totalMs": 4.95327941564281
+        }
+      },
+      "pass1_5": false,
+      "pass2": false
+    },
+    {
+      "case": "disk/auto/random-64m",
+      "tools": {
+        "cd": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 25.336382000001322,
+          "receiverMs": 230.77466099999947,
+          "durableMs": 235.6784179999995,
+          "totalMs": 256.5868300000002,
+          "spread": {
+            "readyMs": {
+              "min": 20.90841200000068,
+              "max": 55.276919000001726
+            },
+            "receiverMs": {
+              "min": 183.4311439999983,
+              "max": 261.76006999999845
+            },
+            "durableMs": {
+              "min": 186.3542039999993,
+              "max": 264.7316949999986
+            },
+            "totalMs": {
+              "min": 211.69058600000062,
+              "max": 320.0086140000003
+            }
+          }
+        },
+        "croc": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 32.355931000000055,
+          "receiverMs": 1196.002457999999,
+          "durableMs": 1201.9936080000007,
+          "totalMs": 1225.7964980000015,
+          "spread": {
+            "readyMs": {
+              "min": 23.802890000000843,
+              "max": 34.97192299999915
+            },
+            "receiverMs": {
+              "min": 1083.7224459999998,
+              "max": 2477.28507
+            },
+            "durableMs": {
+              "min": 1093.2004030000007,
+              "max": 2514.305214
+            },
+            "totalMs": {
+              "min": 1125.5563340000008,
+              "max": 2549.277136999999
+            }
+          }
+        },
+        "croc-no-compress": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 27.705245000001014,
+          "receiverMs": 798.0219870000001,
+          "durableMs": 851.2894109999997,
+          "totalMs": 870.1228410000003,
+          "spread": {
+            "readyMs": {
+              "min": 18.83343000000059,
+              "max": 37.01932500000112
+            },
+            "receiverMs": {
+              "min": 768.5645609999992,
+              "max": 915.9689419999995
+            },
+            "durableMs": {
+              "min": 820.4219130000001,
+              "max": 944.1595639999996
+            },
+            "totalMs": {
+              "min": 848.1271580000011,
+              "max": 981.1788890000007
+            }
+          }
+        }
+      },
+      "speedup": {
+        "croc": {
+          "readyMs": 1.277054119250269,
+          "receiverMs": 5.18255536728966,
+          "durableMs": 5.100142890470366,
+          "totalMs": 4.777316505293746
+        },
+        "croc-no-compress": {
+          "readyMs": 1.0934964984345266,
+          "receiverMs": 3.458013906474775,
+          "durableMs": 3.6120804706012644,
+          "totalMs": 3.3911438127981848
+        }
+      },
+      "pass1_5": false,
+      "pass2": false
+    },
+    {
+      "case": "disk/relay/random-64m",
+      "tools": {
+        "cd": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 32.2061160000012,
+          "receiverMs": 497.93965899999966,
+          "durableMs": 516.8934090000002,
+          "totalMs": 549.0995250000014,
+          "spread": {
+            "readyMs": {
+              "min": 22.149771000000328,
+              "max": 73.0560000000005
+            },
+            "receiverMs": {
+              "min": 472.5955180000019,
+              "max": 598.7861190000003
+            },
+            "durableMs": {
+              "min": 478.5822599999992,
+              "max": 602.5031859999981
+            },
+            "totalMs": {
+              "min": 500.73203099999955,
+              "max": 675.5591859999986
+            }
+          }
+        },
+        "croc": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 36.95904199999859,
+          "receiverMs": 1878.065161999999,
+          "durableMs": 1891.7655330000016,
+          "totalMs": 1922.1096490000018,
+          "spread": {
+            "readyMs": {
+              "min": 30.344116000000213,
+              "max": 72.47321100000045
+            },
+            "receiverMs": {
+              "min": 1170.6636990000006,
+              "max": 2222.732554000002
+            },
+            "durableMs": {
+              "min": 1214.3415249999998,
+              "max": 2263.375308999999
+            },
+            "totalMs": {
+              "min": 1251.3005669999984,
+              "max": 2335.8485199999996
+            }
+          }
+        },
+        "croc-no-compress": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 36.17121100000077,
+          "receiverMs": 747.5151750000005,
+          "durableMs": 791.1763629999987,
+          "totalMs": 827.3475739999994,
+          "spread": {
+            "readyMs": {
+              "min": 32.43606500000169,
+              "max": 36.439385000001494
+            },
+            "receiverMs": {
+              "min": 685.2737400000005,
+              "max": 1089.925647
+            },
+            "durableMs": {
+              "min": 752.9647990000012,
+              "max": 1157.2187190000004
+            },
+            "totalMs": {
+              "min": 789.4041840000027,
+              "max": 1189.654784000002
+            }
+          }
+        }
+      },
+      "speedup": {
+        "croc": {
+          "readyMs": 1.147578366792109,
+          "receiverMs": 3.771672185685455,
+          "durableMs": 3.659875517971638,
+          "totalMs": 3.500475890959834
+        },
+        "croc-no-compress": {
+          "readyMs": 1.123116211839994,
+          "receiverMs": 1.5012163853371658,
+          "durableMs": 1.5306373600906145,
+          "totalMs": 1.5067351843001453
+        }
+      },
+      "pass1_5": false,
+      "pass2": false
+    },
+    {
+      "case": "disk/auto/compressible-64m",
+      "tools": {
+        "cd": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 24.512769999997545,
+          "receiverMs": 203.410566999999,
+          "durableMs": 208.87064100000134,
+          "totalMs": 232.5526519999985,
+          "spread": {
+            "readyMs": {
+              "min": 23.682010999997146,
+              "max": 26.8361950000035
+            },
+            "receiverMs": {
+              "min": 183.40491800000018,
+              "max": 436.4211260000011
+            },
+            "durableMs": {
+              "min": 189.64740799999709,
+              "max": 439.9068640000005
+            },
+            "totalMs": {
+              "min": 216.48360300000058,
+              "max": 464.41963399999804
+            }
+          }
+        },
+        "croc": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 36.23450699999739,
+          "receiverMs": 1065.1711849999992,
+          "durableMs": 1081.341665,
+          "totalMs": 1117.5761719999973,
+          "spread": {
+            "readyMs": {
+              "min": 25.311882000001788,
+              "max": 43.586348000004364
+            },
+            "receiverMs": {
+              "min": 954.2344369999992,
+              "max": 1754.409249999997
+            },
+            "durableMs": {
+              "min": 960.4846089999992,
+              "max": 1767.868816999995
+            },
+            "totalMs": {
+              "min": 985.796491000001,
+              "max": 1811.4551649999994
+            }
+          }
+        },
+        "croc-no-compress": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 27.91940700000123,
+          "receiverMs": 745.8326030000026,
+          "durableMs": 751.947540000001,
+          "totalMs": 772.491234000001,
+          "spread": {
+            "readyMs": {
+              "min": 20.54369399999996,
+              "max": 34.92731499999354
+            },
+            "receiverMs": {
+              "min": 708.1762980000058,
+              "max": 937.9440439999962
+            },
+            "durableMs": {
+              "min": 721.0801120000033,
+              "max": 945.0324199999959
+            },
+            "totalMs": {
+              "min": 756.0074269999968,
+              "max": 972.9518269999971
+            }
+          }
+        }
+      },
+      "speedup": {
+        "croc": {
+          "readyMs": 1.478189001079887,
+          "receiverMs": 5.236557769390636,
+          "durableMs": 5.17708788474486,
+          "totalMs": 4.805690936605636
+        },
+        "croc-no-compress": {
+          "readyMs": 1.138973971526026,
+          "receiverMs": 3.66663646830111,
+          "durableMs": 3.600063352129973,
+          "totalMs": 3.321790688501828
+        }
+      },
+      "pass1_5": false,
+      "pass2": false
+    },
+    {
+      "case": "disk/relay/compressible-64m",
+      "tools": {
+        "cd": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 24.061830999999074,
+          "receiverMs": 890.8883290000012,
+          "durableMs": 894.5775240000003,
+          "totalMs": 938.0167110000039,
+          "spread": {
+            "readyMs": {
+              "min": 18.180018999999447,
+              "max": 43.439187000003585
+            },
+            "receiverMs": {
+              "min": 845.8865070000029,
+              "max": 963.3068119999953
+            },
+            "durableMs": {
+              "min": 855.9089660000027,
+              "max": 966.1545849999966
+            },
+            "totalMs": {
+              "min": 874.0889850000021,
+              "max": 990.2164159999957
+            }
+          }
+        },
+        "croc": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 29.013324999999895,
+          "receiverMs": 1249.2567219999983,
+          "durableMs": 1259.8619160000017,
+          "totalMs": 1297.0467110000027,
+          "spread": {
+            "readyMs": {
+              "min": 23.654320000001462,
+              "max": 37.18479500000103
+            },
+            "receiverMs": {
+              "min": 1178.9407890000002,
+              "max": 1802.7907659999983
+            },
+            "durableMs": {
+              "min": 1201.4944899999973,
+              "max": 1816.0280529999945
+            },
+            "totalMs": {
+              "min": 1225.1488099999988,
+              "max": 1845.0413779999944
+            }
+          }
+        },
+        "croc-no-compress": {
+          "complete": true,
+          "runs": 3,
+          "successful": 3,
+          "readyMs": 34.58826699999918,
+          "receiverMs": 776.5900400000028,
+          "durableMs": 791.197586000002,
+          "totalMs": 836.253386000004,
+          "spread": {
+            "readyMs": {
+              "min": 28.08610200000112,
+              "max": 49.71193199999834
+            },
+            "receiverMs": {
+              "min": 459.901887,
+              "max": 782.1426270000011
+            },
+            "durableMs": {
+              "min": 474.81723700000293,
+              "max": 801.6651190000048
+            },
+            "totalMs": {
+              "min": 502.90333900000405,
+              "max": 840.9095180000004
+            }
+          }
+        }
+      },
+      "speedup": {
+        "croc": {
+          "readyMs": 1.2057820953027645,
+          "receiverMs": 1.4022596113726802,
+          "durableMs": 1.4083317344780522,
+          "totalMs": 1.382754375044388
+        },
+        "croc-no-compress": {
+          "readyMs": 1.437474438250377,
+          "receiverMs": 0.8717030122862925,
+          "durableMs": 0.8844371390667779,
+          "totalMs": 0.8915122472695484
+        }
+      },
+      "pass1_5": false,
+      "pass2": false
+    }
+  ],
+  "pass2": false,
+  "rows": [
+    {
+      "tool": "cd",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 0,
+      "ok": true,
+      "readyMs": 24.36091600000009,
+      "receiverMs": 26.47845200000006,
+      "durableMs": 29.52747199999999,
+      "totalMs": 53.88838800000008,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 0,
+      "ok": true,
+      "readyMs": 8.169043999999985,
+      "receiverMs": 526.2713570000001,
+      "durableMs": 529.354906,
+      "totalMs": 537.52395,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 0,
+      "ok": true,
+      "readyMs": 10.478724000000057,
+      "receiverMs": 532.3630509999998,
+      "durableMs": 535.457132,
+      "totalMs": 545.9358560000001,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 1,
+      "ok": true,
+      "readyMs": 9.329596000000038,
+      "receiverMs": 551.6269710000001,
+      "durableMs": 554.609422,
+      "totalMs": 563.939018,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 1,
+      "ok": true,
+      "readyMs": 8.42744300000004,
+      "receiverMs": 540.5918499999998,
+      "durableMs": 543.7945040000004,
+      "totalMs": 552.2219470000005,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "cd",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 1,
+      "ok": true,
+      "readyMs": 17.31148200000007,
+      "receiverMs": 30.297891999999592,
+      "durableMs": 32.891208999999435,
+      "totalMs": 50.202690999999504,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 2,
+      "ok": true,
+      "readyMs": 11.686972000000424,
+      "receiverMs": 538.368802,
+      "durableMs": 541.6905999999999,
+      "totalMs": 553.3775720000003,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "cd",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 2,
+      "ok": true,
+      "readyMs": 18.14898599999924,
+      "receiverMs": 30.333772000000863,
+      "durableMs": 32.90055200000006,
+      "totalMs": 51.0495379999993,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 2,
+      "ok": true,
+      "readyMs": 11.341597000000547,
+      "receiverMs": 544.294449,
+      "durableMs": 547.8206719999998,
+      "totalMs": 559.1622690000004,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "cd",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 0,
+      "ok": true,
+      "readyMs": 23.950831999999536,
+      "receiverMs": 30.54475900000034,
+      "durableMs": 36.34808500000054,
+      "totalMs": 60.298917000000074,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 0,
+      "ok": true,
+      "readyMs": 10.541071999999986,
+      "receiverMs": 237.6382279999998,
+      "durableMs": 240.8034550000002,
+      "totalMs": 251.3445270000002,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 0,
+      "ok": true,
+      "readyMs": 8.95991900000081,
+      "receiverMs": 236.04204799999934,
+      "durableMs": 238.9541279999994,
+      "totalMs": 247.9140470000002,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 1,
+      "ok": true,
+      "readyMs": 9.968701999999212,
+      "receiverMs": 240.5837590000001,
+      "durableMs": 243.34740200000033,
+      "totalMs": 253.31610399999954,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 1,
+      "ok": true,
+      "readyMs": 9.530076999999437,
+      "receiverMs": 232.94746100000066,
+      "durableMs": 235.64066600000024,
+      "totalMs": 245.17074299999967,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "cd",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 1,
+      "ok": true,
+      "readyMs": 15.162815000000592,
+      "receiverMs": 23.58134699999937,
+      "durableMs": 27.27961199999936,
+      "totalMs": 42.44242699999995,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 2,
+      "ok": true,
+      "readyMs": 8.063691999999719,
+      "receiverMs": 241.6893570000002,
+      "durableMs": 245.1071149999998,
+      "totalMs": 253.1708069999995,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "cd",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 2,
+      "ok": true,
+      "readyMs": 20.24282099999982,
+      "receiverMs": 27.243633000000045,
+      "durableMs": 29.80766600000061,
+      "totalMs": 50.05048700000043,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "croc",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-4k",
+      "bytes": 4096,
+      "run": 2,
+      "ok": true,
+      "readyMs": 9.739629000000605,
+      "receiverMs": 238.88162300000022,
+      "durableMs": 244.93555399999968,
+      "totalMs": 254.6751830000003,
+      "sha256": "837f49b7ecb6e76e4faef1a0d8e5f087f0608ffd477c5e809d0efcf350f98bdb"
+    },
+    {
+      "tool": "cd",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 20.90841200000068,
+      "receiverMs": 230.77466099999947,
+      "durableMs": 235.6784179999995,
+      "totalMs": 256.5868300000002,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 32.355931000000055,
+      "receiverMs": 1083.7224459999998,
+      "durableMs": 1093.2004030000007,
+      "totalMs": 1125.5563340000008,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 18.83343000000059,
+      "receiverMs": 798.0219870000001,
+      "durableMs": 851.2894109999997,
+      "totalMs": 870.1228410000003,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 34.97192299999915,
+      "receiverMs": 2477.28507,
+      "durableMs": 2514.305214,
+      "totalMs": 2549.277136999999,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 37.01932500000112,
+      "receiverMs": 915.9689419999995,
+      "durableMs": 944.1595639999996,
+      "totalMs": 981.1788890000007,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "cd",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 55.276919000001726,
+      "receiverMs": 261.76006999999845,
+      "durableMs": 264.7316949999986,
+      "totalMs": 320.0086140000003,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 27.705245000001014,
+      "receiverMs": 768.5645609999992,
+      "durableMs": 820.4219130000001,
+      "totalMs": 848.1271580000011,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "cd",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 25.336382000001322,
+      "receiverMs": 183.4311439999983,
+      "durableMs": 186.3542039999993,
+      "totalMs": 211.69058600000062,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc",
+      "route": "auto",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 23.802890000000843,
+      "receiverMs": 1196.002457999999,
+      "durableMs": 1201.9936080000007,
+      "totalMs": 1225.7964980000015,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "cd",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 22.149771000000328,
+      "receiverMs": 472.5955180000019,
+      "durableMs": 478.5822599999992,
+      "totalMs": 500.73203099999955,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 30.344116000000213,
+      "receiverMs": 1878.065161999999,
+      "durableMs": 1891.7655330000016,
+      "totalMs": 1922.1096490000018,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 32.43606500000169,
+      "receiverMs": 1089.925647,
+      "durableMs": 1157.2187190000004,
+      "totalMs": 1189.654784000002,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 72.47321100000045,
+      "receiverMs": 2222.732554000002,
+      "durableMs": 2263.375308999999,
+      "totalMs": 2335.8485199999996,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 36.439385000001494,
+      "receiverMs": 685.2737400000005,
+      "durableMs": 752.9647990000012,
+      "totalMs": 789.4041840000027,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "cd",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 32.2061160000012,
+      "receiverMs": 497.93965899999966,
+      "durableMs": 516.8934090000002,
+      "totalMs": 549.0995250000014,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 36.17121100000077,
+      "receiverMs": 747.5151750000005,
+      "durableMs": 791.1763629999987,
+      "totalMs": 827.3475739999994,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "cd",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 73.0560000000005,
+      "receiverMs": 598.7861190000003,
+      "durableMs": 602.5031859999981,
+      "totalMs": 675.5591859999986,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "croc",
+      "route": "relay",
+      "storage": "disk",
+      "case": "random-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 36.95904199999859,
+      "receiverMs": 1170.6636990000006,
+      "durableMs": 1214.3415249999998,
+      "totalMs": 1251.3005669999984,
+      "sha256": "944acbb8e6a92457e5654ec2d4dbd2bcd0be743ace4fe381e8dadb3f0439720e"
+    },
+    {
+      "tool": "cd",
+      "route": "auto",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 24.512769999997545,
+      "receiverMs": 436.4211260000011,
+      "durableMs": 439.9068640000005,
+      "totalMs": 464.41963399999804,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc",
+      "route": "auto",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 36.23450699999739,
+      "receiverMs": 1065.1711849999992,
+      "durableMs": 1081.341665,
+      "totalMs": 1117.5761719999973,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "auto",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 20.54369399999996,
+      "receiverMs": 745.8326030000026,
+      "durableMs": 751.947540000001,
+      "totalMs": 772.491234000001,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc",
+      "route": "auto",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 25.311882000001788,
+      "receiverMs": 954.2344369999992,
+      "durableMs": 960.4846089999992,
+      "totalMs": 985.796491000001,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "auto",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 27.91940700000123,
+      "receiverMs": 937.9440439999962,
+      "durableMs": 945.0324199999959,
+      "totalMs": 972.9518269999971,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "cd",
+      "route": "auto",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 23.682010999997146,
+      "receiverMs": 203.410566999999,
+      "durableMs": 208.87064100000134,
+      "totalMs": 232.5526519999985,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "auto",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 34.92731499999354,
+      "receiverMs": 708.1762980000058,
+      "durableMs": 721.0801120000033,
+      "totalMs": 756.0074269999968,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "cd",
+      "route": "auto",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 26.8361950000035,
+      "receiverMs": 183.40491800000018,
+      "durableMs": 189.64740799999709,
+      "totalMs": 216.48360300000058,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc",
+      "route": "auto",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 43.586348000004364,
+      "receiverMs": 1754.409249999997,
+      "durableMs": 1767.868816999995,
+      "totalMs": 1811.4551649999994,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "cd",
+      "route": "relay",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 18.180018999999447,
+      "receiverMs": 845.8865070000029,
+      "durableMs": 855.9089660000027,
+      "totalMs": 874.0889850000021,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc",
+      "route": "relay",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 37.18479500000103,
+      "receiverMs": 1249.2567219999983,
+      "durableMs": 1259.8619160000017,
+      "totalMs": 1297.0467110000027,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "relay",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 0,
+      "ok": true,
+      "readyMs": 28.08610200000112,
+      "receiverMs": 459.901887,
+      "durableMs": 474.81723700000293,
+      "totalMs": 502.90333900000405,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc",
+      "route": "relay",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 23.654320000001462,
+      "receiverMs": 1178.9407890000002,
+      "durableMs": 1201.4944899999973,
+      "totalMs": 1225.1488099999988,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "relay",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 49.71193199999834,
+      "receiverMs": 782.1426270000011,
+      "durableMs": 791.197586000002,
+      "totalMs": 840.9095180000004,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "cd",
+      "route": "relay",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 1,
+      "ok": true,
+      "readyMs": 43.439187000003585,
+      "receiverMs": 890.8883290000012,
+      "durableMs": 894.5775240000003,
+      "totalMs": 938.0167110000039,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc-no-compress",
+      "route": "relay",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 34.58826699999918,
+      "receiverMs": 776.5900400000028,
+      "durableMs": 801.6651190000048,
+      "totalMs": 836.253386000004,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "cd",
+      "route": "relay",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 24.061830999999074,
+      "receiverMs": 963.3068119999953,
+      "durableMs": 966.1545849999966,
+      "totalMs": 990.2164159999957,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    },
+    {
+      "tool": "croc",
+      "route": "relay",
+      "storage": "disk",
+      "case": "compressible-64m",
+      "bytes": 67108864,
+      "run": 2,
+      "ok": true,
+      "readyMs": 29.013324999999895,
+      "receiverMs": 1802.7907659999983,
+      "durableMs": 1816.0280529999945,
+      "totalMs": 1845.0413779999944,
+      "sha256": "dbfaca2662cb70b69dfefd5ac95d1f54a73663092d46cefdc9609dc695a12c98"
+    }
+  ]
+}

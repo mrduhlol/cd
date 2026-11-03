@@ -2,6 +2,8 @@ package devices
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -235,6 +237,14 @@ func TestJoinContainsHashesButNotMasterSecret(t *testing.T) {
 	b, _ := json.Marshal(join)
 	if strings.Contains(string(b), p.Secret) || join.Token == p.Secret || join.SenderTokenHash == "" || join.ReceiverTokenHash == "" {
 		t.Fatal("join exposed master or missing derived hashes")
+	}
+	token, err := base64.RawURLEncoding.DecodeString(join.Token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	hash := sha256.Sum256(token)
+	if join.SenderTokenHash != base64.RawURLEncoding.EncodeToString(hash[:]) {
+		t.Fatal("sender hash does not match admission token")
 	}
 	r, _ := p.Join(Receiver)
 	if r.Token == join.Token || r.SenderTokenHash != "" || r.ReceiverTokenHash != "" {

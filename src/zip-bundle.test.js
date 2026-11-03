@@ -84,3 +84,7 @@ test('rechunk mixes fast-path and buffered pieces in order', async () => {
   assert.deepEqual(result.map((piece) => Array.from(piece)), [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13]]);
   assert.equal(result[2], exact);
 });
+
+test('zip rejects names that overflow the UTF-8 filename length field', () => {
+  assert.throws(() => createZipBundle([new File(['x'], 'é'.repeat(32768))]), /name too long/);
+});

@@ -62,6 +62,7 @@ export function bundleName(date = new Date()) {
 // name, size, and slice). stream() yields Uint8Arrays in archive order.
 export function createZipBundle(files, { now = new Date(), chunkBytes = 256 * 1024 } = {}) {
   const names = uniqueNames(files).map((name) => encoder.encode(name));
+  if (names.some((name) => name.length > 0xffff)) throw new Error('file name too long');
   const { time, day } = dosDateTime(now);
   let size = END_BYTES;
   for (let index = 0; index < files.length; index += 1) {
