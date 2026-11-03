@@ -1,0 +1,9 @@
+goos: linux
+goarch: amd64
+pkg: github.com/YashasVM/cd/cmd/cdx
+cpu: 13th Gen Intel(R) Core(TM) i5-13420H
+BenchmarkUnpackSourceTree-12    	      10	   3256058 ns/op	  436784 B/op	    9453 allocs/op
+BenchmarkUnpackSourceTree-12    	      10	   3073382 ns/op	  436960 B/op	    9453 allocs/op
+BenchmarkUnpackSourceTree-12    	      10	   2985290 ns/op	  436768 B/op	    9453 allocs/op
+PASS
+ok  	github.com/YashasVM/cd/cmd/cdx	0.185s

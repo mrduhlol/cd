@@ -16,10 +16,10 @@ func reverseTestOffer() fileOffer {
 func TestReverseLANAcceptanceRequiresAdvertisedCapability(t *testing.T) {
 	loopbackLane(t)
 	payload := []byte(`{"lan":{"port":4000,"hosts":["127.0.0.1"]}}`)
-	if _, err := acceptedTransfer(payload, 0, false); err == nil {
+	if _, err := acceptedTransfer(payload, 0, false, ""); err == nil {
 		t.Fatal("accepted reverse listener without advertised capability")
 	}
-	selection, err := acceptedTransfer(payload, 0, true)
+	selection, err := acceptedTransfer(payload, 0, true, "")
 	if err != nil || selection.ChunkSize != chunkSize || selection.LAN == nil {
 		t.Fatalf("selection=%+v,%v", selection, err)
 	}
@@ -29,13 +29,13 @@ func TestReverseLANAcceptanceRequiresAdvertisedCapability(t *testing.T) {
 		`{"chunkSize":1048576,"lan":{"port":4000,"hosts":["127.0.0.1"]}}`,
 		`{"lan":{"port":4000,"hosts":["localhost"]}}`,
 	} {
-		if _, err := acceptedTransfer([]byte(invalid), largeChunkSize, true); err == nil {
+		if _, err := acceptedTransfer([]byte(invalid), largeChunkSize, true, ""); err == nil {
 			t.Fatalf("accepted %s", invalid)
 		}
 	}
 	// Older receivers send their unchanged empty acceptance, even when a
 	// newer sender advertises reverse support.
-	selection, err = acceptedTransfer(nil, largeChunkSize, true)
+	selection, err = acceptedTransfer(nil, largeChunkSize, true, "")
 	if err != nil || selection.LAN != nil || selection.ChunkSize != chunkSize {
 		t.Fatalf("legacy acceptance=%+v,%v", selection, err)
 	}

@@ -1,5 +1,7 @@
 # prf performance work
 
+Historical results against installed croc 10.7. Use the [current real-task results](../prf-2026-11-04/README.md) for croc 11.6.3 comparisons.
+
 The universal 2x target is not achieved. All 54 local transfers verified successfully, but the strict 2x gate failed. Loopback on a busy shared host cannot establish LAN, WAN, mobile, folder, or competitor-wide performance.
 
 ## Changes

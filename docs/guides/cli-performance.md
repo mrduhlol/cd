@@ -29,3 +29,20 @@ To isolate paths or record sizing, set these variables for both sender and recei
 - `CD_TRANSPORT_REPORT=1` emits byte counters, direct protocol, and route labels to stderr.
 
 A loopback score measures this machine's protocol, CPU, and storage behavior. It does not establish internet, browser, Android, or physical LAN performance. A saturated shared link or disk prevents a universal 1.5x multiplier. Publish per-case results and failures instead of extending a measured win to untested paths.
+
+## Negotiated plaintext compression
+
+New ordinary CLI peers offer and accept `compression: "deflate-v1"`. Clients that do not select it keep the original raw chunk format. Resumable v2 transfers and browser/Android clients keep their existing format.
+
+After negotiation, each encrypted `kindChunk` contains either a zero byte followed by raw bytes, or a one byte, a four-byte big-endian raw length, and an independent DEFLATE stream. Compression happens before encryption. ACKs, transfer sizes, and retransmission release offsets count original bytes. The receiver bounds each expanded record by the negotiated chunk size, requires the exact declared length, and rejects truncation or trailing bytes before writing it.
+
+The sender samples each chunk to avoid compressing high-entropy content, and keeps compressed output only when it saves at least 10%. A reusable standard-library BestSpeed compressor avoids a new allocation per chunk. Compression can still cost CPU on very fast links; set `CD_COMPRESSION=0` on either endpoint for an A/B comparison. No new relay service or hosted storage is required. See [free hosting](free-hosting.md) for finite Cloudflare Free allowances.
+
+To compare ordinary files and folders, freeze the inputs once, then use the printed commands for both binaries:
+
+```sh
+node scripts/bench-real-task-fixtures.mjs /tmp/cd-real-tasks
+node scripts/bench-croc-matrix.mjs --cdx /absolute/cdx --input /tmp/cd-real-tasks/mixed --routes auto,relay --storage disk --runs 3 --output /tmp/cd-real-results.json
+```
+
+The matrix verifies names, sizes, hashes, and empty directories outside the timing interval. Both tools receive the same frozen input and complete the same recursive file/directory fsync check. A local test does not establish physical-network performance.
