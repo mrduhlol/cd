@@ -13,6 +13,7 @@ object TransferFiles {
     fun finish(task: JSONObject) { active.remove(Invitation.parse(task.getString("url")).id, task.getString("id")) }
     fun staging(context: Context, task: JSONObject) {
         val invite = Invitation.parse(task.getString("url"))
+        File(context.filesDir, "legacy-${invite.id}.part").delete()
         File(context.filesDir, "resume-${invite.id}.part").delete()
         AtomicFile(File(context.filesDir, "resume-${invite.id}.json")).delete()
     }

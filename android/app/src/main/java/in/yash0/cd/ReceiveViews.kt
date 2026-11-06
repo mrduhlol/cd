@@ -36,6 +36,7 @@ object ReceiveViews {
             size = task.optLong("size", -1), done = done, bytesPerSecond = speed, phase = phase,
             route = when (task.optString("route")) { "local" -> Route.LAN; "direct" -> Route.DIRECT; "relay" -> Route.RELAY; else -> Route.NONE },
             message = task.optString("error").takeIf { it.isNotEmpty() },
+            resumable = receiveCanResume(task),
             openUri = task.optString("publishedUri").takeIf { phase == TransferPhase.COMPLETE && it.isNotEmpty() }
         ))
     }

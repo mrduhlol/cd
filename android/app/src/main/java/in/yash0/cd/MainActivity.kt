@@ -236,7 +236,13 @@ class MainActivity: ComponentActivity(), CdActions {
                 }
                 val prior = store.task(id)
                 require(prior?.optString("state") != "complete") { "This transfer is already saved" }
-                store.putTask((prior ?: JSONObject().put("id", id).put("url", raw)).put("state", "queued"))
+                require(prior?.optString("state") != "cancelled") { "This transfer was cancelled. Ask the sender for a new link." }
+                require(prior == null || prior.getString("url") == raw) { "This transfer already has a different private link" }
+                require(prior != null || receiveQueueHasRoom(store.tasks())) { "Receive queue full" }
+                val task = prior ?: JSONObject().put("id", id).put("url", raw)
+                if (task.optString("state") !in listOf("connecting", "receiving", "verifying")) task.put("state", "queued")
+                task.put("resumable", invitation.version == 2).remove("error")
+                store.putTask(task)
                 if (ReceiveMode.paused.value) ui.toast("Receiving is paused in Settings")
                 receiveNow(); ui.input = ""
                 // Optimistic row so the user lands on the transfer immediately; the receiver replaces it by id.
@@ -278,7 +284,13 @@ class MainActivity: ComponentActivity(), CdActions {
 
     override fun resume(view: TransferView) {
         if (view.direction == Direction.SEND) runCatching { TransferBus.sender.resume(this, view.id) }.onFailure { ui.toast(it.message ?: "Can’t resume", error = true) }
-        else { store.state(view.id, "queued"); receiveNow() }
+        else {
+            if (store.task(view.id)?.let { !receiveCanResume(it) } == true) {
+                ui.toast("Ask the sender for a new link or code", error = true)
+                return
+            }
+            store.state(view.id, "queued"); receiveNow()
+        }
     }
 
     override fun cancel(view: TransferView) {
@@ -287,11 +299,23 @@ class MainActivity: ComponentActivity(), CdActions {
 
     override fun open(view: TransferView) {
         val uri = view.openUri ?: store.task(view.id)?.optString("publishedUri")?.takeIf { it.isNotEmpty() }
-        runCatching { startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(Uri.parse(uri), "*/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)) }
+        runCatching {
+            require(!uri.isNullOrBlank())
+            val fileUri = Uri.parse(uri)
+            val inferred = fileMime(view.name) { android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(it) }
+            val mime = if (inferred != "application/octet-stream") inferred else contentResolver.getType(fileUri) ?: inferred
+            startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(fileUri, mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+        }
             .onFailure { ui.toast("Open the file in Downloads/CD", error = true) }
     }
 
-    override fun dismiss(view: TransferView) { TransferBus.remove(view.id, view.direction); ui.back() }
+    override fun dismiss(view: TransferView) {
+        runCatching {
+            if (view.direction == Direction.SEND || store.dismiss(view.id)) {
+                TransferBus.remove(view.id, view.direction); ui.back()
+            }
+        }.onFailure { ui.toast("Could not remove transfer. Try again.", error = true) }
+    }
 
     override fun copy(label: String, text: String) {
         getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText(label, text))

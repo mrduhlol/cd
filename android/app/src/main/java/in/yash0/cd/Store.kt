@@ -13,7 +13,23 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
+internal fun receiveQueueHasRoom(tasks: List<JSONObject>): Boolean =
+    tasks.count { it.optString("state") in listOf("queued", "connecting", "receiving", "verifying", "retrying") } < 16
+
+internal fun receiveCanResume(task: JSONObject): Boolean = task.optBoolean("resumable", runCatching { Invitation.parse(task.getString("url")).version == 2 }.getOrDefault(true))
+
+internal fun canDismissReceive(state: String): Boolean = state in listOf("complete", "failed", "cancelled")
+
+internal fun recoverReceiveTask(task: JSONObject): JSONObject? {
+    if (task.optString("state") !in listOf("connecting", "receiving", "verifying", "retrying")) return null
+    val recovered = JSONObject(task.toString())
+    if (receiveCanResume(task)) recovered.put("state", "queued").remove("error")
+    else recovered.put("state", "failed").put("error", "Transfer interrupted. Ask the sender for a new link or code.")
+    return recovered
+}
+
 class Store(context: Context) {
+    private val appContext = context.applicationContext
     private val vault = AtomicFile(File(context.filesDir, "devices-v1.vault"))
     private val key: SecretKey
     private var root: JSONObject
@@ -69,7 +85,28 @@ class Store(context: Context) {
     @Synchronized fun enabled(value: Boolean) { root.put("enabled", value); save() }
     @Synchronized fun tasks(): List<JSONObject> = root.getJSONObject("tasks").let { p -> p.keys().asSequence().map { JSONObject(p.getJSONObject(it).toString()) }.toList() }
     @Synchronized fun task(id: String): JSONObject? = root.getJSONObject("tasks").optJSONObject(id)?.let { JSONObject(it.toString()) }
-    @Synchronized fun putTask(task: JSONObject) { root.getJSONObject("tasks").put(task.getString("id"), task); save(); ReceiveViews.publish(task) }
+    @Synchronized fun recoverInterruptedTransfers() {
+        tasks().mapNotNull(::recoverReceiveTask).forEach(::putTask)
+    }
+    @Synchronized fun putTask(task: JSONObject) { root.getJSONObject("tasks").put(task.getString("id"), JSONObject(task.toString())); save(); ReceiveViews.publish(task) }
+    @Synchronized fun dismiss(id: String): Boolean {
+        val task = task(id) ?: return true
+        if (!canDismissReceive(task.optString("state"))) return false
+        if (task.optString("state") != "complete") {
+            TransferFiles.staging(appContext, task)
+            task.optString("publishedUri").takeIf { it.isNotEmpty() }?.let { saved ->
+                val uri = android.net.Uri.parse(saved)
+                val pending = appContext.contentResolver.query(uri, arrayOf(android.provider.MediaStore.MediaColumns.IS_PENDING), null, null, null)?.use {
+                    it.moveToFirst() && it.getInt(0) == 1
+                } ?: false
+                if (pending) appContext.contentResolver.delete(uri, null, null)
+            }
+        }
+        root.getJSONObject("tasks").remove(id)
+        save()
+        return true
+    }
+
     @Synchronized fun taskState(id: String): String? = root.getJSONObject("tasks").optJSONObject(id)?.optString("state")
     /** Progress is a view of the durable checkpoint, not another fsync on every tick. */
     @Synchronized fun progress(id: String, received: Long? = null, route: String? = null) {
@@ -124,7 +161,7 @@ class Store(context: Context) {
             save(); return false
         }
         if (replayed) { save(); return false }
-        require(tasks().count { it.getString("state") !in listOf("complete", "paused", "cancelled") } < 16) { "Receive queue full" }
+        require(receiveQueueHasRoom(tasks())) { "Receive queue full" }
         replay.put(messageId, msg.getLong("expiresAt"))
         root.getJSONObject("tasks").put(id, JSONObject(msg.toString()).put("id", id).put("pairId", pair.id).put("state", "queued"))
         save(); task(id)?.let { ReceiveViews.publish(it) }; return true
