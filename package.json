@@ -29,6 +29,7 @@
     "verify:android": "node scripts/verify-android-transfer.mjs",
     "verify:device-push": "node scripts/verify-device-push.mjs",
     "verify:resume-limits": "node scripts/verify-resume-limits.mjs",
+    "verify:v2": "npm run build && node scripts/verify-v2-relay.mjs",
     "verify:v2:browser": "npm run build && node scripts/verify-v2-browser.mjs"
   },
   "dependencies": {
