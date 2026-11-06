@@ -31,7 +31,7 @@ A wake hint contains exactly `v`, `type`, `pairId` and epoch-millisecond `issued
 
 Only a message delivered with `RemoteMessage.PRIORITY_HIGH` can request the receiving foreground service. CD checks delivered priority, not original priority. A downgraded message shows a generic tap-to-open notification. A rejected foreground-service start also falls back to that notification. The receiving service rechecks the same eligibility policy before reconnecting. It replaces that pair's potentially half-open control sockets, while keeping active file data intact. It never changes the receiving switch for a push wake, and it never resumes paused transfers. Normal receiving shows its existing notification with Stop and progress.
 
-Delivery is best effort. Doze, Google Play services availability, Android priority downgrades, Samsung battery management and force-stop behavior still apply. A force-stopped app must be opened by the user. Stop stays stopped. The boot receiver attempts to restore receiving only when its persisted switch is enabled. A rejected service start falls back to a notification when push eligibility allows it. No silent battery-optimization exemption is installed.
+Delivery is best effort. Doze, Google Play services availability, Android priority downgrades, Samsung battery management and force-stop behavior still apply. A force-stopped app must be opened by the user. Stop stays stopped. No boot receiver or silent battery-optimization exemption is installed.
 
 ## Verify without project credentials
 

@@ -36,18 +36,15 @@ class Store(context: Context) {
         val output = vault.startWrite()
         try { output.write(bytes); vault.finishWrite(output); DurableFiles.directory(vault.baseFile.parentFile!!) } catch (e: Exception) { vault.failWrite(output); throw e }
     }
-    @Synchronized fun account(): JSONObject? = root.optJSONObject("account")?.let { JSONObject(it.toString()) }
-    @Synchronized fun account(value: JSONObject?) { if (value == null) root.remove("account") else root.put("account", value); save() }
-    @Synchronized fun accountDenied(id: String): Boolean = root.optJSONObject("accountDenied")?.optBoolean(id) ?: false
     @Synchronized fun pairs(): List<Pairing> = root.getJSONObject("pairs").let { p -> p.keys().asSequence().map { Pairing(JSONObject(p.getJSONObject(it).toString())) }.toList() }
     @Synchronized fun trust(pair: Pairing) { root.getJSONObject("pairs").put(pair.id, pair.json); save() }
     @Synchronized fun revoke(id: String) { val denied = root.optJSONObject("accountDenied") ?: JSONObject().also { root.put("accountDenied", it) }; denied.put(id, true); root.getJSONObject("pairs").remove(id); root.optJSONObject("pushWakes")?.remove(id); tasks().filter { it.optString("pairId") == id && it.optString("state") != "complete" }.forEach { it.put("state", "paused"); root.getJSONObject("tasks").put(it.getString("id"), it) }; save() }
     @Synchronized fun allowedMobile(): Boolean = root.optBoolean("mobile")
     @Synchronized fun pauseReceiving(): List<JSONObject> {
         root.put("enabled", false)
-        val paused = tasks().filter { it.getString("state") in listOf("queued", "receiving", "retrying") }
+        val paused = tasks().filter { it.getString("state") in listOf("queued", "connecting", "receiving", "verifying", "retrying") }
         paused.forEach { task -> root.getJSONObject("tasks").put(task.getString("id"), task.put("state", "paused")) }
-        save(); return paused
+        save(); paused.forEach { ReceiveViews.publish(it) }; return paused
     }
     @Synchronized fun pushEnabled(): Boolean = root.optBoolean("pushEnabled")
     @Synchronized fun pushEnabled(value: Boolean) { root.put("pushEnabled", value); save() }
@@ -72,19 +69,20 @@ class Store(context: Context) {
     @Synchronized fun enabled(value: Boolean) { root.put("enabled", value); save() }
     @Synchronized fun tasks(): List<JSONObject> = root.getJSONObject("tasks").let { p -> p.keys().asSequence().map { JSONObject(p.getJSONObject(it).toString()) }.toList() }
     @Synchronized fun task(id: String): JSONObject? = root.getJSONObject("tasks").optJSONObject(id)?.let { JSONObject(it.toString()) }
-    @Synchronized fun putTask(task: JSONObject) { root.getJSONObject("tasks").put(task.getString("id"), task); save() }
-    @Synchronized fun resolveDownload(id: String, url: String): JSONObject? {
-        val task = task(id) ?: return null
-        if (!enabled() || task.getString("state") !in listOf("queued", "receiving", "retrying")) return null
-        task.put("url", url).put("resumable", false).remove("code")
-        putTask(task)
-        return task
+    @Synchronized fun putTask(task: JSONObject) { root.getJSONObject("tasks").put(task.getString("id"), task); save(); ReceiveViews.publish(task) }
+    @Synchronized fun taskState(id: String): String? = root.getJSONObject("tasks").optJSONObject(id)?.optString("state")
+    /** Progress is a view of the durable checkpoint, not another fsync on every tick. */
+    @Synchronized fun progress(id: String, received: Long? = null, route: String? = null) {
+        val task = root.getJSONObject("tasks").optJSONObject(id) ?: return
+        received?.let { task.put("received", it) }
+        route?.let { task.put("route", it) }
+        ReceiveViews.publish(task)
     }
     @Synchronized fun state(id: String, next: String, error: String? = null): JSONObject? {
         val task = task(id) ?: return null
         val current = task.getString("state")
         if (current in listOf("complete", "cancelled")) return null
-        if (next == "receiving" && current !in listOf("queued", "receiving", "retrying")) return null
+        if (next in listOf("connecting", "receiving", "verifying") && current !in listOf("queued", "connecting", "receiving", "verifying", "retrying")) return null
         if (next == "retrying" && current == "paused") return null
         if (next == "cancelled" && current != "paused") return null
         task.put("state", next)
@@ -129,6 +127,6 @@ class Store(context: Context) {
         require(tasks().count { it.getString("state") !in listOf("complete", "paused", "cancelled") } < 16) { "Receive queue full" }
         replay.put(messageId, msg.getLong("expiresAt"))
         root.getJSONObject("tasks").put(id, JSONObject(msg.toString()).put("id", id).put("pairId", pair.id).put("state", "queued"))
-        save(); return true
+        save(); task(id)?.let { ReceiveViews.publish(it) }; return true
     }
 }

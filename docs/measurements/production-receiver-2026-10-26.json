@@ -1,0 +1,77 @@
+{
+  "origin": "https://cd.yash0.in",
+  "remote": "yvm@192.168.1.9",
+  "phase": "receiver",
+  "rows": [
+    {
+      "scenario": "linux-browser",
+      "trial": 0,
+      "mode": "production",
+      "bytes": 33554509,
+      "milliseconds": 27294.581524999998,
+      "sha256": "7fe5d405a0963a6d03de5a60fb36b0377b2ce3c9a4e6590d927b0c258ddaabb1",
+      "workerWrites": 0,
+      "verified": true
+    },
+    {
+      "scenario": "linux-browser",
+      "trial": 1,
+      "mode": "before",
+      "bytes": 33554509,
+      "milliseconds": 23761.298839000003,
+      "sha256": "7fe5d405a0963a6d03de5a60fb36b0377b2ce3c9a4e6590d927b0c258ddaabb1",
+      "workerWrites": 0,
+      "verified": true
+    },
+    {
+      "scenario": "linux-browser",
+      "trial": 1,
+      "mode": "after",
+      "bytes": 33554509,
+      "milliseconds": 10459.552522000005,
+      "sha256": "7fe5d405a0963a6d03de5a60fb36b0377b2ce3c9a4e6590d927b0c258ddaabb1",
+      "workerWrites": 129,
+      "verified": true
+    },
+    {
+      "scenario": "linux-browser",
+      "trial": 2,
+      "mode": "after",
+      "bytes": 33554509,
+      "milliseconds": 9799.213707000003,
+      "sha256": "7fe5d405a0963a6d03de5a60fb36b0377b2ce3c9a4e6590d927b0c258ddaabb1",
+      "workerWrites": 129,
+      "verified": true
+    },
+    {
+      "scenario": "linux-browser",
+      "trial": 2,
+      "mode": "before",
+      "bytes": 33554509,
+      "milliseconds": 23899.461930999998,
+      "sha256": "7fe5d405a0963a6d03de5a60fb36b0377b2ce3c9a4e6590d927b0c258ddaabb1",
+      "workerWrites": 0,
+      "verified": true
+    },
+    {
+      "scenario": "linux-browser",
+      "trial": 3,
+      "mode": "before",
+      "bytes": 33554509,
+      "milliseconds": 23945.333092999994,
+      "sha256": "7fe5d405a0963a6d03de5a60fb36b0377b2ce3c9a4e6590d927b0c258ddaabb1",
+      "workerWrites": 0,
+      "verified": true
+    },
+    {
+      "scenario": "linux-browser",
+      "trial": 3,
+      "mode": "after",
+      "bytes": 33554509,
+      "milliseconds": 10245.731140000018,
+      "sha256": "7fe5d405a0963a6d03de5a60fb36b0377b2ce3c9a4e6590d927b0c258ddaabb1",
+      "workerWrites": 129,
+      "verified": true
+    }
+  ]
+}

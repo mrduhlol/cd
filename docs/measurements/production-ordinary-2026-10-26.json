@@ -1,0 +1,48 @@
+{
+  "origin": "https://cd.yash0.in",
+  "remote": "yvm@192.168.1.9",
+  "rows": [
+    {
+      "scenario": "linux-pc-small",
+      "milliseconds": 2783.559257,
+      "bytes": 17003,
+      "sha256": "e132e6694286ba563d7a04883675658ab3dee055a40cfdcf9c8c4f37723a2014",
+      "routes": [
+        {
+          "transport": "relay",
+          "relayBytes": 17214,
+          "directBytes": 0
+        },
+        {
+          "transport": "relay",
+          "relayBytes": 128,
+          "directBytes": 0
+        }
+      ],
+      "verified": true
+    },
+    {
+      "scenario": "pc-linux-32m",
+      "milliseconds": 11018.852199999998,
+      "bytes": 33554509,
+      "sha256": "8c6392e935c904589ce37163db4958a880c5f197c72d53c4271a836b0ae97ad4",
+      "routes": [
+        {
+          "transport": "direct",
+          "relayBytes": 32246864,
+          "directBytes": 4458737,
+          "directProtocol": "webrtc",
+          "route": "direct internet path"
+        },
+        {
+          "transport": "direct",
+          "relayBytes": 6799,
+          "directBytes": 6334,
+          "directProtocol": "webrtc",
+          "route": "direct internet path"
+        }
+      ],
+      "verified": true
+    }
+  ]
+}

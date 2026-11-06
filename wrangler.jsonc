@@ -23,8 +23,7 @@
           { "name": "TRANSFERS", "class_name": "TransferRoom" },
           { "name": "PEERS", "class_name": "PeerSignal" },
           { "name": "CODES", "class_name": "CodeDirectory" },
-          { "name": "DEVICES", "class_name": "DeviceRoom" },
-          { "name": "ACCOUNTS", "class_name": "AccountRoom" }
+          { "name": "DEVICES", "class_name": "DeviceRoom" }
         ]
       },
       "ratelimits": [
@@ -48,8 +47,7 @@
       { "name": "TRANSFERS", "class_name": "TransferRoom" },
       { "name": "PEERS", "class_name": "PeerSignal" },
       { "name": "CODES", "class_name": "CodeDirectory" },
-          { "name": "DEVICES", "class_name": "DeviceRoom" },
-          { "name": "ACCOUNTS", "class_name": "AccountRoom" }
+          { "name": "DEVICES", "class_name": "DeviceRoom" }
     ]
   },
   "ratelimits": [
@@ -70,8 +68,7 @@
     { "tag": "v1", "new_sqlite_classes": ["TransferRoom"] },
     { "tag": "v2", "new_sqlite_classes": ["PeerSignal"] },
     { "tag": "v3", "new_sqlite_classes": ["CodeDirectory"] },
-    { "tag": "v4", "new_sqlite_classes": ["DeviceRoom"] },
-    { "tag": "v5", "new_sqlite_classes": ["AccountRoom"] }
+    { "tag": "v4", "new_sqlite_classes": ["DeviceRoom"] }
   ],
   "assets": {
     "directory": "./dist",

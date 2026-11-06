@@ -12,7 +12,7 @@
   "requiredSpeedup": 1.5,
   "requiredDurationMs": 8706.784125999993,
   "hardwareTargetPossible": false,
-  "source": "lan-link-current.txt plus isolated-lan.json",
+  "source": "lan-link-current.txt plus final-lan.json",
   "note": "Ideal lower bound ignores all protocol, encryption, SSH launch and storage overhead. The existing LAN workload is random input with no meaningful compression advantage. Both adapter and link partner advertise only 10/100 modes. This is a constraint of the measured hardware, not proof that the CD performance goal is achieved.",
   "reference": "final-lan.json"
 }

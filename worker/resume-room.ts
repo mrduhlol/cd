@@ -42,7 +42,7 @@ export class ResumeRoomProtocol {
   async message(socket:WebSocket,message:string|ArrayBuffer){
     const a=socket.deserializeAttachment() as Attachment;if(!a||!a.kind?.startsWith('resume-'))return;
     let state=await this.state();if(state.status!=='empty'&&state.expiresAt<=Date.now()){this.reject(socket,4408,'transfer expired');return;}
-    if(a.kind==='resume-pending') {if(typeof message!=='string'||new TextEncoder().encode(message).length>MAX_JOIN){this.reject(socket,4406,'invalid protocol join');return;}let j:any;try{j=JSON.parse(message);}catch{this.reject(socket,4406,'invalid protocol join');return;}await this.admit(socket,a,j,state);return;}
+    if(a.kind==='resume-pending') {if(typeof message!=='string'||new TextEncoder().encode(message).length>MAX_JOIN){this.reject(socket,4406,'invalid protocol join');return;}let j:any;try{j=JSON.parse(message);}catch{this.reject(socket,4406,'invalid protocol join');return;}await this.ctx.blockConcurrencyWhile(async()=>this.admit(socket,a,j,await this.state()));return;}
     if(state.status==='terminal') {
       if(typeof message==='string'&&a.role==='sender'&&this.isComplete(message,{...a,role:'receiver',receiverNonce:state.receiverNonce},state)){try{socket.send(event('completed'));}catch{};return;}
       if(typeof message==='string'&&this.isComplete(message,a,state)){try{socket.send(event('completed'));}catch{};return;}

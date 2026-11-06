@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
   cleanShortCode,
+  shortCodeFromInput,
   codeLookupPath,
   isShortCode,
   parseCapability,
@@ -51,5 +52,23 @@ describe('short share codes', () => {
 
   it('cleans pasted codes', () => {
     assert.equal(cleanShortCode('  48291\n'), '48291');
+  });
+});
+
+
+describe('numeric share input', () => {
+  it('extracts complete numeric codes from input and advertised links', () => {
+    assert.equal(shortCodeFromInput(' 04829 '), '04829');
+    assert.equal(shortCodeFromInput(' https://cd.yash0.in/#04829 '), '04829');
+    assert.equal(shortCodeFromInput('https://cd.yash0.in#4829'), '4829');
+    assert.equal(shortCodeFromInput('http://127.0.0.1:8787/#48291'), '48291');
+    assert.equal(shortCodeFromInput('https://elsewhere.example/#04829'), '04829');
+  });
+
+  it('rejects non-web URLs, credentials, other paths, and unrelated fragments', () => {
+    for (const value of ['ftp://cd.yash0.in/#48291', 'javascript://cd.yash0.in/#48291',
+      'https://user:secret@cd.yash0.in/#48291', 'https://cd.yash0.in/s/other#48291',
+      'https://cd.yash0.in/#p2p.river-cloud', 'https://cd.yash0.in/#v1.key',
+      'https://cd.yash0.in/#123456', '482a1']) assert.equal(shortCodeFromInput(value), '', value);
   });
 });

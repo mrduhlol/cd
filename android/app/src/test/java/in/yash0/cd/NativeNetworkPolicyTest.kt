@@ -15,6 +15,14 @@ class NativeNetworkPolicyTest {
         assertFalse(NativeNetworkPolicy.allowed(false, false, false, false, false, true))
         assertTrue(NativeNetworkPolicy.allowed(true, false, false, true, true, false))
     }
+    @Test fun localBindingRequiresTheDestinationToBeOnTheSameSubnet() {
+        val phone = byteArrayOf(10, 141.toByte(), 148.toByte(), 232.toByte())
+        assertTrue(NativeNetworkPolicy.sameSubnet(phone, byteArrayOf(10, 141.toByte(), 148.toByte(), 235.toByte()), 24))
+        assertFalse(NativeNetworkPolicy.sameSubnet(phone, byteArrayOf(10, 141.toByte(), 149.toByte(), 235.toByte()), 24))
+        assertFalse(NativeNetworkPolicy.sameSubnet(phone, byteArrayOf(8, 8, 8, 8), 24))
+        assertFalse(NativeNetworkPolicy.sameSubnet(phone, ByteArray(16), 24))
+        assertFalse(NativeNetworkPolicy.sameSubnet(phone, phone, 0))
+    }
     @Test fun nativeIgnoreMaskExcludesEveryCellularGenerationVpnAndWildcardAdapters() {
         assertEquals(1, PeerConnectionFactory.Options.ADAPTER_TYPE_ETHERNET)
         assertEquals(2, PeerConnectionFactory.Options.ADAPTER_TYPE_WIFI)

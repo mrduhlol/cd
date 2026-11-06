@@ -44,6 +44,7 @@ function setup(t, payload, { largeChunks = false } = {}) {
             this.acknowledged = size;
             const counts = new Uint8Array(12); const view = new DataView(counts.buffer);
             view.setUint32(0, this.received.length); view.setBigUint64(4, BigInt(size));
+            if (this.prefixAck) this.message('{}');
             this.message(await this.sealer.seal(KIND_ACK, counts));
           }
           return;
@@ -158,4 +159,15 @@ test('short source fails instead of leaving the ACK reader waiting', async (t) =
   const input = source(payload);
   input.size += 1;
   await assert.rejects(startRelaySend(input).done, /file changed/);
+});
+
+
+test('ignored control events do not strand a queued ACK', { timeout: 2000 }, async (t) => {
+  const payload = new Uint8Array(1024 * 1024);
+  const socket = setup(t, payload);
+  const transfer = startRelaySend(source(payload), { onState(state) {
+    if (state === 'transferring') socket().prefixAck = true;
+  } });
+  t.after(() => transfer.cancel());
+  await transfer.done;
 });

@@ -166,6 +166,135 @@ describe('download sink lifecycle', () => {
     });
   });
 
+  function deferred() {
+    let resolve;
+    let reject;
+    const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+    return { promise, resolve, reject };
+  }
+
+  function opfsWith(writable) {
+    return { async getDirectory() { return {
+      async getFileHandle() { return {
+        async createWritable() { return writable; },
+        async getFile() { return new Blob([]); }
+      }; },
+      async removeEntry() {}
+    }; } };
+  }
+
+  const MiB = 1024 * 1024;
+
+  it('keeps bytes in order with one write in flight at a time', async (t) => {
+    const written = [];
+    const events = [];
+    let outstanding = 0;
+    let maxOutstanding = 0;
+    const writable = {
+      write(bytes) {
+        const copy = Uint8Array.from(bytes);
+        const index = written.length;
+        written.push(copy);
+        outstanding++;
+        maxOutstanding = Math.max(maxOutstanding, outstanding);
+        // Vary completion timing so out-of-order completion would show up.
+        return new Promise((resolve) => setTimeout(resolve, index % 2 ? 5 : 0))
+          .then(() => { outstanding--; events.push(`done:${index}`); });
+      },
+      async close() { events.push('close'); },
+      async abort() {}
+    };
+    await withBrowser(t, opfsWith(writable), async () => {
+      const sink = await createOPFSSink({ name: 'ordered.bin' });
+      const expected = [];
+      for (let index = 0; index < 40; index++) {
+        const chunk = new Uint8Array(256 * 1024).fill(index + 1);
+        expected.push(chunk);
+        await sink.write(chunk);
+      }
+      const tail = new Uint8Array(1000).fill(0xee);
+      expected.push(tail);
+      await sink.write(tail);
+      await sink.file();
+      const actual = Buffer.concat(written.map((part) => Buffer.from(part)));
+      assert.equal(actual.equals(Buffer.concat(expected.map((part) => Buffer.from(part)))), true);
+      assert.equal(maxOutstanding, 1);
+      assert.deepEqual(events.slice(0, -1), written.map((_, index) => `done:${index}`));
+      assert.equal(events.at(-1), 'close');
+    });
+  });
+
+  it('surfaces an in-flight write error to the next flush that waits on it', async (t) => {
+    const first = deferred();
+    let calls = 0;
+    const writable = {
+      write() { calls++; return calls === 1 ? first.promise : Promise.resolve(); },
+      async close() { throw new Error('close must not run after a failed write'); },
+      async abort() {}
+    };
+    await withBrowser(t, opfsWith(writable), async () => {
+      const sink = await createOPFSSink({ name: 'fail.bin' });
+      await sink.write(new Uint8Array(4 * MiB));
+      // Second flush is due while the first is still in flight, so it waits on it.
+      const second = sink.write(new Uint8Array(4 * MiB));
+      first.reject(new Error('disk full'));
+      await assert.rejects(second, { message: 'disk full' });
+      assert.equal(calls, 1);
+    });
+  });
+
+  it('surfaces an in-flight write error on the next write even without a flush', async (t) => {
+    const first = deferred();
+    const writable = {
+      write() { return first.promise; },
+      async close() { throw new Error('close must not run after a failed write'); },
+      async abort() {}
+    };
+    await withBrowser(t, opfsWith(writable), async () => {
+      const sink = await createOPFSSink({ name: 'fail-small.bin' });
+      await sink.write(new Uint8Array(4 * MiB));
+      first.reject(new Error('disk full'));
+      await new Promise((resolve) => setImmediate(resolve));
+      await assert.rejects(sink.write(new Uint8Array(10)), { message: 'disk full' });
+    });
+  });
+
+  it('close waits for a pending write and reports its failure', async (t) => {
+    const pending = deferred();
+    const events = [];
+    const writable = {
+      write() { return pending.promise.then(() => events.push('write-done'), (error) => { events.push('write-failed'); throw error; }); },
+      async close() { events.push('close'); },
+      async abort() {}
+    };
+    await withBrowser(t, opfsWith(writable), async () => {
+      const sink = await createOPFSSink({ name: 'close-wait.bin' });
+      await sink.write(new Uint8Array(512 * 1024));
+      const closing = sink.file();
+      await new Promise((resolve) => setImmediate(resolve));
+      assert.deepEqual(events, []);
+      pending.resolve();
+      await closing;
+      assert.deepEqual(events, ['write-done', 'close']);
+    });
+
+    const failing = deferred();
+    const failingEvents = [];
+    const failingWritable = {
+      write() { return failing.promise; },
+      async close() { failingEvents.push('close'); },
+      async abort() {}
+    };
+    await withBrowser(t, opfsWith(failingWritable), async () => {
+      const sink = await createOPFSSink({ name: 'close-fail.bin' });
+      await sink.write(new Uint8Array(512 * 1024));
+      const closing = sink.file();
+      failing.reject(new Error('disk full'));
+      await assert.rejects(closing, { message: 'disk full' });
+      assert.deepEqual(failingEvents, []);
+    });
+  });
+
   it('preserves bytes in the fallback and revokes cleanup only once', async (t) => {
     await withBrowser(t, {}, async () => {
       const sink = await createSink({ name: 'hello.txt', size: 5, mediaType: 'text/plain' });

@@ -1,0 +1,13 @@
+<resources>
+    <style name="Theme.CD" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/cd_bg</item>
+        <item name="android:colorBackground">@color/cd_bg</item>
+        <item name="android:colorAccent">@color/cd_accent</item>
+        <item name="android:colorPrimary">@color/cd_accent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowSplashScreenBackground">@color/cd_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_cd_foreground</item>
+    </style>
+</resources>

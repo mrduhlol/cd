@@ -1,5 +1,5 @@
 import { cleanCode, codeFromUrl, generateEphemeralId, isValidCode, peerIdFor } from './p2p-code.js';
-import { cleanShortCode, codeLookupPath, isShortCode, parseCapability, shareUrlFromCapability } from './agent-code.js';
+import { codeLookupPath, isShortCode, shortCodeFromInput, parseCapability, shareUrlFromCapability } from './agent-code.js';
 import { startRelaySend } from './relay-sender.js';
 import { createZipBundle, fileSource } from './zip-bundle.js';
 import { startQrScanner } from './qr-scanner.js';
@@ -567,8 +567,8 @@ const Receiver = (() => {
       openRelay(agentUrl);
       return;
     }
-    const short = isShortCode(rawCode);
-    const code = short ? cleanShortCode(rawCode) : codeFromUrl(rawCode, window.location.href);
+    const short = shortCodeFromInput(rawCode);
+    const code = short || codeFromUrl(rawCode, window.location.href);
     if (!short && !isValidCode(code)) {
       els.scannerStatus.textContent = 'That isn’t a code. Codes are 5 digits, or paste the sender’s link.';
       els.codeInput.setAttribute('aria-invalid', 'true');
@@ -1300,7 +1300,7 @@ async function startScanner() {
       const value = text.trim();
       // Anything the Receive box accepts: a numeric code, a private /s/ link,
       // or an older word-code link.
-      if (!isShortCode(value) && !agentShareUrlFromInput(value) && !isValidCode(codeFromUrl(value))) {
+      if (!shortCodeFromInput(value) && !agentShareUrlFromInput(value) && !isValidCode(codeFromUrl(value))) {
         els.scannerLive.textContent = 'That QR code isn’t from CD. Point at the code on the sender’s screen.';
         return false;
       }
@@ -1424,7 +1424,7 @@ els.codeInput.addEventListener('input', (event) => {
   }
   // Pasting a full link via autofill/drag doesn't fire a paste event, so
   // detect link characters and extract the code instead of mangling it.
-  event.target.value = /[:\/#.]/.test(raw) ? codeFromUrl(raw, window.location.href) : cleanCode(raw);
+  event.target.value = shortCodeFromInput(raw) || (/[:\/#.]/.test(raw) ? codeFromUrl(raw, window.location.href) : cleanCode(raw));
   els.codeInput.removeAttribute('aria-invalid');
   // Five digits is the longest numeric code, so nothing else is coming.
   const enteredCode = event.target.value.trim();
@@ -1448,10 +1448,10 @@ els.codeInput.addEventListener('paste', (event) => {
     Receiver.openRelay(agentUrl);
     return;
   }
-  els.codeInput.value = codeFromUrl(text);
+  els.codeInput.value = shortCodeFromInput(text) || codeFromUrl(text);
   els.codeInput.removeAttribute('aria-invalid');
   // A pasted code is complete; don't make people find the Connect button.
-  if (isShortCode(text)) Receiver.connect(text);
+  if (isShortCode(els.codeInput.value)) Receiver.connect(els.codeInput.value);
   else if (isValidCode(els.codeInput.value)) Receiver.connect(els.codeInput.value);
 });
 
@@ -1516,7 +1516,7 @@ window.addEventListener('drop', (event) => {
 
 // A share link from `cdx send` carries its numeric code in the fragment
 // (https://cd.yash0.in/#48291), so opening it starts the receive.
-const initialShortCode = cleanShortCode(window.location.hash.slice(1));
+const initialShortCode = shortCodeFromInput(window.location.hash.slice(1));
 const initialCode = codeFromUrl(window.location.href, window.location.href);
 if (isShortCode(initialShortCode)) {
   history.replaceState(null, '', window.location.pathname);

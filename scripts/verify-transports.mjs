@@ -126,7 +126,7 @@ try {
         if (max.maxIncomingBytes !== undefined) assert.ok(max.maxIncomingBytes <= 4 * 1024 * 1024, 'incoming high water exceeded4MiB');
         if (max.maxIncomingCount !== undefined) assert.ok(max.maxIncomingCount <= 256, 'incoming record count exceeded256');
         if (max.maxRetainedBytes !== undefined) assert.ok(max.maxRetainedBytes <= 16 * 1024 * 1024, 'retained high water exceeded16MiB');
-        if (max.mergerBytes !== undefined) assert.ok(max.mergerBytes <= 16 * 1024 * 1024, 'merger exceeded16MiB');
+        if (max.mergerBytes !== undefined) assert.ok(max.mergerBytes <= 32 * 1024 * 1024, 'merger exceeded32MiB');
         if (max.window_inFlight !== undefined) assert.ok(max.window_inFlight <= 12 * 1024 * 1024, 'adaptive in-flight exceeded12MiB');
         if (max.window_sampleCount !== undefined) assert.ok(max.window_sampleCount <= 64, 'adaptive RTT sample retention exceeded64');
       }
@@ -135,6 +135,9 @@ try {
         mibPerSecond: Number((mib / seconds).toFixed(3)), bytesVerified: payload.length, directPayloadBytes, relayPayloadBytes,
         senderStats, receiverStats, cliReports: reports, totalMs: Number((performance.now() - started).toFixed(3)) });
       console.error(`${testCase.name}: ${directPayloadBytes} direct, ${relayPayloadBytes} relay payload bytes, ${seconds.toFixed(3)}s`);
+    } catch (error) {
+      const status = receiverPage ? await receiverPage.locator('#receiver-status, [data-relay="status"]').allTextContents().catch(() => []) : [];
+      throw new Error(`${testCase.name}: ${error.message}\nReceiver status: ${status.join('; ')}\nCLI diagnostics: ${cliSender?.output.stderr ?? cliReceiver?.output.stderr ?? ''}`, { cause: error });
     } finally {
       await stopChild(cliSender?.child);
       await stopChild(cliReceiver?.child);

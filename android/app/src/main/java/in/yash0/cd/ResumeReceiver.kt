@@ -1,7 +1,9 @@
 package `in`.yash0.cd
 
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.AtomicFile
 import okhttp3.OkHttpClient
@@ -16,7 +18,6 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
     private fun active() { if (!shouldContinue()) throw UserPausedException() }
     fun receive(task: JSONObject, endpoint: String, localRoute: Boolean = localEndpoint(endpoint)) {
         val invitation = Invitation.parse(task.getString("url"))
-        require(invitation.version == 2)
         val nonce = Crypto.random(32)
         val join = JSONObject().put("type", "join").put("protocol", "cd-transfer-v2").put("role", "receiver").put("receiverNonce", Crypto.encode(nonce)).put("receiverToken", Crypto.encode(invitation.token())).put("nonceProof", Crypto.encode(invitation.proof("receiver", nonce)))
         var direct: DirectReceiver? = null
@@ -84,7 +85,7 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
                 val d = MessageDigest.getInstance("SHA-256"); FileInputStream(stage).use { input -> var left = writtenOffset; val b = ByteArray(262144); while (left > 0) { val n = input.read(b, 0, minOf(left, b.size.toLong()).toInt()); check(n > 0); d.update(b, 0, n); left -= n } }; Crypto.hex(d.digest())
             }
             require(prefix() == cp.getString("prefixSha256")) { "Retained prefix failed verification" }
-            diagnostic("checkpoint-verified")
+            diagnostic("checkpoint-verified-offset=$writtenOffset")
             RandomAccessFile(stage, "rw").use { output ->
                 output.setLength(writtenOffset); output.seek(writtenOffset)
                 fun persist() {
@@ -100,7 +101,8 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
                 if (!localRoute) offer.optJSONObject("direct")?.optString("sdp")?.takeIf { it.isNotEmpty() }?.let { sdp ->
                     direct = DirectReceiver(context, store.allowedMobile(), { signal -> writer.send(9, signal.toString().toByteArray()) }, wire::direct, wire::abort, diagnostic).also { it.start(sdp) }
                 }
-                progress(filename, writtenOffset, size)
+                store.state(task.getString("id"), "receiving") ?: throw UserPausedException()
+                progress(filename, committedOffset, size)
                 while (true) {
                     val (kind, data) = nextRecord()
                     if (kind == 2) {
@@ -110,8 +112,9 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
                             persist()
                             writer.send(5, counts(committedOffset))
                         }
-                        progress(filename, writtenOffset, size)
+                        progress(filename, committedOffset, size)
                     } else {
+                        store.state(task.getString("id"), "verifying") ?: throw UserPausedException()
                         val expectedEnd = counts(size) + digest.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
                         require(kind == 3 && writtenOffset == size && prefix() == digest && MessageDigest.isEqual(data, expectedEnd)) { "Final digest or size failed verification" }
                         writer.stopSignals()
@@ -119,7 +122,7 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
                         output.fd.sync()
                         active()
                         task.put("wholeSha256", digest)
-                        publishDownload(context, store, task, stage, filename, size, ::active)
+                        publish(task, stage, filename, size)
                         diagnostic("published")
                         writer.send(6, expectedEnd)
                         wire.send(JSONObject().put("type", "complete").put("protocol", "cd-transfer-v2").put("sessionNonce", paired.getString("sessionNonce")).put("receiverNonce", paired.getString("receiverNonce")))
@@ -130,5 +133,31 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
                 }
             }
         } } finally { direct?.close() }
+    }
+    private fun publish(task: JSONObject, stage: File, filename: String, size: Long) {
+        val resolver = context.contentResolver
+        val existing = task.optString("publishedUri")
+        var uri = existing.takeIf { it.isNotEmpty() }?.let(Uri::parse)
+        if (uri == null) {
+            uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename); put(MediaStore.MediaColumns.MIME_TYPE, "application/octet-stream"); put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/CD"); put(MediaStore.MediaColumns.IS_PENDING, 1)
+            }) ?: error("Could not create Downloads file")
+            try { store.publication(task.getString("id"), uri.toString(), task.getString("wholeSha256")); task.put("publishedUri", uri.toString()) } catch (e: Exception) { resolver.delete(uri, null, null); throw e }
+        }
+        val alreadyPublished = resolver.query(uri, arrayOf(MediaStore.MediaColumns.IS_PENDING), null, null, null)?.use { cursor -> cursor.moveToFirst() && cursor.getInt(0) == 0 } ?: false
+        if (!alreadyPublished) resolver.openFileDescriptor(uri, "rwt")!!.use { pfd -> java.io.FileOutputStream(pfd.fileDescriptor).use { out -> FileInputStream(stage).use { input ->
+            val buffer = ByteArray(262144)
+            while (true) { active(); val n = input.read(buffer); if (n < 0) break; out.write(buffer, 0, n) }
+        }; out.fd.sync() } }
+        else {
+            val actual = MessageDigest.getInstance("SHA-256")
+            var count = 0L
+            resolver.openInputStream(uri)!!.use { input -> val b = ByteArray(262144); while (true) { active(); val n = input.read(b); if (n < 0) break; actual.update(b, 0, n); count += n } }
+            require(count == size && Crypto.hex(actual.digest()) == task.getString("wholeSha256")) { "Published file changed before completion recovery" }
+        }
+        active()
+        check(stage.length() == size)
+        check(resolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null) == 1)
+        store.completed(task.getString("id"), uri.toString(), filename, size); task.put("state", "complete")
     }
 }

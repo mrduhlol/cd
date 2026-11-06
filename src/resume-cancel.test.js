@@ -104,3 +104,77 @@ it('cancel waits for an in-flight append and removes any checkpoint it finishes 
   assert.equal(files.size, 0, 'a later append cannot recreate staged data');
   assert.equal(checkpoints.values.has(`receiver:${rootId}`), false, 'a later append cannot recreate the checkpoint');
 });
+
+it('worker flush completes before the checkpoint, and cancellation waits then closes before cleanup', async () => {
+  const originalWorker = globalThis.Worker;
+  const flushGate = { entered: deferred(), release: deferred() };
+  const putGate = { entered: deferred(), release: deferred() };
+  const { storage, files } = makeStorage();
+  let worker;
+  globalThis.Worker = class {
+    constructor() { worker = this; }
+    postMessage(data) {
+      void (async () => {
+        if (data.type === 'write') {
+          flushGate.entered.resolve();
+          await flushGate.release.promise;
+          const name = [...files.keys()][0];
+          files.set(name, data.bytes.slice());
+        }
+        if (data.type === 'close') this.closed = true;
+        this.onmessage({ data: { ok: true } });
+      })();
+    }
+    terminate() { this.terminated = true; }
+  };
+  try {
+    const checkpoints = makeKV({ blockPut: putGate });
+    const id = new Uint8Array(16), key = new Uint8Array(32).fill(1), bytes = Uint8Array.of(42);
+    const rootId = encodeBase64Url(id);
+    const offer = { name: 'worker.bin', size: '1', chunkSize: RESUME_CHUNK_SIZE, wholeSha256: new IncrementalSHA256().update(bytes).digestHex(), expiresAt: Date.now() + 60_000 };
+    const stage = await createReceiverStage({ invitation: { id, key }, rootId, offer, storage, checkpoints, secrets: makeKV() });
+    const append = stage.append(bytes, 'A'.repeat(43));
+    await flushGate.entered.promise;
+    assert.equal(checkpoints.values.size, 0);
+    assert.equal(stage.currentOffset, 0);
+    const cancel = stage.cancel();
+    flushGate.release.resolve();
+    await putGate.entered.promise;
+    assert.equal(stage.currentOffset, 0);
+    assert.equal(worker.closed, undefined);
+    putGate.release.resolve();
+    await append;
+    await cancel;
+    assert.equal(worker.closed, true);
+    assert.equal(worker.terminated, true);
+    assert.equal(files.size, 0);
+    assert.equal(checkpoints.values.size, 0);
+  } finally {
+    if (originalWorker === undefined) delete globalThis.Worker;
+    else globalThis.Worker = originalWorker;
+  }
+});
+
+it('explicit cancellation removes its checkpoint and staging even when worker close fails', async () => {
+  const originalWorker = globalThis.Worker;
+  let terminated = false;
+  globalThis.Worker = class {
+    postMessage(data) { queueMicrotask(() => this.onmessage({ data: data.type === 'close' ? { error: 'Close failed' } : { ok: true } })); }
+    terminate() { terminated = true; }
+  };
+  try {
+    const { storage, files } = makeStorage();
+    const checkpoints = makeKV(), id = new Uint8Array(16), key = new Uint8Array(32).fill(2);
+    const rootId = encodeBase64Url(id);
+    const offer = { name: 'empty.bin', size: '0', chunkSize: RESUME_CHUNK_SIZE, wholeSha256: new IncrementalSHA256().digestHex(), expiresAt: Date.now() + 60_000 };
+    const stage = await createReceiverStage({ invitation: { id, key }, rootId, offer, storage, checkpoints, secrets: makeKV() });
+    await stage.bindSession('A'.repeat(43));
+    await assert.rejects(stage.cancel(), /Close failed/);
+    assert.equal(terminated, true);
+    assert.equal(files.size, 0);
+    assert.equal(checkpoints.values.size, 0);
+  } finally {
+    if (originalWorker === undefined) delete globalThis.Worker;
+    else globalThis.Worker = originalWorker;
+  }
+});

@@ -50,10 +50,10 @@ test('assembly rejects oversized native messages before buffering', () => {
 
 test('ordering bytes and record count both remain bounded', () => {
   const merger = createRecordMerger();
-  for (let sequence = 1; sequence <= 16; sequence += 1) merger.push(record(sequence, 1024 * 1024 - 28));
-  assert.equal(merger.pendingBytes, 16 * 1024 * 1024);
-  assert.throws(() => merger.push(record(17, 1)), /ordering buffer/);
-  assert.equal(merger.pendingRecords, 16);
+  for (let sequence = 1; sequence <= 32; sequence += 1) merger.push(record(sequence, 1024 * 1024 - 28));
+  assert.equal(merger.pendingBytes, 32 * 1024 * 1024);
+  assert.throws(() => merger.push(record(33, 1)), /ordering buffer/);
+  assert.equal(merger.pendingRecords, 32);
   const countBound = createRecordMerger();
   for (let sequence = 1; sequence <= 256; sequence += 1) countBound.push(record(sequence, 0));
   assert.throws(() => countBound.push(record(257, 0)), /too many records/);
@@ -127,4 +127,25 @@ test('assembly accepts fragmented headers and coalesced records without aliasing
     assert.deepEqual(received, expected);
     assert.equal(assembler.bufferedBytes, 0);
   }
+});
+
+test('the merger releases its byte budget after ordered records drain', () => {
+  const merger = createRecordMerger();
+  for (let sequence = 1; sequence <= 31; sequence += 1) merger.push(record(sequence, 1024 * 1024 - 28));
+  assert.equal(merger.push(record(0, 1)).length, 32);
+  for (let sequence = 33; sequence <= 64; sequence += 1) assert.deepEqual(merger.push(record(sequence, 1024 * 1024 - 28)), []);
+});
+
+test('a delayed relay record can reorder the CLI 24 MiB striped window', () => {
+  const merger = createRecordMerger();
+  const directRecords = [];
+  for (let sequence = 1; sequence <= 96; sequence += 1) {
+    const value = record(sequence, 256 * 1024);
+    directRecords.push(value);
+    assert.deepEqual(merger.push(value), []);
+  }
+  assert.ok(merger.pendingBytes > 24 * 1024 * 1024);
+  const delayedRelay = record(0, 1);
+  assert.deepEqual(merger.push(delayedRelay), [delayedRelay, ...directRecords]);
+  assert.equal(merger.pendingBytes, 0);
 });

@@ -1,0 +1,61 @@
+{
+  "origin": "https://cd.yash0.in",
+  "remote": "yvm@192.168.1.9",
+  "phase": "sender",
+  "rows": [
+    {
+      "scenario": "browser-linux",
+      "trial": 1,
+      "mode": "before",
+      "milliseconds": 43626.986725,
+      "bytes": 33554509,
+      "sha256": "680d7fb38497382d91bf2928834abf5760da6bf8ea0e85628a84cdb34084b8da",
+      "verified": true
+    },
+    {
+      "scenario": "browser-linux",
+      "trial": 1,
+      "mode": "after",
+      "milliseconds": 9924.953532,
+      "bytes": 33554509,
+      "sha256": "680d7fb38497382d91bf2928834abf5760da6bf8ea0e85628a84cdb34084b8da",
+      "verified": true
+    },
+    {
+      "scenario": "browser-linux",
+      "trial": 2,
+      "mode": "after",
+      "milliseconds": 9948.935810999988,
+      "bytes": 33554509,
+      "sha256": "680d7fb38497382d91bf2928834abf5760da6bf8ea0e85628a84cdb34084b8da",
+      "verified": true
+    },
+    {
+      "scenario": "browser-linux",
+      "trial": 2,
+      "mode": "before",
+      "milliseconds": 45531.87602299999,
+      "bytes": 33554509,
+      "sha256": "680d7fb38497382d91bf2928834abf5760da6bf8ea0e85628a84cdb34084b8da",
+      "verified": true
+    },
+    {
+      "scenario": "browser-linux",
+      "trial": 3,
+      "mode": "before",
+      "milliseconds": 44748.44115299999,
+      "bytes": 33554509,
+      "sha256": "680d7fb38497382d91bf2928834abf5760da6bf8ea0e85628a84cdb34084b8da",
+      "verified": true
+    },
+    {
+      "scenario": "browser-linux",
+      "trial": 3,
+      "mode": "after",
+      "milliseconds": 10181.865672999993,
+      "bytes": 33554509,
+      "sha256": "680d7fb38497382d91bf2928834abf5760da6bf8ea0e85628a84cdb34084b8da",
+      "verified": true
+    }
+  ]
+}

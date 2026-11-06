@@ -157,6 +157,7 @@ export function startRelaySend(source, hooks = {}) {
     if (!direct?.open && socket.readyState !== 1) throw new RelaySendError('Lost the connection to CD. Send again for a fresh transfer.');
   }
 
+
   function attachPump() {
     socket.addEventListener('message', (event) => {
       if (typeof event.data === 'string') deliver(event);

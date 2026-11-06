@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -84,5 +85,15 @@ func TestResumeV2FixtureAndProofs(t *testing.T) {
 	}
 	if err := verifyResumeCheckpoint(f.Checkpoint, key, f.Checkpoint.ExpiresAt); err == nil {
 		t.Fatal("expired checkpoint accepted")
+	}
+}
+
+func TestResumeSealerRejectsOversizedPayload(t *testing.T) {
+	sealer, err := newResumeSealer(testInvitation(), make([]byte, 32), make([]byte, 32), senderDirection)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := sealer.seal(kindChunk, bytes.Repeat([]byte{1}, maxRecordBytes)); err == nil {
+		t.Fatal("oversized resume record accepted")
 	}
 }

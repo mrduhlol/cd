@@ -90,10 +90,6 @@ func usage(output io.Writer) {
 	fmt.Fprintln(output, "")
 	fmt.Fprintln(output, "commands:")
 	fmt.Fprintln(output, "  send <path>...     send one or more files and folders with one code")
-	fmt.Fprintln(output, "  login             sign into your Clerk account once")
-	fmt.Fprintln(output, "  logout            remove terminal login credentials")
-	fmt.Fprintln(output, "  account devices   list phones registered to your account")
-	fmt.Fprintln(output, "  account revoke <name> revoke a registered phone")
 	fmt.Fprintln(output, "  receive <code>     receive one file (the 4-5 digit code, or a full link)")
 	fmt.Fprintln(output, "  pair [--name phone]  scan once in CD Android to trust this computer")
 	fmt.Fprintln(output, "  devices [forget name]  list or forget paired devices")
@@ -113,7 +109,6 @@ func usage(output io.Writer) {
 	fmt.Fprintln(output, "options for receive:")
 	fmt.Fprintln(output, "  --out <path>   save to this file or directory (default: sender's filename)")
 	fmt.Fprintln(output, "                 several files unpack into this folder (created if missing)")
-	fmt.Fprintln(output, "  --detach       receive in the background; print PID and private log path")
 	fmt.Fprintln(output, "  --force        overwrite an existing file")
 	fmt.Fprintln(output, "  --progress     show transfer progress (JSON lines with --json)")
 	fmt.Fprintln(output, "  --json         print {\"version\",\"filename\",\"size\",\"path\",\"files\"} instead of the bare path(s)")
@@ -186,7 +181,6 @@ func receiveUsage(output io.Writer) {
 	fmt.Fprintln(output, "                   (a full share link works too)")
 	fmt.Fprintln(output, "  --out <path>   save to this file or directory (default: sender's filename)")
 	fmt.Fprintln(output, "                 several files unpack into this folder (created if missing)")
-	fmt.Fprintln(output, "  --detach       receive in the background; print PID and private log path")
 	fmt.Fprintln(output, "  --force        overwrite an existing file")
 	fmt.Fprintln(output, "  --progress     show transfer progress (JSON lines with --json)")
 	fmt.Fprintln(output, "  --json         print {\"version\",\"filename\",\"size\",\"path\",\"files\"} instead of the bare path(s)")
@@ -218,7 +212,6 @@ type sendRequest struct {
 
 // receiveRequest is the parsed form of receive arguments.
 type receiveRequest struct {
-	detach     bool
 	resume     bool
 	jsonOutput bool
 	progress   bool
@@ -389,11 +382,6 @@ func parseReceiveArgs(args []string) (receiveRequest, error) {
 		}
 		if !endOfFlags && (argument == "--help" || argument == "-h") {
 			return receiveRequest{help: true}, nil
-		}
-		if !endOfFlags && argument == "--detach" {
-			request.detach = true
-			index++
-			continue
 		}
 		if !endOfFlags && argument == "--resume" {
 			request.resume = true
@@ -595,9 +583,6 @@ func runReceive(request receiveRequest) int {
 		receiveUsage(os.Stdout)
 		return 0
 	}
-	if request.detach {
-		return runDetachedReceive(request)
-	}
 	if request.resume || strings.Contains(request.code, "#v2.") {
 		return runResumableReceive(request)
 	}
@@ -624,19 +609,6 @@ func run(argv []string) int {
 		return 2
 	}
 	switch argv[0] {
-	case "account":
-		return runAccount(argv[1:])
-	case "login":
-		return runLogin(argv[1:])
-	case "logout":
-		path, err := accountTokenPath()
-		if err == nil {
-			err = os.Remove(path)
-		}
-		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			return deviceFailure(err, false)
-		}
-		return 0
 	case "--help", "-h", "help":
 		if len(argv) > 1 {
 			if argv[1] == "send" {

@@ -10,3 +10,51 @@ targetRules = ["generic-api-key"]
 regexTarget = "match"
 regexes = ['''invalid-secret-[0-9]+''']
 paths = ['''^cdx/src/transfer/transfer_test\.go$''']
+
+[[allowlists]]
+description = "Exact dummy values in test fixtures"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+regexes = ["^aO6Ww6lyA10XmqHEgQYHyA$"]
+paths = ["^cmd/cdx/detach_test\\.go$"]
+
+[[allowlists]]
+description = "Exact dummy values in test fixtures"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+regexes = ["^EBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8$", "^iLGO6mZeaJglq0Dtlt7gVbXAxzfaRuuTB2EKU9pUzhI$", "^tv3A13vt67jg7N3OmSO\\-390R19s9pecIXKUhZ0p9IAg$"]
+paths = ["^fixtures/resume\\-v2\\.json$"]
+
+[[allowlists]]
+description = "Historical deterministic transfer test vectors"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+regexes = ["^ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8$", "^AgMgWYyVOVPhMzLd4NwL8Mcl9GbvPg5SiBuEZF82VoE$"]
+paths = ["^fixtures/transfer\\-v1\\.json$"]
+
+[[allowlists]]
+description = "Historical deterministic device test vectors"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+regexes = ["^EBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8$", "^qiNfJi885JN4vso6KYKgCXW1Y6xBgYeF1piR3uRmXds$", "^Cq_WkLMJiMzwiP7y2quBMwkwIdrFPbWkaCAD12ocfww$", "^FklKdu4EnsXK_DL4nLqIKh45Yma4ccp9fWl8hTjWM9U$", "^tjhg3WkW7JjG8_9fYH_eqYPRdZGSK2ZxufuIGEkWU2I$"]
+paths = ["^fixtures/device\\-v1\\.json$"]
+
+[[allowlists]]
+description = "Synthetic diagnostics redaction test string"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+regexes = ["^abc_DEF\\-0123456789$"]
+paths = ["^scripts/v2\\-browser\\-diagnostics\\.test\\.mjs$"]
+
+[[allowlists]]
+description = "Recorded source SHA-256, not a credential"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+regexes = ["^a63672d9fa7ad85731dd34e326ffe4ecedd2a271e460b8e94f3efdae894cb269$"]
+paths = ["^docs/measurements/transfer\\-speed\\-2026\\-10\\-18/provenance\\.json$"]

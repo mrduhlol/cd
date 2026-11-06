@@ -8,7 +8,6 @@ object OfferValidation {
         val id = message.getString("transferId")
         Crypto.decode(id, 16)
         val invitation = Invitation.parse(message.getString("url"))
-        require(invitation.version == 2) { "Trusted offers require resumable v2 links" }
         require(id == invitation.id) { "Transfer identity differs from its invitation" }
         val filename = message.getString("filename")
         require(filename.toByteArray().size in 1..255 && filename !in listOf(".", "..") && filename.none { it == '/' || it == '\\' || it.code < 32 }) { "Unsafe offered filename" }

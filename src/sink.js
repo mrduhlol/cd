@@ -96,6 +96,12 @@ export async function createOPFSSink({ name }) {
   const FLUSH_BYTES = 4 * 1024 * 1024;
   let pending = [];
   let pendingBytes = 0;
+  // At most one writable.write() is outstanding. A flush starts its write
+  // without waiting for it, so the next chunk's decrypt overlaps disk I/O;
+  // the next flush (or close) waits for the previous one first, which keeps
+  // writes in byte order and bounds memory to two flushes.
+  let inflight = null;
+  let failure = null;
   const flush = async () => {
     if (pendingBytes === 0) return;
     let merged;
@@ -111,7 +117,18 @@ export async function createOPFSSink({ name }) {
     }
     pending = [];
     pendingBytes = 0;
-    await writable.write(merged);
+    if (inflight) await inflight;
+    const next = writable.write(merged);
+    // Record a failure now so the next write() or close() reports it even
+    // when no flush is due; the .catch keeps it from being unhandled.
+    next.catch((error) => { failure ??= error; });
+    inflight = next;
+  };
+  // Waits for every queued write, then surfaces any failure.
+  const drain = async () => {
+    await flush();
+    if (inflight) await inflight;
+    if (failure) throw failure;
   };
   const discard = async () => {
     pending = [];
@@ -123,6 +140,7 @@ export async function createOPFSSink({ name }) {
     kind: 'download',
     internalName: internal,
     async write(bytes) {
+      if (failure) throw failure;
       const view = bytes instanceof Uint8Array
         ? bytes
         : ArrayBuffer.isView(bytes)
@@ -133,7 +151,7 @@ export async function createOPFSSink({ name }) {
       if (pendingBytes >= FLUSH_BYTES) await flush();
     },
     async file() {
-      await flush();
+      await drain();
       await writable.close();
       return fileHandle.getFile();
     },

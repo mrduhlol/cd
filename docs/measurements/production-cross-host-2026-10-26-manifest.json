@@ -1,0 +1,36 @@
+{
+  "baseCommit": "405551b3ee74b8d650965cc2c29dea7fa7ff3010",
+  "productionVersion": "33d007ce-875e-448e-a98e-534af42888a0",
+  "origin": "https://cd.yash0.in",
+  "pc": "192.168.1.6",
+  "linuxBox": "192.168.1.9",
+  "candidateCliSha256": "ed1ce5bbca23f4eaeeaf76ee48e0ec9412d3d8167a433ca7eeaf3d278298e438",
+  "sources": {
+    "src/resume-browser.js": "053c0c161c81828fc2b53d86a92233a8071e60dedd02b00657dd6328064c9dd4",
+    "src/resume-opfs.js": "62841ebac2fc34316c28b724b731a22ad542dc409aaefc4c0c33645dc5d27136",
+    "src/resume-opfs-worker.js": "b671cd59638f6989b98cc250f74a1b8e3fcf4eac23766a0dba5a86461315f9fd",
+    "src/incremental-sha256.js": "6b7f2d282be3af2039766f32e57899ac77f51d2fdd2417cbdaf4eeb3f9f6ef67",
+    "cmd/cdx/link.go": "9810d0aaef51fba510c5e4f2cd24b7c06b57f472e6f1a55694fca969beae41b8"
+  },
+  "bundles": {
+    "before": {
+      "resume-browser-BtZZBNPA.js": "b4b8532b65524583334a5318acdc5adfad3946b78cb259b64a224cfd023401ce"
+    },
+    "after": {
+      "resume-browser-B2sHrfxX.js": "faf4967708c8d76de0b90dda3b27ff269d9c8821bd4752ba25fd8647e4a03fca",
+      "resume-opfs-worker-BdGPSw2v.js": "e2e9033d8c1e2d4fe504edcc7dce6c92e7ce1d69ad8e0ef257e36150b741f856"
+    }
+  },
+  "comparisons": {
+    "receiver": {
+      "before": 23899.461930999998,
+      "after": 10245.731140000018,
+      "speedup": 2.332626301084059
+    },
+    "sender": {
+      "before": 44748.44115299999,
+      "after": 9948.935810999988,
+      "speedup": 4.497811826620101
+    }
+  }
+}

@@ -12,7 +12,7 @@ import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { cpus, loadavg, tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 import { buildCLI, captureOutput, childExit, cliEnv, findChromium, firstLine, startWorker, stopChild } from './harness.mjs';
@@ -148,7 +148,7 @@ async function browser() {
   const server = createServer(async (request, response) => {
     if (request.url === '/') { response.end('<!doctype html><title>Local performance audit</title>'); return; }
     if (!/^\/src\/[a-z0-9-]+\.js$/.test(request.url)) { response.writeHead(404).end(); return; }
-    try { response.setHeader('Content-Type', 'text/javascript'); response.end(await readFile(join(repo, request.url))); }
+    try { response.setHeader('Content-Type', 'text/javascript'); response.end(await readFile(join(repo, 'src', basename(request.url)))); }
     catch { response.writeHead(404).end(); }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

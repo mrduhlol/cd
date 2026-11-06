@@ -460,7 +460,7 @@ func sendResumable(ctx context.Context, request sendRequest) error {
 	if kind != kindAccept || json.Unmarshal(data, &accept) != nil {
 		return resumeFailure("invalid resume acceptance")
 	}
-	offset, err := strconv.ParseUint(accept.Offset, 10, 64)
+	offset, err := strconv.ParseUint(accept.Offset, 10, 53)
 	if err != nil || offset > source.size || (offset%chunkSize != 0 && offset != source.size) {
 		return resumeFailure("invalid retained resume offset")
 	}

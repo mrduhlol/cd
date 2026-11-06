@@ -158,11 +158,18 @@ export function fileSource(file, { chunkBytes = 4 * 1024 * 1024 } = {}) {
 }
 
 // rechunk regroups a byte stream into pieces of exactly `size` bytes (the
-// last may be shorter), the unit the relay protocol sends.
+// last may be shorter), the unit the relay protocol sends. A piece that is
+// already exactly `size` bytes with nothing buffered is yielded as-is, so the
+// caller receives the source's own buffer: sources must not reuse a yielded
+// buffer after handing it over (fileSource and the zip stream allocate fresh).
 export async function* rechunk(source, size) {
   let buffer = new Uint8Array(size);
   let filled = 0;
   for await (const piece of source) {
+    if (filled === 0 && piece.length === size) {
+      yield piece;
+      continue;
+    }
     let offset = 0;
     while (offset < piece.length) {
       const take = Math.min(size - filled, piece.length - offset);

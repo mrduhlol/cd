@@ -77,40 +77,13 @@ async function record(name, operation) {
   const details = await operation();
   measurements.push({ scenario: name, passed: true, milliseconds: Number((performance.now() - started).toFixed(3)), ...details });
 }
-function verifyStoredArchive(bytes, fileCount, expectedContent) {
-  const end = bytes.length - 22;
-  assert.equal(bytes.readUInt32LE(end), 0x06054b50, 'missing ZIP end record');
-  const entries = bytes.readUInt16LE(end + 10);
-  let cursor = bytes.readUInt32LE(end + 16);
-  const seen = new Set();
-  for (let index = 0; index < entries; index += 1) {
-    assert.equal(bytes.readUInt32LE(cursor), 0x02014b50, 'invalid ZIP central entry');
-    const nameLength = bytes.readUInt16LE(cursor + 28);
-    const extraLength = bytes.readUInt16LE(cursor + 30);
-    const commentLength = bytes.readUInt16LE(cursor + 32);
-    const name = bytes.subarray(cursor + 46, cursor + 46 + nameLength).toString('utf8');
-    const size = bytes.readUInt32LE(cursor + 24);
-    if (!name.endsWith('/')) {
-      assert.match(name, /^slow-preparation\/file-\d+$/);
-      assert.equal(bytes.readUInt16LE(cursor + 10), 0, 'fixture must use stored ZIP entries');
-      const local = bytes.readUInt32LE(cursor + 42);
-      assert.equal(bytes.readUInt32LE(local), 0x04034b50);
-      const content = local + 30 + bytes.readUInt16LE(local + 26) + bytes.readUInt16LE(local + 28);
-      assert.equal(sha(bytes.subarray(content, content + size)), sha(expectedContent), `ZIP entry ${name} differs`);
-      assert.ok(!seen.has(name), `duplicate ZIP entry ${name}`);
-      seen.add(name);
-    }
-    cursor += 46 + nameLength + extraLength + commentLength;
-  }
-  assert.equal(seen.size, fileCount);
-  for (let index = 0; index < fileCount; index += 1) assert.ok(seen.has(`slow-preparation/file-${index}`));
-}
 async function finish(ready, source, name) {
   const output = join(work, `${name}-received.bin`);
-  const waiter = execute(['wait', '--json', '--timeout', '30s', idOf(ready)], 35_000);
+  const waiter = execute(['wait', '--json', '--timeout', '30s', '--', idOf(ready)], 35_000);
   const receiver = await execute(['receive', '--json', ready.code ?? ready.url, '--out', output], 35_000);
   assert.equal(receiver.code, 0, receiver.stderr + receiver.stdout);
-  assert.equal((await waiter).code, 0, 'sender wait did not verify');
+  const waited = await waiter;
+  assert.equal(waited.code, 0, `sender wait did not verify: ${waited.stdout}${waited.stderr}`);
   assert.equal(sha(await readFile(output)), sha(source), 'payload differs');
 }
 try {
@@ -165,7 +138,7 @@ try {
     changed[0] ^= 1;
     await writeFile(sourcePath, changed);
     const destination = join(work, 'changed-after-ready.bin');
-    const waiter = execute(['wait', '--json', '--timeout', '30s', idOf(ready)], 35_000);
+    const waiter = execute(['wait', '--json', '--timeout', '30s', '--', idOf(ready)], 35_000);
     const receiver = await execute(['receive', '--json', ready.code, '--out', destination], 35_000);
     assert.equal(receiver.code, 1, 'receiver accepted bytes that changed after request reservation');
     assert.equal((await waiter).code, 1, 'sender accepted changed request bytes');
@@ -205,13 +178,19 @@ try {
     assert.equal(idOf(retry.ready), state.transferId);
     assert.equal(retry.ready.code, state.code);
     assert.equal((await stateOf(retry.ready)).pid, holderPID, 'lost response spawned another holder');
-    const output = join(work, 'lost-response.zip');
+    const output = join(work, 'lost-response-files');
     const receiver = await execute(['receive', '--json', retry.ready.code, '--out', output], 35_000);
     assert.equal(receiver.code, 0, receiver.stderr + receiver.stdout);
-    assert.equal((await execute(['wait', '--json', '--timeout', '30s', state.transferId], 35_000)).code, 0);
-    const received = await readFile(output);
-    assert.equal(received.length, state.size);
-    verifyStoredArchive(received, 1000, Buffer.alloc(64 * 1024));
+    assert.equal((await execute(['wait', '--json', '--timeout', '30s', '--', state.transferId], 35_000)).code, 0);
+    const received = JSON.parse(receiver.stdout);
+    assert.equal(received.size, state.size);
+    assert.equal(received.files.length, 1000, 'bundle must unpack every file');
+    assert.equal((await readdir(output)).join(), 'slow-preparation');
+    assert.equal((await readdir(join(output, 'slow-preparation'))).length, 1000);
+    const expectedHash = sha(Buffer.alloc(64 * 1024));
+    for (let index = 0; index < 1000; index += 1) {
+      assert.equal(sha(await readFile(join(output, 'slow-preparation', `file-${index}`))), expectedHash, `file-${index} differs`);
+    }
     return { holderPID, originalTransferId: state.transferId, filesVerified: 1000, bytesVerified: 1000 * 64 * 1024, replayMilliseconds: Number(retry.milliseconds.toFixed(3)) };
   });
   for (const [name, signal, kind] of [['stale holder', 'SIGKILL', 'disconnected'], ['cancellation', 'SIGTERM', 'canceled']]) {
@@ -221,7 +200,7 @@ try {
       const state = await stateOf(ready);
       process.kill(state.pid, signal);
       await poll(async () => {
-        const result = await execute(['status', '--json', idOf(ready)]);
+        const result = await execute(['status', '--json', '--', idOf(ready)]);
         return JSON.parse(result.stdout).phase === 'failed';
       }, `${name} never became failed`);
       const failure = await expectFailure(requestId, sourcePath, kind);

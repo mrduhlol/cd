@@ -18,10 +18,6 @@ object TransferFiles {
     }
     fun discard(context: Context, store: Store, id: String, receiverFinished: Boolean = false) {
         val task = store.task(id) ?: return
-        if (task.has("code")) {
-            if (task.getString("state") == "cancelled") store.putTask(task.put("discarded", true))
-            return
-        }
         if (!receiverFinished && active.containsKey(Invitation.parse(task.getString("url")).id)) return
         if (task.getString("state") != "cancelled") return
         runCatching {

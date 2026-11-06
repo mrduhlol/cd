@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { access, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { createHash, randomBytes } from 'node:crypto';
+import { receiverAdmission, encodeBase64Url } from '../src/agent-protocol.js';
+import { access, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -48,6 +49,11 @@ try {
     // The agent path: a detached send exits 0 with the code, and
     // `cdx wait` reports the verified result.
     const stateEnv = { CD_STATE_DIR: join(work, 'state') };
+    const protectedPath = join(work, 'protected-user-file');
+    await writeFile(protectedPath, 'USER DATA');
+    const legacyStaging = join(outDir, 'terminal check.bin.cd-part');
+    if (process.platform !== 'win32') await symlink(protectedPath, legacyStaging);
+    else await writeFile(legacyStaging, 'USER DATA');
     const sender = spawn(executable, ['send', sourcePath], { env: childEnv(stateEnv), stdio: ['ignore', 'pipe', 'pipe'] });
     const code = await firstLine(sender.stdout);
     assert.match(code, /^\d{4,5}$/);
@@ -55,7 +61,7 @@ try {
     const waiter = spawn(executable, ['wait', code], { env: childEnv(stateEnv), stdio: ['ignore', 'pipe', 'pipe'] });
     const senderExit = new Promise((resolve) => waiter.once('exit', resolve));
     const senderStderr = collect(waiter.stderr);
-    const receiver = spawn(executable, ['receive', code, '--out', outDir], { env: childEnv(), stdio: ['ignore', 'pipe', 'pipe'] });
+    const receiver = spawn(executable, ['receive', code, '--out', outDir, '--force'], { env: childEnv(), stdio: ['ignore', 'pipe', 'pipe'] });
     const receiverStderr = collect(receiver.stderr);
     const receiverExit = await childExit(receiver);
     assert.equal(receiverExit, 0, await receiverStderr);
@@ -63,7 +69,9 @@ try {
     assert.equal(sha(Buffer.from(received)), sha(Buffer.from(source)));
     const senderCode = await withTimeout(senderExit, 30_000, 'terminal sender did not finish');
     assert.equal(senderCode, 0, await senderStderr);
-    console.log(`verified terminal->terminal: ${received.byteLength} exact bytes`);
+    assert.equal((await readFile(protectedPath)).toString(), 'USER DATA');
+    assert.equal((await readFile(legacyStaging)).toString(), 'USER DATA');
+    console.log(`verified terminal->terminal: ${received.byteLength} exact bytes; --force preserves existing staging files and symlink targets`);
     // The room releases its code once a receiver pairs: one receiver per code.
     assert.equal((await fetch(`${publicBase}/api/codes/${code}`)).status, 404, 'code still resolves after pairing');
     console.log('verified the share code is released once the receiver pairs');
@@ -71,16 +79,31 @@ try {
 
   // Older clients still claim codes over POST /api/codes (sharded directory).
   {
-    const capability = { transferId: 'A'.repeat(21) + 'B', key: 'C'.repeat(43) };
-    const claim = await fetch(`${publicBase}/api/codes`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(capability)
-    });
-    assert.equal(claim.status, 200);
-    const { code } = await claim.json();
-    assert.match(code, /^\d{5}$/);
-    assert.deepEqual(await (await fetch(`${publicBase}/api/codes/${code}`)).json(), capability);
-    assert.equal((await fetch(`${publicBase}/api/codes`, { method: 'POST', body: '{"transferId":"x"}' })).status, 400);
-    console.log('verified POST /api/codes claims and resolves through the sharded directory');
+    const capability = { transferId: randomBytes(16).toString('base64url'), key: randomBytes(32).toString('base64url') };
+    const { digest } = await receiverAdmission({ id: Buffer.from(capability.transferId, 'base64url'), key: Buffer.from(capability.key, 'base64url') });
+    const legacySender = new WebSocket(`${relayBase}/${capability.transferId}`);
+    try {
+      await withTimeout(new Promise((resolve, reject) => {
+        legacySender.addEventListener('error', reject, { once: true });
+        legacySender.addEventListener('message', (event) => {
+          assert.equal(JSON.parse(event.data).type, 'accepted');
+          resolve();
+        }, { once: true });
+        legacySender.addEventListener('open', () => legacySender.send(JSON.stringify({
+          type: 'join', protocol: 'cd-transfer-v1', role: 'sender', receiverTokenHash: encodeBase64Url(digest)
+        })), { once: true });
+      }), 10_000, 'old-client sender admission timed out');
+      const claim = await fetch(`${publicBase}/api/codes`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(capability)
+      });
+      assert.equal(claim.status, 200);
+      const { code } = await claim.json();
+      assert.match(code, /^\d{5}$/);
+      assert.deepEqual(await (await fetch(`${publicBase}/api/codes/${code}`)).json(), capability);
+      assert.equal((await fetch(`${publicBase}/api/codes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"transferId":"x"}' })).status, 400);
+      assert.equal((await fetch(`${publicBase}/api/codes`, { method: 'POST', body: JSON.stringify(capability) })).status, 415);
+      console.log('verified admitted old-client POST /api/codes claims and resolves through the sharded directory');
+    } finally { legacySender.close(); }
   }
 
   // Flow 2: browser /send -> terminal.

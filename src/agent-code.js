@@ -15,10 +15,25 @@ export function cleanShortCode(value) {
   return String(value ?? '').trim();
 }
 
+// A numeric link supplies a code, just like a pasted number. Directory
+// lookup stays on this page's configured origin, never on an input hostname.
+export function shortCodeFromInput(value) {
+  const raw = cleanShortCode(value);
+  if (isShortCode(raw)) return raw;
+  try {
+    const url = new URL(raw);
+    if ((url.protocol === 'https:' || url.protocol === 'http:') &&
+        url.pathname === '/' && !url.username && !url.password && isShortCode(url.hash.slice(1))) {
+      return url.hash.slice(1);
+    }
+  } catch { /* Not an absolute URL. */ }
+  return '';
+}
+
 export function codeLookupPath(code) {
   const cleaned = cleanShortCode(code);
   if (!isShortCode(cleaned)) throw new Error('invalid share code');
-  return `/api/codes/${cleaned}`;
+  return `/api/codes/${encodeURIComponent(cleaned)}`;
 }
 
 export function shareUrlFromCapability(origin, transferId, key) {

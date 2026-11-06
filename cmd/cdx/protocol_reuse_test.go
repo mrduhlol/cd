@@ -31,10 +31,14 @@ func TestSealIntoReusesStorageAndPreservesWireBytes(t *testing.T) {
 
 func TestTCPSendBufferDoesNotOverwriteQueuedRecords(t *testing.T) {
 	sender, receiver := laneLinks(t)
+	sender.striping = true
 	for _, value := range []byte{1, 2, 3} {
 		if err := sender.send(kindChunk, bytes.Repeat([]byte{value}, chunkSize)); err != nil {
 			t.Fatal(err)
 		}
+	}
+	if sender.stripe != nil {
+		t.Fatal("TCP records entered the asynchronous WebRTC striper")
 	}
 	for _, value := range []byte{1, 2, 3} {
 		kind, payload, err := receiver.next(context.Background(), time.Second)

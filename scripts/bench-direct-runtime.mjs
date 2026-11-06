@@ -8,12 +8,11 @@ import {createServer,request as httpRequest} from 'node:http';
 async function frontend(upstreamBase){
  const root=fileURLToPath(new URL('../dist/',import.meta.url));
  const upstream=new URL(upstreamBase),connections=new Set();
- const headers=req=>({...req.headers,host:upstream.host});
- const target=req=>{const url=new URL(req.url,'http://localhost');return new URL(url.pathname+url.search,upstream)};
+ const target=req=>{const url=new URL(req.url,'http://localhost');return {protocol:upstream.protocol,hostname:upstream.hostname,port:upstream.port,path:url.pathname+url.search}};
  const proxy=createServer(async(req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
   if(/^\/(api|ws|peerjs)\//.test(pathname)){
-   const outgoing=httpRequest(target(req),{method:req.method,headers:headers(req)},incoming=>{res.writeHead(incoming.statusCode,incoming.headers);incoming.pipe(res)});
+   const outgoing=httpRequest({...target(req),method:req.method,headers:req.headers},incoming=>{res.writeHead(incoming.statusCode,incoming.headers);incoming.pipe(res)});
    outgoing.on('error',()=>res.destroy());req.pipe(outgoing);return;
   }
   try{
@@ -27,7 +26,7 @@ async function frontend(upstreamBase){
  });
  proxy.on('connection',socket=>{connections.add(socket);socket.on('close',()=>connections.delete(socket))});
  proxy.on('upgrade',(req,socket,head)=>{
-  const outgoing=httpRequest(target(req),{headers:headers(req)});
+  const outgoing=httpRequest({...target(req),headers:req.headers});
   outgoing.on('upgrade',(response,peer,peerHead)=>{
    socket.write('HTTP/1.1 101 Switching Protocols\r\n'+Object.entries(response.headers).map(([key,value])=>key+': '+value).join('\r\n')+'\r\n\r\n');
    if(head.length)peer.write(head);if(peerHead.length)socket.write(peerHead);

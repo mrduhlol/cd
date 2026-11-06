@@ -29,7 +29,9 @@ are NOT end-to-end encrypted: the relay directory holds the transfer key so a
 5-digit code resolves on any device. TLS protects code transfers in transit
 and the relay forwards but never stores the bytes, but the relay could read
 them, and anyone who guesses an active code within its 15-minute lifetime can
-receive the file (code lookup shares the relay's 30/minute per-IP rate limit).
+receive the file. Lookups consume durable IPv4 or IPv6 /64 and aggregate
+shard budgets, including legacy probes. See [directory controls](docs/code-directory-security.md)
+for the limits and availability tradeoff.
 Use codes for everyday one-time shares between friends; use `--link` mode for
 anything sensitive.
 

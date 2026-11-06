@@ -421,6 +421,8 @@ func parseStateArgs(args []string) (bool, time.Duration, []string, error) {
 	for index := 0; index < len(args); index++ {
 		argument := args[index]
 		switch {
+		case argument == "--":
+			return jsonOutput, timeout, append(rest, args[index+1:]...), nil
 		case argument == "--json":
 			jsonOutput = true
 		case argument == "--timeout" || strings.HasPrefix(argument, "--timeout="):
