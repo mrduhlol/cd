@@ -4,7 +4,7 @@ Native Kotlin and Jetpack Compose receiver for trusted CLI transfers. Requires A
 
 ## CD Beta updates
 
-The beta package is `in.yash0.cd.beta`, separate from `in.yash0.cd`. All builds use this single package. The current update is `0.1.5-beta`, version code 6. Keep the original signing key when updating. This machine's beta key is in `$HOME/.config/.android/debug.keystore`; set `ANDROID_USER_HOME=$HOME/.config/.android` when building.
+The beta package is `in.yash0.cd.beta`, separate from `in.yash0.cd`. All builds use this single package. The current update is `0.1.8-beta`, version code 9. Keep the original signing key when updating. This machine's beta key is in `$HOME/.config/.android/debug.keystore`; set `ANDROID_USER_HOME=$HOME/.config/.android` when building.
 
 ```sh
 ANDROID_USER_HOME="$HOME/.config/.android" ./gradlew --max-workers=2 -PcdAbi=arm64-v8a testDebugUnitTest lintDebug assembleDebug

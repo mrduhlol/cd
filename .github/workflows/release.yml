@@ -82,9 +82,11 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          flags=(--verify-tag)
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then flags+=(--prerelease); fi
           notes="docs/releases/${GITHUB_REF_NAME}.md"
           if [ -f "$notes" ]; then
-            gh release create "$GITHUB_REF_NAME" cdx-* checksums.txt --repo "$GITHUB_REPOSITORY" --notes-file "$notes"
+            gh release create "$GITHUB_REF_NAME" "${flags[@]}" cdx-* checksums.txt --repo "$GITHUB_REPOSITORY" --notes-file "$notes"
           else
-            gh release create "$GITHUB_REF_NAME" cdx-* checksums.txt --repo "$GITHUB_REPOSITORY" --generate-notes
+            gh release create "$GITHUB_REF_NAME" "${flags[@]}" cdx-* checksums.txt --repo "$GITHUB_REPOSITORY" --generate-notes
           fi
