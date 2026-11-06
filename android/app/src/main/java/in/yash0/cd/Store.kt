@@ -28,6 +28,41 @@ internal fun recoverReceiveTask(task: JSONObject): JSONObject? {
     return recovered
 }
 
+internal fun dismissReceiveTask(root: JSONObject, id: String, now: Long): Boolean {
+    val task = root.getJSONObject("tasks").optJSONObject(id) ?: return true
+    if (!canDismissReceive(task.optString("state"))) return false
+    task.put("dismissedUntil", now + 24 * 60 * 60 * 1000L)
+    return true
+}
+
+internal fun addReceiveOffer(root: JSONObject, pairId: String, msg: JSONObject, preferLocal: Boolean = false, now: Long = System.currentTimeMillis()): Boolean {
+    val tasks = root.getJSONObject("tasks")
+    tasks.keys().asSequence().toList().forEach { id ->
+        val until = tasks.getJSONObject(id).optLong("dismissedUntil")
+        if (until > 0 && until <= now) tasks.remove(id)
+    }
+    val replay = root.getJSONObject("replays")
+    replay.keys().asSequence().toList().forEach { if (replay.getLong(it) <= now) replay.remove(it) }
+    val messageId = msg.getString("messageId")
+    val id = msg.getString("transferId")
+    val existing = tasks.optJSONObject(id)?.let { JSONObject(it.toString()) }
+    OfferValidation.validate(msg, existing)
+    require(existing == null || existing.optString("pairId").isEmpty() || existing.optString("pairId") == pairId) { "Transfer belongs to another trusted device" }
+    val replayed = replay.has(messageId)
+    if (existing != null) {
+        replay.put(messageId, msg.getLong("expiresAt"))
+        if (preferLocal && msg.optString("localUrl").isNotEmpty()) {
+            existing.put("localUrl", msg.getString("localUrl")); tasks.put(id, existing)
+        }
+        return false
+    }
+    if (replayed) return false
+    require(receiveQueueHasRoom(tasks.keys().asSequence().map { tasks.getJSONObject(it) }.toList())) { "Receive queue full" }
+    replay.put(messageId, msg.getLong("expiresAt"))
+    tasks.put(id, JSONObject(msg.toString()).apply { remove("dismissedUntil") }.put("id", id).put("pairId", pairId).put("state", "queued"))
+    return true
+}
+
 class Store(context: Context) {
     private val appContext = context.applicationContext
     private val vault = AtomicFile(File(context.filesDir, "devices-v1.vault"))
@@ -102,7 +137,7 @@ class Store(context: Context) {
                 if (pending) appContext.contentResolver.delete(uri, null, null)
             }
         }
-        root.getJSONObject("tasks").remove(id)
+        dismissReceiveTask(root, id, System.currentTimeMillis())
         save()
         return true
     }
@@ -144,26 +179,10 @@ class Store(context: Context) {
         putTask(task.put("filename", filename).put("size", size.toString()).put("wholeSha256", digest).put("rootExpiresAt", expiresAt))
     }
     @Synchronized fun addOffer(pair: Pairing, msg: JSONObject, preferLocal: Boolean = false): Boolean {
-        val now = System.currentTimeMillis()
-        val replay = root.getJSONObject("replays")
-        replay.keys().asSequence().toList().forEach { if (replay.getLong(it) <= now) replay.remove(it) }
-        val messageId = msg.getString("messageId")
-        val id = msg.getString("transferId")
-        val existing = task(id)
-        OfferValidation.validate(msg, existing)
-        require(existing == null || existing.optString("pairId").isEmpty() || existing.optString("pairId") == pair.id) { "Transfer belongs to another trusted device" }
-        val replayed = replay.has(messageId)
-        if (existing != null) {
-            replay.put(messageId, msg.getLong("expiresAt"))
-            if (preferLocal && msg.optString("localUrl").isNotEmpty()) {
-                existing.put("localUrl", msg.getString("localUrl")); root.getJSONObject("tasks").put(id, existing)
-            }
-            save(); return false
-        }
-        if (replayed) { save(); return false }
-        require(receiveQueueHasRoom(tasks())) { "Receive queue full" }
-        replay.put(messageId, msg.getLong("expiresAt"))
-        root.getJSONObject("tasks").put(id, JSONObject(msg.toString()).put("id", id).put("pairId", pair.id).put("state", "queued"))
-        save(); task(id)?.let { ReceiveViews.publish(it) }; return true
+        val added = addReceiveOffer(root, pair.id, msg, preferLocal)
+        save()
+        if (added) task(msg.getString("transferId"))?.let { ReceiveViews.publish(it) }
+        return added
     }
+
 }

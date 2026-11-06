@@ -48,4 +48,44 @@ class ReceiveRecoveryTest {
         assertTrue(receiveCanResume(JSONObject().put("url", url.replace("v1.", "v2."))))
         assertEquals("failed", recoverReceiveTask(JSONObject().put("url", url).put("state", "receiving"))!!.getString("state"))
     }
+    @Test fun dismissedTerminalReceiveRejectsReoffersWithFreshMessageIds() {
+        val now = 1_800_000_000_000L
+        for (state in listOf("complete", "cancelled", "failed")) {
+            val root = JSONObject().put("tasks", JSONObject()).put("replays", JSONObject())
+            val offer = JSONObject(javaClass.classLoader!!.getResource("device-v1.json")!!.readText()).getJSONObject("offer")
+                .put("messageId", "original-message").put("expiresAt", now + 300000).put("dismissedUntil", now + 999999)
+            val id = offer.getString("transferId")
+            assertTrue(addReceiveOffer(root, "trusted-pair", offer, now = now))
+            assertFalse(root.getJSONObject("tasks").getJSONObject(id).has("dismissedUntil"))
+            root.getJSONObject("tasks").getJSONObject(id).put("state", state).put("publishedUri", "content://downloads/42")
+            assertTrue(dismissReceiveTask(root, id, now))
+            val freshOffer = JSONObject(offer.toString()).put("messageId", "fresh-authenticated-message")
+            assertFalse(addReceiveOffer(root, "trusted-pair", freshOffer, now = now + 1))
+            val retained = root.getJSONObject("tasks").getJSONObject(id)
+            assertEquals(state, retained.getString("state"))
+            assertEquals("content://downloads/42", retained.getString("publishedUri"))
+            assertEquals(now + 24 * 60 * 60 * 1000L, retained.getLong("dismissedUntil"))
+            TransferBus.remove(id, Direction.RECEIVE)
+            ReceiveViews.publish(retained, force = true)
+            assertFalse(TransferBus.transfers.value.any { it.id == id && it.direction == Direction.RECEIVE })
+        }
+    }
+
+    @Test fun dismissedTombstonesExpireWithoutPruningActiveTransfers() {
+        val now = 1_800_000_000_000L
+        val root = JSONObject().put("tasks", JSONObject()).put("replays", JSONObject())
+        val offer = JSONObject(javaClass.classLoader!!.getResource("device-v1.json")!!.readText()).getJSONObject("offer")
+            .put("messageId", "first").put("expiresAt", now + 300000)
+        val id = offer.getString("transferId")
+        assertTrue(addReceiveOffer(root, "trusted-pair", offer, now = now))
+        root.getJSONObject("tasks").getJSONObject(id).put("state", "cancelled")
+        root.getJSONObject("tasks").put("active-transfer", JSONObject().put("state", "receiving"))
+        assertTrue(dismissReceiveTask(root, id, now))
+        val later = now + 24 * 60 * 60 * 1000L
+        val fresh = JSONObject(offer.toString()).put("messageId", "after-retention").put("expiresAt", later + 300000)
+        assertTrue(addReceiveOffer(root, "trusted-pair", fresh, now = later))
+        assertEquals("queued", root.getJSONObject("tasks").getJSONObject(id).getString("state"))
+        assertEquals("receiving", root.getJSONObject("tasks").getJSONObject("active-transfer").getString("state"))
+    }
+
 }

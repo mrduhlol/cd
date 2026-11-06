@@ -11,7 +11,7 @@ object ReceiveViews {
     private val meters = HashMap<String, ReceiveRate>()
     fun load(context: Context) {
         val store = StoreRegistry.get(context)
-        store.tasks().forEach { task ->
+        store.tasks().filterNot { it.has("dismissedUntil") }.forEach { task ->
             if (task.optString("state") != "complete") runCatching {
                 val invitation = Invitation.parse(task.getString("url"))
                 val cp = JSONObject(String(AtomicFile(File(context.filesDir, "resume-${invitation.id}.json")).readFully()))
@@ -23,6 +23,7 @@ object ReceiveViews {
         }
     }
     @Synchronized fun publish(task: JSONObject, force: Boolean = false) {
+        if (task.has("dismissedUntil")) return
         val id = task.getString("id")
         val phase = phase(task.optString("state"))
         val now = SystemClock.elapsedRealtime()
