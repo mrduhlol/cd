@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+  <configuration>
+    <verify-metadata>true</verify-metadata>
+    <verify-signatures>false</verify-signatures>
+    <trusted-artifacts><trust group="^(?!io[.]github[.]webrtc-sdk$).*" regex="true"/></trusted-artifacts>
+  </configuration>
+  <components>
+    <component group="io.github.webrtc-sdk" name="android" version="150.7871.01">
+      <artifact name="android-150.7871.01.aar"><sha256 value="0a1627b1a48c2bc17d9a40d62fc47bd45166f44a311e95917f147c402de379b0" origin="Maven Central; native libraries verified against publisher GitHub v150.7871.01 release"/></artifact>
+      <artifact name="android-150.7871.01.pom"><sha256 value="b740a6bec98f078892a70ee502404eb7b437feb0ef4a7fa74b4561ae25db553c" origin="Maven Central"/></artifact>
+    </component>
+  </components>
+</verification-metadata>

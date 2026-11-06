@@ -1,0 +1,11 @@
+.gradle/
+.kotlin/
+local.properties
+**/build/
+*.iml
+build-log.txt
+lint-log.txt
+arm64-build-log.txt
+
+app/google-services.json
+push-build-log.txt
