@@ -4,7 +4,7 @@ Native Kotlin and Jetpack Compose receiver for trusted CLI transfers. Requires A
 
 ## CD Beta updates
 
-The beta package is `in.yash0.cd.beta`, separate from `in.yash0.cd`. All builds use this single package. The current update is `0.1.5-beta`, version code 6. Keep the original signing key when updating. This machine's beta key is in `$HOME/.config/.android/debug.keystore`; set `ANDROID_USER_HOME=$HOME/.config/.android` when building.
+The beta package is `in.yash0.cd.beta`, separate from `in.yash0.cd`. All builds use this single package. The current update is `0.1.8-beta`, version code 9. Keep the original signing key when updating. This machine's beta key is in `$HOME/.config/.android/debug.keystore`; set `ANDROID_USER_HOME=$HOME/.config/.android` when building.
 
 ```sh
 ANDROID_USER_HOME="$HOME/.config/.android" ./gradlew --max-workers=2 -PcdAbi=arm64-v8a testDebugUnitTest lintDebug assembleDebug
@@ -20,7 +20,7 @@ Install JDK 17 and Android SDK platform 35. Set `ANDROID_HOME` to your SDK locat
 cd android
 ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell am start -n in.yash0.cd/.MainActivity
+adb shell am start -n in.yash0.cd.beta/in.yash0.cd.MainActivity
 ```
 
 For a smaller S24 Ultra APK, first preserve the verified universal APK, then build only arm64:

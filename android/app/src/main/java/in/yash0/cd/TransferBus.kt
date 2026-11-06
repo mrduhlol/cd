@@ -49,6 +49,7 @@ data class TransferView(
     val codeExpiresAt: Long = 0,
     val codeSpent: Boolean = false,
     val expiresAt: Long = 0,    // send: unix ms when the invitation expires; 0 when unknown
+    val resumable: Boolean = true,
 )
 
 object TransferBus {

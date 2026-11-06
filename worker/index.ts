@@ -701,7 +701,7 @@ export default {
     if (resumeMatch) {
       if (request.headers.get('Upgrade')?.toLowerCase() !== 'websocket') return new Response('websocket required', { status: 426 });
       try {
-        const clientAddress = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+        const clientAddress = clientPrefix(request);
         const { success } = await env.CONNECTION_RATE_LIMITER.limit({ key: clientAddress });
         if (!success) return new Response('connection rate limit reached', { status: 429 });
         return await env.TRANSFERS.getByName(`v2:${resumeMatch[1]}`).fetch(request);
@@ -713,7 +713,7 @@ export default {
     if (url.pathname.startsWith('/ws/') || url.pathname.startsWith('/api/') || url.pathname.startsWith('/peerjs/')) {
       if (url.pathname === '/api/health' && request.method === 'GET') {
         return Response.json(
-          { service: 'cd-agent-sharing', protocol: 'cd-transfer-v1', status: 'ok' },
+          { service: 'cd-agent-sharing', protocol: 'cd-transfer-v1', protocols: ['cd-transfer-v1', 'cd-transfer-v2'], status: 'ok' },
           { headers: { 'Cache-Control': 'no-store' } },
         );
       }

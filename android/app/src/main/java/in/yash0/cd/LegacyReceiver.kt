@@ -1,9 +1,6 @@
 package `in`.yash0.cd
 
-import android.content.ContentValues
 import android.content.Context
-import android.os.Environment
-import android.provider.MediaStore
 import okhttp3.OkHttpClient
 import okhttp3.WebSocket
 import org.json.JSONObject
@@ -47,11 +44,11 @@ class LegacyReceiver(
                 val offered = next()
                 require(offered.first == 1) { "Missing file offer" }
                 val offer = JSONObject(String(offered.second))
-                val name = offer.getString("name")
-                require(name.length in 1..255 && name !in listOf(".", "..") && name.none { it == '/' || it == '\\' || it.code < 32 }) { "Unsafe filename" }
-                val size = offer.getString("size").toLong()
-                require(size in 0..9007199254740991L && offer.getInt("chunkSize") in listOf(65536, 262144)) { "Invalid file offer" }
+                val validated = OrdinaryOffer.parse(offer)
+                val name = validated.name
+                val size = validated.size
                 // Bundles retain their ZIP filename so every entry remains available.
+                store.putTask(task.put("resumable", false))
                 store.offered(id, name, size, "", 0)
                 store.state(id, "receiving")
                 StorageBudget.check(context, size, 0, false)
@@ -65,7 +62,7 @@ class LegacyReceiver(
                         val (kind, bytes) = next()
                         when (kind) {
                             2 -> {
-                                require(bytes.isNotEmpty() && bytes.size <= offer.getInt("chunkSize") && received + bytes.size <= size) { "File exceeds its promised size" }
+                                validated.checkChunk(received, bytes.size)
                                 output.write(bytes); digest.update(bytes)
                                 received += bytes.size; chunks++
                                 progress(name, received, size)
@@ -76,7 +73,7 @@ class LegacyReceiver(
                                 output.fd.sync()
                                 check(active())
                                 store.state(id, "verifying")
-                                publish(id, stage, name, size, Crypto.hex(digest.digest()))
+                                publishDownload(context, store, task.put("wholeSha256", Crypto.hex(digest.digest())), stage, name, size) { check(active()) }
                                 wire.send(sealer.seal(6, counts()))
                                 wire.finish()
                                 return
@@ -87,32 +84,5 @@ class LegacyReceiver(
                 }
             }
         } finally { stage.delete(); activeSocket(null) }
-    }
-
-    private fun publish(id: String, stage: File, name: String, size: Long, digest: String) {
-        val resolver = context.contentResolver
-        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-            put(MediaStore.MediaColumns.MIME_TYPE, "application/octet-stream")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/CD")
-            put(MediaStore.MediaColumns.IS_PENDING, 1)
-        }) ?: error("Could not create Downloads file")
-        var published = false
-        try {
-            resolver.openFileDescriptor(uri, "w")!!.use { descriptor ->
-                FileOutputStream(descriptor.fileDescriptor).use { output ->
-                    stage.inputStream().use { input ->
-                        val buffer = ByteArray(262144)
-                        while (true) { check(active()); val n = input.read(buffer); if (n < 0) break; output.write(buffer, 0, n) }
-                    }
-                    output.fd.sync()
-                }
-            }
-            check(active())
-            store.publication(id, uri.toString(), digest)
-            check(resolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null) == 1)
-            published = true
-            store.completed(id, uri.toString(), name, size)
-        } finally { if (!published) resolver.delete(uri, null, null) }
     }
 }
