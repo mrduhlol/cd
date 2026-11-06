@@ -523,3 +523,21 @@ func TestDeviceTargetedSendRejectsRequestIDBeforeNetwork(t *testing.T) {
 		t.Fatal("missing request ID error")
 	}
 }
+
+func TestUnpairedDeviceFailsBeforeBackgroundSend(t *testing.T) {
+	t.Setenv("CD_DEVICE_DIR", filepath.Join(t.TempDir(), "devices"))
+	file := filepath.Join(t.TempDir(), "report.apk")
+	if err := os.WriteFile(file, []byte("test"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	output := deviceTestOutput(t)
+	for _, name := range []string{"nonexistent", "phone"} {
+		if code := runDeviceSend(sendRequest{to: name, files: []string{file}, jsonOutput: true}); code != 1 {
+			t.Fatalf("%s exit %d", name, code)
+		}
+	}
+	data := deviceOutputBytes(t, output)
+	if bytes.Count(data, []byte("load paired device")) != 2 || bytes.Contains(data, []byte("pid")) {
+		t.Fatalf("expected pairing failure, got %s", data)
+	}
+}

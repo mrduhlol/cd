@@ -359,6 +359,10 @@ func runDeviceSend(request sendRequest) int {
 	if err != nil {
 		return deviceFailure(err, request.jsonOutput)
 	}
+	pair, err := store.Load(request.to)
+	if err != nil {
+		return deviceFailure(fmt.Errorf("load paired device %q: %w", request.to, err), request.jsonOutput)
+	}
 	if shouldDetach(request, isTerminal(os.Stdout)) {
 		if err := validateSourcePaths(request.files); err != nil {
 			return deviceFailure(err, request.jsonOutput)
@@ -370,10 +374,6 @@ func runDeviceSend(request sendRequest) int {
 		args = append(args, "--")
 		args = append(args, request.files...)
 		return runBackgroundTransfer(args, request.jsonOutput, "device-send")
-	}
-	pair, err := store.Load(request.to)
-	if err != nil {
-		return deviceFailure(fmt.Errorf("load paired device %q: %w", request.to, err), request.jsonOutput)
 	}
 	if err = validateSourcePaths(request.files); err != nil {
 		reportFailure(os.Stdout, os.Stderr, err, request.jsonOutput)
