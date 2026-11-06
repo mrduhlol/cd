@@ -37,3 +37,5 @@ Show device availability and last successful delivery in the agent destination p
 ## Verification
 
 Current-main integration must pass Android unit tests/lint/assembly, JavaScript and Go tests, TypeScript checking, pairing/push integration and a deployment dry run. Hosted CI and review are separate checks on the latest PR head. No measured physical-phone speed improvement or background reliability guarantee is established by these source checks.
+
+The current-main source passed 158 JavaScript tests, all Go tests and vet, TypeScript checking, the frontend build and Worker deployment dry run. Pairing/reconnect/forged-admission checks passed through the real local Worker. Push policy/authentication checks passed with Google transport mocked. Android unit tests passed 69 tests and lint completed. npm audit reports zero vulnerabilities after the toolchain updates. Physical-device and production-delivery gates remain open.
