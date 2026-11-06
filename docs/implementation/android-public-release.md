@@ -48,3 +48,9 @@ The bundled skill and global agent note discover saved pairs with `cdx devices -
 ## Improvements after the release gates
 
 Add a destination picker with device availability and last successful delivery in the agent integration. Show the active route, speed, remaining time and actionable reconnect status on the phone. Add configurable cleanup for completed transfer history and retained partial files. Android-to-computer sending and share-sheet integration are useful follow-ups after paired receiving is dependable.
+
+## Final source checks
+
+An exported source tree passed 120 JavaScript tests, all Go tests and vet, TypeScript checking, frontend build and Worker deployment dry run. Native Android passed all 41 unit tests, lint and release assembly from a clean export. Real CLI/Worker pairing and reconnect checks rejected forged credentials and preserved active peers. Account isolation/revocation and push policy checks passed in local Durable Objects; Google transport was mocked.
+
+The existing toolchain had six high-severity npm advisories. Miniflare, Vite and Wrangler were updated to patched versions; npm audit reports zero vulnerabilities. JavaScript tests, pairing, account/push integration, type checking and deployment dry run passed again with those versions. Hosted CI and review remain separate checks on the PR.
