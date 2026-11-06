@@ -1,3 +1,5 @@
+import { accountSubject } from './account-auth';
+export { AccountRoom } from './account-room';
 import { DurableObject } from 'cloudflare:workers';
 import { ResumeRoomProtocol } from './resume-room';
 export { DeviceRoom } from './device-room';
@@ -552,6 +554,17 @@ export default {
       if (assetPath.endsWith('/')) assetPath += 'index.html';
       else if (!assetPath.split('/').pop()?.includes('.')) assetPath = '/design/index.html';
       return env.ASSETS.fetch(new Request(new URL(assetPath, url.origin), request));
+    }
+    if (url.pathname.startsWith('/api/account/v1')) {
+      if (!['GET', 'POST', 'DELETE'].includes(request.method)) return new Response('method not allowed', { status: 405 });
+      const { success } = await env.PEER_RATE_LIMITER.limit({ key: `account:${request.headers.get('CF-Connecting-IP') ?? 'unknown'}` });
+      if (!success) return new Response('rate limited', { status: 429 });
+      try {
+        const subject = await accountSubject(request, env.CD_OAUTH_CLIENT_SECRET);
+        if (!subject) return new Response('sign in required', { status: 401 });
+        if (Number(request.headers.get('Content-Length') ?? 0) > 20000) return new Response('request too large', { status: 413 });
+        return await env.ACCOUNTS.getByName(subject).fetch(request);
+      } catch (error) { console.error(JSON.stringify({ event: 'account-request-failed', error: error instanceof Error ? error.name : 'unknown' })); return new Response('account service unavailable', { status: 503 }); }
     }
     if (url.pathname === '/peerjs/peerjs') {
       const id = url.searchParams.get('id');
