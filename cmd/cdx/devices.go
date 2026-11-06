@@ -401,9 +401,44 @@ func runDevices(args []string) int {
 	return 0
 }
 
+// "phone" remains convenient when pairing used the Android model as its alias.
+func resolveDeviceTarget(store devices.Store, name string) (string, error) {
+	if name != "phone" {
+		return name, nil
+	}
+	if _, err := store.Load(name); err == nil {
+		return name, nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return "", err
+	}
+	list, err := store.List()
+	if err != nil {
+		return "", err
+	}
+	if len(list) == 1 {
+		return list[0].Name, nil
+	}
+	if len(list) > 1 {
+		names := make([]string, len(list))
+		for i, device := range list {
+			names[i] = device.Name
+		}
+		return "", fmt.Errorf("multiple paired devices: %s; choose one with --to <name> (cdx devices --json)", strings.Join(names, ", "))
+	}
+	return name, nil
+}
+
 func runDeviceSend(request sendRequest) int {
 	if request.requestID != "" {
 		return deviceFailure(errors.New("targeted sends do not support --request-id"), request.jsonOutput)
+	}
+	store, err := deviceStore()
+	if err != nil {
+		return deviceFailure(err, request.jsonOutput)
+	}
+	request.to, err = resolveDeviceTarget(store, request.to)
+	if err != nil {
+		return deviceFailure(err, request.jsonOutput)
 	}
 	if shouldDetach(request, isTerminal(os.Stdout)) {
 		if err := validateSourcePaths(request.files); err != nil {
@@ -416,10 +451,6 @@ func runDeviceSend(request sendRequest) int {
 		args = append(args, "--")
 		args = append(args, request.files...)
 		return runBackgroundTransfer(args, request.jsonOutput, "device-send")
-	}
-	store, err := deviceStore()
-	if err != nil {
-		return deviceFailure(err, request.jsonOutput)
 	}
 	pair, err := store.Load(request.to)
 	if errors.Is(err, os.ErrNotExist) {
