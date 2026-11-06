@@ -27,7 +27,7 @@ Run on the intended Samsung S24 Ultra and a second vendor, covering API 29 and c
 
 Use `./gradlew testDebugUnitTest lintDebug assembleRelease` for the default build. Use `-PcdFcm=true -PcdFcmCompileOnly=true compileDebugKotlin testDebugUnitTest lintDebug` to check Firebase source without packaging. Configured Firebase packaging is a separate required check.
 
-Tests read root `fixtures/` through the Android test resource path. A clean branch needs `fixtures/account-pair-v1.json` in addition to existing device/resume fixtures. Account runtime requires the parent-owned Worker account routes, authentication environment and CLI account enrollment/send implementation. These are outside this Android commit scope.
+Tests read root `fixtures/` through the Android test resource path. A clean branch needs `fixtures/account-pair-v1.json` in addition to existing device/resume fixtures. This PR includes Worker account routes, account authorization tests, the account directory binding and migration, and CLI enrollment/send dependencies. Production still requires the OAuth client secret and matching production endpoints; no credentials are committed.
 
 Suggested next improvements are production account configuration, reproducible signing and app-link verification, and instrumented route/start timing on physical phones. Avoid transport tuning until comparable hardware measurements identify the bottleneck.
 
@@ -38,3 +38,13 @@ The default online Gradle run passed `testDebugUnitTest lintDebug assembleReleas
 No runtime bug was reproduced during this source audit, so no speculative transport change or regression test was added. The concrete corrections are stale boot-restoration claims in Android README and push documentation. Existing tests cover pairing cryptography, control admission, transfer validation, durable scheduling, native record pressure and push policy. They do not replace the physical-device gates above.
 
 Firebase compile-only `compileDebugKotlin testDebugUnitTest lintDebug` also passed. This verifies SDK integration compilation and policy tests, not configured push delivery or APK packaging.
+
+## Agent delivery changes in this PR
+
+The bundled skill and global agent note discover saved pairs with `cdx devices --json`. For generated APKs, documents and other requested handoffs they offer paired devices and a download link through the host question tool. An explicit phone request with one pair sends directly; multiple pairs require a destination choice. Pair listings do not indicate live connectivity. Updating existing agents requires rebuilding/installing this CLI and rerunning `cdx agent setup`.
+
+`cdx send --to phone` resolves the sole saved pair when its alias is the model name. An existing exact `phone` alias takes precedence. Without that alias, multiple pairs fail with their names before a background sender starts. Tests cover exact names, model aliases, ambiguity, and the empty store account fallback. Successful delivery still requires `phase: verified` in the private sender log.
+
+## Improvements after the release gates
+
+Add a destination picker with device availability and last successful delivery in the agent integration. Show the active route, speed, remaining time and actionable reconnect status on the phone. Add configurable cleanup for completed transfer history and retained partial files. Android-to-computer sending and share-sheet integration are useful follow-ups after paired receiving is dependable.
