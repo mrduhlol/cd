@@ -67,11 +67,11 @@ try {
       for (;;) {
         const match = output.match(/"transferId":"([A-Za-z0-9_-]+)"/);
         if (match) {
-          const files = await android(['shell', 'run-as', 'in.yash0.cd', 'ls', '-l', 'files']);
+          const files = await android(['shell', 'run-as', 'in.yash0.cd.beta', 'ls', '-l', 'files']);
           const partial = files.split('\n').find(line => line.endsWith(`resume-${match[1]}.part`));
           const checkpointName = `resume-${match[1]}.json`;
           if (partial && Number(partial.trim().split(/\s+/)[4]) >= 1048576 && files.split('\n').some(line => line.endsWith(checkpointName))) {
-            const checkpoint = JSON.parse(await android(['shell', 'run-as', 'in.yash0.cd', 'cat', `files/${checkpointName}`]));
+            const checkpoint = JSON.parse(await android(['shell', 'run-as', 'in.yash0.cd.beta', 'cat', `files/${checkpointName}`]));
             if (checkpoint.offset >= 1048576) return { root: match[1], committed: checkpoint.offset };
           }
         }
@@ -81,9 +81,9 @@ try {
     })(), 90_000, 'No durable staging progress before interruption');
     await stopChild(sender);
     if (process.env.CD_VERIFY_ANDROID_KILL_PROCESS === '1') {
-      const pid = (await android(['shell', 'pidof', '-s', 'in.yash0.cd'])).trim();
+      const pid = (await android(['shell', 'pidof', '-s', 'in.yash0.cd.beta'])).trim();
       assert.match(pid, /^\d+$/, 'No running CD process to interrupt');
-      await android(['shell', 'run-as', 'in.yash0.cd', 'kill', '-9', pid]);
+      await android(['shell', 'run-as', 'in.yash0.cd.beta', 'kill', '-9', pid]);
     }
     output = '';
     sender = launch();
