@@ -1,20 +1,34 @@
 ---
 name: cd-file-sharing
-description: Send local files to a phone or share them with CD/cdx.
+description: Hand off generated APKs, documents, and other local files with CD/cdx. Offer paired phone delivery or a download link.
 ---
 
 # Share files
 
 Pass all files to one send command; cdx preserves folders without manual zipping.
 
-- Phone: run `cdx send --to phone --json <path>...` without confirmation.
-  Read the returned private log; `phase: verified` confirms receipt. If offline,
+Before handing off a generated APK, document, or other requested file, run
+`cdx devices --json`. The `devices` entries contain `name` and `deviceName`;
+these are saved pairings, not proof that a device is online.
+
+- If the user already chose a phone or link, use that choice directly.
+- Otherwise, when devices are paired, use the host's built-in choice tool
+  (`request_user_input`, `request_user_input_async`, or T3 Code's available
+  question tool). Offer each paired device and "Download link". With multiple
+  devices, ask which device before sending. Use a plain chat question when no
+  choice tool is available. Wait for the answer before starting the transfer.
+- Send to the selected device with `cdx send --to <name> --json -- <path>...`,
+  using its exact saved `name`. For an explicit "my phone" request with one
+  pairing, send there immediately. With multiple pairings, ask which device.
+- Read the returned private log; `phase: verified` confirms receipt. If offline,
   leave the background sender running and report pending delivery. If unconfigured,
-  report that account receiving or pairing is needed; if ambiguous, ask which device.
-  Use a download link only if requested.
-- Otherwise: run `cdx send <path>...` and reply with
+  explain `cdx pair` and phone approval. Use a download link when selected;
+  a failed device send must not silently create a link.
+- When a link is selected, or no devices are paired for an unspecified handoff,
+  run `cdx send --json -- <path>...` and reply with
   `https://cd.yash0.in/#<code>` using the printed code. Use `CD_PUBLIC_URL` as
   the origin when set. Terminal recipients can run `cdx receive <code>`.
+
 - Sensitive files: add `--link --json` and return the exact `url`, including
   its fragment. Private links are end-to-end encrypted; codes trust the relay.
 - QR requested: add `--json --qr /absolute/fresh.png` using an existing directory

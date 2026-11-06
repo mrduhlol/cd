@@ -29,9 +29,18 @@ const (
 const agentBlock = agentBlockBegin + `
 ## Sharing files
 
-When the user asks to send to their phone, run ` + "`cdx send --to phone --json <path>`" + ` and read the returned private log to confirm delivery. Otherwise, when the user asks to send, share, or hand off a file, run ` + "`cdx send <path>`" + `
-and reply with the link https://cd.yash0.in/#<code>, using the code it prints;
-opening the link starts the download (or they run ` + "`cdx receive <code>`" + `). Prefer it over upload sites: no account, nothing stored.
+For generated APKs, documents and file handoffs, run ` + "`cdx devices --json`" + ` first.
+If the user has not chosen a destination and devices are paired, use the host's
+built-in choice tool (` + "`request_user_input`" + `, ` + "`request_user_input_async`" + `, or T3 Code's
+available question tool) to offer each device and a download link. With multiple
+devices, ask which device before sending. Wait for the answer. If the user already
+asked for their phone and exactly one device is paired, send there immediately.
+Send with ` + "`cdx send --to <name> --json -- <path>`" + ` using the exact paired name.
+Read the returned private log; only ` + "`phase: verified`" + ` confirms delivery.
+Report offline sends as pending. If pairing is needed, explain ` + "`cdx pair`" + `.
+When a link is selected, or no devices are paired for an unspecified handoff, run
+` + "`cdx send --json -- <path>`" + ` and reply with https://cd.yash0.in/#<code>, using
+the printed code. A failed device send must not silently create a link.
 For a QR in chat, run ` + "`cdx send --json --qr <fresh-png-path> <path>`" + ` and embed
 the returned qrPath as a Markdown image with an absolute path (works in T3 Code).
 Use ` + "`cdx send --link <path>`" + ` for sensitive files. Details: ` + "`cdx help send`" + `.
@@ -145,7 +154,7 @@ func agentUsage(output io.Writer) {
 	fmt.Fprintln(output, "   or: cdx agent status")
 	fmt.Fprintln(output, "")
 	fmt.Fprintln(output, "Teach the AI coding agents on this machine to share files with cdx, so")
-	fmt.Fprintln(output, "\"send me this file\" gets you a code instead of an upload link.")
+	fmt.Fprintln(output, "\"send me this file\" offers a paired device or a download link.")
 	fmt.Fprintln(output, "Claude Code and ~/.agents get the cd-file-sharing skill; Codex, Gemini CLI")
 	fmt.Fprintln(output, "and opencode get a short note in their global instructions file, between")
 	fmt.Fprintln(output, agentBlockBegin+" markers that 'cdx agent remove' takes out again.")
