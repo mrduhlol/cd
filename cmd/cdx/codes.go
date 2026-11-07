@@ -46,6 +46,7 @@ type codeClaimResponse struct {
 }
 
 type codeLookupResponse struct {
+	Version    int    `json:"version"`
 	TransferID string `json:"transferId"`
 	Key        string `json:"key"`
 }
@@ -94,10 +95,10 @@ func claimShareCode(ctx context.Context, publicBase, transferID, key string) (st
 }
 
 // lookupShareCode resolves a typed code to its transfer invitation.
-func lookupShareCode(ctx context.Context, publicBase, code string) (invitation, error) {
+func lookupVersionedShareCode(ctx context.Context, publicBase, code string) (resolvedShareCode, error) {
 	cleaned := strings.TrimSpace(code)
 	if !isShortCode(cleaned) {
-		return invitation{}, NewFailure(failureInvalidCode, "this CD code is invalid: type the 4-5 digit code from the sender", retryNever)
+		return resolvedShareCode{}, NewFailure(failureInvalidCode, "this CD code is invalid: type the 4-5 digit code from the sender", retryNever)
 	}
 	var response *http.Response
 	err := retrySetup(ctx, func() error {
@@ -116,29 +117,66 @@ func lookupShareCode(ctx context.Context, publicBase, code string) (invitation, 
 		return nil
 	})
 	if err != nil {
-		return invitation{}, err
+		return resolvedShareCode{}, err
 	}
 	defer response.Body.Close()
 	switch response.StatusCode {
 	case http.StatusNotFound:
-		return invitation{}, NewFailure(failureNotFound, "bad code, or the sender is no longer available", retryNever)
+		return resolvedShareCode{}, NewFailure(failureNotFound, "bad code, or the sender is no longer available", retryNever)
 	case http.StatusTooManyRequests:
-		return invitation{}, NewFailure(failureBusy, "too many attempts: wait a moment and try again", retrySameRequest)
+		return resolvedShareCode{}, NewFailure(failureBusy, "too many attempts: wait a moment and try again", retrySameRequest)
 	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		return invitation{}, failuref(failureProtocol, retryNever, "look up the share code: the relay rejected the request (HTTP %d)", response.StatusCode)
+		return resolvedShareCode{}, failuref(failureProtocol, retryNever, "look up the share code: the relay rejected the request (HTTP %d)", response.StatusCode)
 	}
 	body, err := io.ReadAll(io.LimitReader(response.Body, 1024))
 	if err != nil {
-		return invitation{}, NewFailure(failureProtocol, "look up the share code: the relay sent an unreadable response", retryNever)
+		return resolvedShareCode{}, NewFailure(failureProtocol, "look up the share code: the relay sent an unreadable response", retryNever)
 	}
 	var found codeLookupResponse
 	if err := json.Unmarshal(body, &found); err != nil {
-		return invitation{}, NewFailure(failureProtocol, "look up the share code: the relay sent an invalid response", retryNever)
+		return resolvedShareCode{}, NewFailure(failureProtocol, "look up the share code: the relay sent an invalid response", retryNever)
 	}
 	value, err := parseInvitationParts(found.TransferID, found.Key)
 	if err != nil {
-		return invitation{}, NewFailure(failureProtocol, "look up the share code: the relay sent invalid transfer details", retryNever, err)
+		return resolvedShareCode{}, NewFailure(failureProtocol, "look up the share code: the relay sent invalid transfer details", retryNever, err)
 	}
-	return value, nil
+	if found.Version != 0 && found.Version != 1 && found.Version != 2 {
+		return resolvedShareCode{}, NewFailure(failureProtocol, "unsupported share code version", retryNever)
+	}
+	return resolvedShareCode{value, found.Version}, nil
+}
+
+type resolvedShareCode struct {
+	invitation
+	version int
+}
+
+func lookupShareCode(ctx context.Context, publicBase, code string) (invitation, error) {
+	found, err := lookupVersionedShareCode(ctx, publicBase, code)
+	return found.invitation, err
+}
+
+// resolveReceiveCode consumes the directory lookup once, before protocol dispatch.
+func resolveReceiveCode(ctx context.Context, input string) (string, error) {
+	code := strings.TrimSpace(input)
+	if linked := shortCodeFromLink(code); linked != "" {
+		code = linked
+	}
+	if !isShortCode(code) {
+		return input, nil
+	}
+	_, public, err := endpointBase()
+	if err != nil {
+		return "", err
+	}
+	found, err := lookupVersionedShareCode(ctx, public, code)
+	if err != nil {
+		return "", err
+	}
+	fragment := "v1." + found.encodedKey()
+	if found.version == 2 {
+		fragment = "v2." + found.encodedKey()
+	}
+	return public + "/s/" + found.encodedID() + "#" + fragment, nil
 }

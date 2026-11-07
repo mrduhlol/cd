@@ -21,7 +21,7 @@ import kotlin.random.Random
  * DEBUG-ONLY fake data. MainActivity calls [DebugFakes] only when the app is debuggable, so release
  * builds never publish these. Trigger with:
  *   adb shell am start -n in.yash0.cd/.MainActivity --es cd.debug <scenario> [--es cd.debug.screen <screen>] [--ez cd.debug.pairing true]
- * scenarios: all | send-waiting | send-private | sending | receiving | complete | paused | failed | clear
+ * scenarios: all | send-waiting | sending | receiving | complete | paused | failed | clear
  * screens: send | receive | transfers | devices | settings | transfer (opens the scenario's transfer)
  * Long-pressing the "cd" wordmark in a debug build injects "all".
  */
@@ -31,14 +31,13 @@ object PreviewData {
     fun view(kind: String, now: Long = System.currentTimeMillis()): TransferView = when (kind) {
         "send-waiting" -> TransferView("fake-send-wait", Direction.SEND, "Holiday-2026-raw.mov", 1843 * MB, 0, 0, TransferPhase.WAITING, link = "https://cd.yash0.in/#48213", privateLink = link("Qm3xT8vLp2RkZ9wYc4NbAa"), code = "48213", isPrivate = false, message = "Waiting for the receiver", updatedAt = now)
         "sending" -> TransferView("fake-send", Direction.SEND, "design-assets.zip", 742 * MB, 311 * MB, 86 * MB, TransferPhase.TRANSFERRING, Route.LAN, link = "https://cd.yash0.in/#90514", privateLink = link("Hk2pQ7vNc4RtW8yZb1MsDf"), code = "90514", isPrivate = false, updatedAt = now - 1)
-        "send-private" -> TransferView("fake-send-private", Direction.SEND, "tax-return-2026.pdf", 3 * MB, 0, 0, TransferPhase.WAITING, link = link("Pv8rT2wLq5NcZ7xYb3MkAa"), privateLink = link("Pv8rT2wLq5NcZ7xYb3MkAa"), message = "Waiting for the receiver", updatedAt = now)
         "receiving" -> TransferView("fake-recv", Direction.RECEIVE, "dataset-2026-10.parquet", 2560 * MB, 1210 * MB, 41 * MB, TransferPhase.TRANSFERRING, Route.RELAY, updatedAt = now - 2)
         "complete" -> TransferView("fake-done", Direction.RECEIVE, "Quarterly report final v3.pdf", 18 * MB + 400_000, 18 * MB + 400_000, 0, TransferPhase.COMPLETE, Route.DIRECT, openUri = "content://media/external/downloads/1", updatedAt = now - 7 * 60_000)
         "paused" -> TransferView("fake-paused", Direction.RECEIVE, "ubuntu-26.04-desktop-amd64.iso", 6144 * MB, 2290 * MB, 0, TransferPhase.PAUSED, Route.RELAY, message = "Paused. Saved progress is kept.", updatedAt = now - 40 * 60_000)
         "failed" -> TransferView("fake-failed", Direction.SEND, "screen-recording.mp4", 420 * MB, 96 * MB, 0, TransferPhase.FAILED, Route.RELAY, link = link("Zx9cV7bN5mL3kJ1hG8fDsa"), message = "The receiver went away. Resume continues from its checkpoint.", updatedAt = now - 3 * 3600_000)
         else -> error("unknown scenario $kind")
     }
-    val scenarios = listOf("send-waiting", "send-private", "sending", "receiving", "complete", "paused", "failed")
+    val scenarios = listOf("send-waiting", "sending", "receiving", "complete", "paused", "failed")
     fun all(now: Long = System.currentTimeMillis()) = scenarios.map { view(it, now) }
 
     fun pairs(): List<Pairing> = listOf(
@@ -85,7 +84,7 @@ object DebugFakes {
 @Preview(widthDp = 412, heightDp = 915)
 @Composable
 private fun TransferPreview() = CdTheme {
-    Box(Modifier.fillMaxSize().background(Cd.bg)) { TransferScreen("fake-send-private", Direction.SEND, PreviewData.all(), PreviewActions, PreviewData.pairs(), emptyMap()) {} }
+    Box(Modifier.fillMaxSize().background(Cd.bg)) { TransferScreen("fake-send-wait", Direction.SEND, PreviewData.all(), PreviewActions, PreviewData.pairs(), emptyMap()) {} }
 }
 
 @Preview(widthDp = 412, heightDp = 915)
@@ -94,7 +93,6 @@ private fun HomePreview() = CdTheme { CdApp(UiState(), PreviewData.all(), "Ready
 
 private object PreviewActions: CdActions {
     override fun pickFiles(to: Pairing?) {}
-    override fun setSendPrivate(on: Boolean) {}
     override fun sendToDevice(view: TransferView, pair: Pairing) {}
     override fun scan() {}
     override fun submit(raw: String) {}

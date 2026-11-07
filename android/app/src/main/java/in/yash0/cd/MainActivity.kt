@@ -87,7 +87,7 @@ class MainActivity: ComponentActivity(), CdActions {
         pickTarget = savedInstanceState?.getString("cd.pickTarget")
         downloadLink = savedInstanceState?.getString("cd.downloadLink")
         returnAfterPermission = savedInstanceState?.getBoolean("cd.returnAfterPermission") ?: false
-        ui.sendPrivate = prefs.getBoolean("sendPrivate", false)
+        prefs.edit().remove("sendPrivate").apply()
         lifecycleScope.launch { TrustedOffers.messages.collect { (text, error) -> ui.toast(text, error) } }
         if (savedInstanceState == null && intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY == 0) acceptIntent(intent)
         setContent {
@@ -182,11 +182,11 @@ class MainActivity: ComponentActivity(), CdActions {
         else { store.state(id, "paused"); if (cancel) { store.state(id, "cancelled"); TransferFiles.discard(this, store, id) } }
     }
 
-    /** Sends to a trusted computer always use a private link: a code's key is held by the relay. */
+    /** Trusted offers use the internal capability while public invitations show only codes. */
     private fun startSend(uris: List<Uri>, to: Pairing? = null) {
         ui.home(); ui.tab = Tab.SEND
         askNotifications()
-        runCatching { TransferBus.sender.start(this, uris, privateLink = to != null || ui.sendPrivate) }
+        runCatching { TransferBus.sender.start(this, uris) }
             .onSuccess { id -> ui.sendError = null; ui.open(Screen.Transfer(id, Direction.SEND)); if (to != null) TrustedOffers.whenReady(this, id, to) }
             .onFailure { ui.sendError = it.message ?: "Sending failed" }
     }
@@ -198,7 +198,6 @@ class MainActivity: ComponentActivity(), CdActions {
         runCatching { picker.launch(arrayOf("*/*")) }.onFailure { pickTarget = null; ui.sendError = "No file picker is available on this phone" }
     }
 
-    override fun setSendPrivate(on: Boolean) { ui.sendPrivate = on; prefs.edit().putBoolean("sendPrivate", on).apply() }
 
     override fun sendToDevice(view: TransferView, pair: Pairing) = TrustedOffers.offerNow(this, view, pair)
 

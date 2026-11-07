@@ -34,10 +34,12 @@ test('concurrent receiver joins select one socket and persist its nonce', async 
       async setAlarm() {}
     }
   };
-  const protocol = new ResumeRoomProtocol(ctx, {});
+  let released = 0;
+  const protocol = new ResumeRoomProtocol(ctx, {}, async () => { assert.equal(state.codeSpent, true); released++; });
   await Promise.all(receivers.map(peer => protocol.message(peer, JSON.stringify({ type: 'join', protocol: 'cd-transfer-v2', role: 'receiver', receiverToken: token, receiverNonce: randomBytes(32).toString('base64url'), nonceProof: randomBytes(32).toString('base64url') }))));
   const winners = receivers.filter(peer => peer.messages.some(message => message.type === 'accepted'));
   assert.equal(winners.length, 1);
+  assert.equal(released, 1);
   assert.equal(state.receiverNonce, winners[0].attachment.receiverNonce);
   assert.equal(sender.messages.filter(message => message.type === 'peer-joined').length, 1);
 });

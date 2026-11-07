@@ -131,10 +131,11 @@ export class TransferRoom extends DurableObject<Env> {
   private room: RoomState = { kind: 'empty' };
   private resume: ResumeRoomProtocol;
   private claiming: Promise<ClaimResult> | null = null;
+  private resumeClaiming: Promise<ClaimResult> | null = null;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
-    this.resume = new ResumeRoomProtocol(ctx, env);
+    this.resume = new ResumeRoomProtocol(ctx, env, () => this.releaseResumeCode());
     ctx.blockConcurrencyWhile(async () => {
       this.room = await ctx.storage.get<RoomState>('room') ?? { kind: 'empty' };
     });
@@ -143,7 +144,7 @@ export class TransferRoom extends DurableObject<Env> {
   async fetch(request: Request): Promise<Response> {
     if (!sameOrigin(request)) return new Response('origin forbidden', { status: 403 });
     const resumeRoot = /^\/ws\/v2\/([A-Za-z0-9_-]{22})$/.exec(new URL(request.url).pathname)?.[1];
-    if (resumeRoot) return this.resume.fetch(request, resumeRoot);
+    if (resumeRoot) return this.resume.fetch(request, resumeRoot, clientPrefix(request));
     if (request.headers.get('Upgrade')?.toLowerCase() !== 'websocket') return new Response('websocket required', { status: 426 });
     if (this.ctx.getWebSockets().length >= 4) return new Response('room connection limit reached', { status: 429 });
     const pair = new WebSocketPair();
@@ -316,6 +317,45 @@ export class TransferRoom extends DurableObject<Env> {
     if (this.claiming) return this.claiming;
     this.claiming = this.reserveCode(capability, this.room.prefix);
     try { return await this.claiming; } finally { this.claiming = null; }
+  }
+
+  async claimResumeCode(capability: CodeCapability, senderToken: string): Promise<ClaimResult> {
+    const authorized = await this.resume.authorizeCode(capability.transferId, capability.key, senderToken);
+    if (!authorized) return { kind: 'denied' };
+    if (this.resumeClaiming) return this.resumeClaiming;
+    this.resumeClaiming = this.reserveResumeCode(capability, senderToken, authorized);
+    try { return await this.resumeClaiming; } finally { this.resumeClaiming = null; }
+  }
+
+  private async reserveResumeCode(capability: CodeCapability, senderToken: string, authorized: { prefix: string; expiresAt: number }): Promise<ClaimResult> {
+    const existing = await this.ctx.storage.get<ShareCode>('resume-code');
+    if (existing?.expiresAt && existing.expiresAt > Date.now()) return { kind: 'claimed', claim: { code: existing.code, expiresAt: existing.expiresAt } };
+    await this.releaseResumeCode();
+    const holder = { prefix: authorized.prefix, leaseId: crypto.randomUUID() };
+    const expiresAt = Math.min(authorized.expiresAt, Date.now() + CODE_TTL_MS);
+    if (!await prefixGuard(this.env, holder.prefix).hold(holder.leaseId, expiresAt)) return { kind: 'busy' };
+    let claimed: ClaimedCode | null = null;
+    let completed = false;
+    try {
+      claimed = await claimShareCode(this.env, capability, expiresAt);
+      completed = true;
+      if (!claimed) return { kind: 'busy' };
+      const shareCode = { ...claimed, transferId: capability.transferId, holder };
+      if (!await this.resume.authorizeCode(capability.transferId, capability.key, senderToken)) {
+        await this.releaseCode(shareCode);
+        return { kind: 'denied' };
+      }
+      await this.ctx.storage.put('resume-code', shareCode);
+      return { kind: 'claimed', claim: claimed };
+    } finally {
+      if (completed && !claimed) await prefixGuard(this.env, holder.prefix).unhold(holder.leaseId);
+    }
+  }
+
+  private async releaseResumeCode(): Promise<void> {
+    const code = await this.ctx.storage.get<ShareCode>('resume-code');
+    await this.releaseCode(code);
+    await this.ctx.storage.delete('resume-code');
   }
 
   private async reserveCode(capability: CodeCapability, prefix: string): Promise<ClaimResult> {
@@ -503,7 +543,7 @@ const PREFIX_LOOKUPS_PER_MINUTE = 12;
 const SHARD_LOOKUP_BURST = 30;
 const SHARD_LOOKUPS_PER_MINUTE = 60;
 
-type CodeCapability = { transferId: string; key: string };
+type CodeCapability = { transferId: string; key: string; version?: 1 | 2 };
 type CodeClaim = 'claimed' | 'taken' | 'full';
 
 function isTransferId(value: unknown): value is string {
@@ -551,6 +591,7 @@ export class CodeDirectory extends DurableObject<Env> {
       key TEXT NOT NULL,
       expires_at INTEGER NOT NULL
     )`);
+    if (!ctx.storage.sql.exec<{ name: string }>('PRAGMA table_info(codes)').toArray().some(column => column.name === 'version')) ctx.storage.sql.exec('ALTER TABLE codes ADD COLUMN version INTEGER NOT NULL DEFAULT 1');
     ctx.storage.sql.exec('CREATE INDEX IF NOT EXISTS codes_by_expiry ON codes (expires_at)');
     ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS lookup_budget (id INTEGER PRIMARY KEY, tokens REAL NOT NULL, updated_at INTEGER NOT NULL)');
     ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS holds (lease_id TEXT PRIMARY KEY, expires_at INTEGER NOT NULL)');
@@ -587,7 +628,7 @@ export class CodeDirectory extends DurableObject<Env> {
   // claim runs without awaits between its reads and writes, so the Durable
   // Object's input gate makes it atomic: two senders never own one code.
   async claim(code: string, capability: CodeCapability, expiresAt: number): Promise<CodeClaim> {
-    if (!isShareCode(code) || !isTransferId(capability.transferId) || !isMasterKey(capability.key)) return 'taken';
+    if (!isShareCode(code) || !isTransferId(capability.transferId) || !isMasterKey(capability.key) || (capability.version !== undefined && capability.version !== 1 && capability.version !== 2)) return 'taken';
     const sql = this.ctx.storage.sql;
     sql.exec('DELETE FROM codes WHERE expires_at <= ?', Date.now());
     if (sql.exec('SELECT 1 FROM codes WHERE code = ?', code).toArray().length > 0) return 'taken';
@@ -596,17 +637,18 @@ export class CodeDirectory extends DurableObject<Env> {
       logEvent('code_directory_full', { codes: live });
       return 'full';
     }
-    sql.exec('INSERT INTO codes (code, transfer_id, key, expires_at) VALUES (?, ?, ?, ?)', code, capability.transferId, capability.key, expiresAt);
+    sql.exec('INSERT INTO codes (code, transfer_id, key, expires_at, version) VALUES (?, ?, ?, ?, ?)', code, capability.transferId, capability.key, expiresAt, capability.version ?? 1);
     const alarm = await this.ctx.storage.getAlarm();
     if (alarm === null || expiresAt < alarm) await this.ctx.storage.setAlarm(expiresAt);
     return 'claimed';
   }
 
   async lookup(code: string): Promise<CodeCapability | null> {
-    const row = this.ctx.storage.sql.exec<{ transfer_id: string; key: string }>(
-      'SELECT transfer_id, key FROM codes WHERE code = ? AND expires_at > ?', code, Date.now()
+    const row = this.ctx.storage.sql.exec<{ transfer_id: string; key: string; version: number }>(
+      'SELECT transfer_id, key, version FROM codes WHERE code = ? AND expires_at > ?', code, Date.now()
     ).toArray()[0];
-    return row ? { transferId: row.transfer_id, key: row.key } : null;
+    if (!row) return null;
+    return row.version === 2 ? { transferId: row.transfer_id, key: row.key, version: 2 } : { transferId: row.transfer_id, key: row.key };
   }
 
   // release frees a code once its room no longer needs it (paired or
@@ -768,7 +810,15 @@ async function serveCodes(request: Request, env: Env, code: string | null, legac
       || !isTransferId(body.transferId) || !isMasterKey(body.key)) {
       return new Response('invalid claim', { status: 400 });
     }
-    const result = await env.TRANSFERS.getByName(body.transferId).claimCode({ transferId: body.transferId, key: body.key });
+    if ('version' in body && body.version !== 1 && body.version !== 2) return new Response('invalid protocol version', { status: 400 });
+    const room = env.TRANSFERS.getByName('version' in body && body.version === 2 ? `v2:${body.transferId}` : body.transferId);
+    let result: ClaimResult;
+    if ('version' in body && body.version === 2) {
+      if (!('senderToken' in body) || !isBase64Url32(body.senderToken)) return new Response('sender proof required', { status: 403 });
+      result = await room.claimResumeCode({ transferId: body.transferId, key: body.key, version: 2 }, body.senderToken);
+    } else {
+      result = await room.claimCode({ transferId: body.transferId, key: body.key });
+    }
     if (result.kind === 'denied') return new Response('admitted sender proof required', { status: 403 });
     if (result.kind === 'busy') return new Response('share codes are busy right now', { status: 429 });
     return Response.json(result.claim);

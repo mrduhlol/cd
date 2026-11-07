@@ -10,7 +10,7 @@ const END_BYTES = 22;
 // Bit 3: CRC in the data descriptor. Bit 11: UTF-8 names.
 const FLAGS = 0x0808;
 const ZIP_LIMIT = 0xffff_fffe;
-export const MAX_BUNDLE_BYTES = ZIP_LIMIT;
+export const MAX_BUNDLE_BYTES = Number.MAX_SAFE_INTEGER;
 
 const encoder = new TextEncoder();
 
@@ -63,12 +63,23 @@ export function bundleName(date = new Date()) {
 export function createZipBundle(files, { now = new Date(), chunkBytes = 256 * 1024 } = {}) {
   const names = uniqueNames(files).map((name) => encoder.encode(name));
   const { time, day } = dosDateTime(now);
-  let size = END_BYTES;
-  for (let index = 0; index < files.length; index += 1) {
-    size += LOCAL_HEADER_BYTES + names[index].length + files[index].size + DESCRIPTOR_BYTES;
-    size += CENTRAL_HEADER_BYTES + names[index].length;
-  }
-  if (files.length > 0xffff || size > ZIP_LIMIT) throw new Error('bundle too large');
+  if (!Number.isSafeInteger(chunkBytes) || chunkBytes <= 0) throw new Error('invalid chunk size');
+  let layoutOffset = 0;
+  let directorySize = 0;
+  const layout = files.map((file, index) => {
+    if (!Number.isSafeInteger(file.size) || file.size < 0) throw new Error('invalid file size');
+    if (names[index].length > 0xffff) throw new Error('filename too long');
+    const large = file.size > ZIP_LIMIT;
+    const largeOffset = layoutOffset > ZIP_LIMIT;
+    const entry = { large, largeOffset };
+    layoutOffset += LOCAL_HEADER_BYTES + names[index].length + (large ? 20 : 0) + file.size + (large ? 24 : DESCRIPTOR_BYTES);
+    directorySize += CENTRAL_HEADER_BYTES + names[index].length + (large || largeOffset ? 4 + (large ? 16 : 0) + (largeOffset ? 8 : 0) : 0);
+    if (!Number.isSafeInteger(layoutOffset)) throw new Error('bundle too large');
+    return entry;
+  });
+  const zip64 = layout.some(entry => entry.large || entry.largeOffset) || files.length >= 0xffff || layoutOffset > ZIP_LIMIT || directorySize > ZIP_LIMIT;
+  const size = layoutOffset + directorySize + END_BYTES + (zip64 ? 76 : 0);
+  if (!Number.isSafeInteger(size)) throw new Error('bundle too large');
 
   async function* stream() {
     const central = [];
@@ -76,15 +87,26 @@ export function createZipBundle(files, { now = new Date(), chunkBytes = 256 * 10
     for (let index = 0; index < files.length; index += 1) {
       const file = files[index];
       const name = names[index];
-      const local = new Uint8Array(LOCAL_HEADER_BYTES + name.length);
+      const { large, largeOffset } = layout[index];
+      const local = new Uint8Array(LOCAL_HEADER_BYTES + name.length + (large ? 20 : 0));
       const view = new DataView(local.buffer);
       view.setUint32(0, 0x04034b50, true);
-      view.setUint16(4, 20, true);
+      view.setUint16(4, large ? 45 : 20, true);
       view.setUint16(6, FLAGS, true);
       view.setUint16(10, time, true);
       view.setUint16(12, day, true);
       view.setUint16(26, name.length, true);
       local.set(name, LOCAL_HEADER_BYTES);
+      if (large) {
+        view.setUint32(18, 0xffffffff, true);
+        view.setUint32(22, 0xffffffff, true);
+        view.setUint16(28, 20, true);
+        const extra = LOCAL_HEADER_BYTES + name.length;
+        view.setUint16(extra, 1, true);
+        view.setUint16(extra + 2, 16, true);
+        view.setBigUint64(extra + 4, BigInt(file.size), true);
+        view.setBigUint64(extra + 12, BigInt(file.size), true);
+      }
       yield local;
 
       let crc = 0;
@@ -98,45 +120,80 @@ export function createZipBundle(files, { now = new Date(), chunkBytes = 256 * 10
       }
       if (read !== file.size) throw new Error('file changed while sending');
 
-      const descriptor = new Uint8Array(DESCRIPTOR_BYTES);
+      const descriptor = new Uint8Array(large ? 24 : DESCRIPTOR_BYTES);
       const descriptorView = new DataView(descriptor.buffer);
       descriptorView.setUint32(0, 0x08074b50, true);
       descriptorView.setUint32(4, crc, true);
-      descriptorView.setUint32(8, file.size, true);
-      descriptorView.setUint32(12, file.size, true);
+      if (large) {
+        descriptorView.setBigUint64(8, BigInt(file.size), true);
+        descriptorView.setBigUint64(16, BigInt(file.size), true);
+      } else {
+        descriptorView.setUint32(8, file.size, true);
+        descriptorView.setUint32(12, file.size, true);
+      }
       yield descriptor;
 
-      central.push({ name, crc, size: file.size, offset });
-      offset += local.length + file.size + DESCRIPTOR_BYTES;
+      central.push({ name, crc, size: file.size, offset, large, largeOffset });
+      offset += local.length + file.size + descriptor.length;
     }
 
     const directoryOffset = offset;
     let directoryBytes = 0;
     for (const entry of central) {
-      const header = new Uint8Array(CENTRAL_HEADER_BYTES + entry.name.length);
+      const extraBytes = entry.large || entry.largeOffset ? 4 + (entry.large ? 16 : 0) + (entry.largeOffset ? 8 : 0) : 0;
+      const header = new Uint8Array(CENTRAL_HEADER_BYTES + entry.name.length + extraBytes);
       const view = new DataView(header.buffer);
       view.setUint32(0, 0x02014b50, true);
-      view.setUint16(4, 20, true);
-      view.setUint16(6, 20, true);
+      view.setUint16(4, extraBytes ? 45 : 20, true);
+      view.setUint16(6, extraBytes ? 45 : 20, true);
       view.setUint16(8, FLAGS, true);
       view.setUint16(12, time, true);
       view.setUint16(14, day, true);
       view.setUint32(16, entry.crc, true);
-      view.setUint32(20, entry.size, true);
-      view.setUint32(24, entry.size, true);
+      view.setUint32(20, entry.large ? 0xffffffff : entry.size, true);
+      view.setUint32(24, entry.large ? 0xffffffff : entry.size, true);
       view.setUint16(28, entry.name.length, true);
-      view.setUint32(42, entry.offset, true);
+      view.setUint32(42, entry.largeOffset ? 0xffffffff : entry.offset, true);
       header.set(entry.name, CENTRAL_HEADER_BYTES);
+      view.setUint16(30, extraBytes, true);
+      if (extraBytes) {
+        let pos = CENTRAL_HEADER_BYTES + entry.name.length;
+        view.setUint16(pos, 1, true);
+        view.setUint16(pos + 2, extraBytes - 4, true);
+        pos += 4;
+        if (entry.large) {
+          view.setBigUint64(pos, BigInt(entry.size), true);
+          view.setBigUint64(pos + 8, BigInt(entry.size), true);
+          pos += 16;
+        }
+        if (entry.largeOffset) view.setBigUint64(pos, BigInt(entry.offset), true);
+      }
       directoryBytes += header.length;
       yield header;
+    }
+    if (zip64) {
+      const tail = new Uint8Array(76);
+      const v = new DataView(tail.buffer);
+      v.setUint32(0, 0x06064b50, true);
+      v.setBigUint64(4, 44n, true);
+      v.setUint16(12, 45, true);
+      v.setUint16(14, 45, true);
+      v.setBigUint64(24, BigInt(central.length), true);
+      v.setBigUint64(32, BigInt(central.length), true);
+      v.setBigUint64(40, BigInt(directoryBytes), true);
+      v.setBigUint64(48, BigInt(directoryOffset), true);
+      v.setUint32(56, 0x07064b50, true);
+      v.setBigUint64(64, BigInt(directoryOffset + directoryBytes), true);
+      v.setUint32(72, 1, true);
+      yield tail;
     }
     const end = new Uint8Array(END_BYTES);
     const view = new DataView(end.buffer);
     view.setUint32(0, 0x06054b50, true);
-    view.setUint16(8, central.length, true);
-    view.setUint16(10, central.length, true);
-    view.setUint32(12, directoryBytes, true);
-    view.setUint32(16, directoryOffset, true);
+    view.setUint16(8, Math.min(central.length, 0xffff), true);
+    view.setUint16(10, Math.min(central.length, 0xffff), true);
+    view.setUint32(12, Math.min(directoryBytes, 0xffffffff), true);
+    view.setUint32(16, Math.min(directoryOffset, 0xffffffff), true);
     yield end;
   }
 

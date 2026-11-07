@@ -36,12 +36,12 @@ export function codeLookupPath(code) {
   return `/api/codes/${encodeURIComponent(cleaned)}`;
 }
 
-export function shareUrlFromCapability(origin, transferId, key) {
-  if (!TRANSFER_ID_PATTERN.test(transferId) || !MASTER_KEY_PATTERN.test(key)) {
+export function shareUrlFromCapability(origin, transferId, key, version = 1) {
+  if (!TRANSFER_ID_PATTERN.test(transferId) || !MASTER_KEY_PATTERN.test(key) || (version !== 1 && version !== 2)) {
     throw new Error('invalid share capability');
   }
   const base = String(origin).replace(/\/$/, '');
-  return `${base}/s/${transferId}#v1.${key}`;
+  return `${base}/s/${transferId}#v${version}.${key}`;
 }
 
 // Codes from cdx v0.1.0 live on the old host; the directory says so with an
@@ -50,9 +50,11 @@ export const LEGACY_ORIGIN = 'https://cdx.yash0.in';
 
 export function parseCapability(body) {
   if (!body || typeof body !== 'object') throw new Error('invalid share capability');
-  const { transferId, key } = body;
+  const { transferId, key, version = 1 } = body;
   if (!TRANSFER_ID_PATTERN.test(transferId) || !MASTER_KEY_PATTERN.test(key)) {
     throw new Error('invalid share capability');
   }
-  return body.origin === LEGACY_ORIGIN ? { transferId, key, origin: LEGACY_ORIGIN } : { transferId, key };
+  if (version !== 1 && version !== 2) throw new Error('invalid share capability');
+  const capability = version === 2 ? { transferId, key, version } : { transferId, key };
+  return body.origin === LEGACY_ORIGIN ? { ...capability, origin: LEGACY_ORIGIN } : capability;
 }

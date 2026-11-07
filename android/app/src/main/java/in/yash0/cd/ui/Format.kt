@@ -76,7 +76,7 @@ object Format {
     fun phase(view: TransferView): String {
         val send = view.direction == Direction.SEND
         return when (view.phase) {
-            TransferPhase.PREPARING -> if (!send) "preparing" else if (view.link == null) "creating private link" else "reconnecting"
+            TransferPhase.PREPARING -> if (!send) "preparing" else if (view.link == null) "getting a code" else "reconnecting"
             TransferPhase.WAITING -> if (send) "waiting for receiver" else "queued"
             TransferPhase.CONNECTING -> if (!send) "connecting to sender" else if (view.link == null) "connecting" else "reconnecting"
             TransferPhase.TRANSFERRING -> if (send) "sending" else "receiving"

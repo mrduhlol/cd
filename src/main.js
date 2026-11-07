@@ -337,9 +337,8 @@ const Sender = (() => {
     let source;
     try {
       source = files.length === 1 ? fileSource(files[0]) : createZipBundle(files);
-    } catch {
-      setFileInfo(els.senderFileInfo, `${files.length} files selected`, formatSize(totalSize), 'Together these are over 4 GB. Send them in smaller batches.');
-      setState('failed');
+    } catch (error) {
+      failSend(error.message || 'Could not prepare these files. Choose them again.');
       return;
     }
     els.dropZone.classList.add('hidden');
@@ -560,7 +559,7 @@ const Receiver = (() => {
       showError('No transfer with that code. Check the digits, or ask the sender for a new one.');
       return;
     }
-    openRelay(shareUrlFromCapability(capability.origin ?? window.location.origin, capability.transferId, capability.key));
+    openRelay(shareUrlFromCapability(capability.origin ?? window.location.origin, capability.transferId, capability.key, capability.version));
   }
 
   // Relay transfers (links and numeric codes) run inline in this tab. The

@@ -583,6 +583,16 @@ func runReceive(request receiveRequest) int {
 		receiveUsage(os.Stdout)
 		return 0
 	}
+	if !request.resume {
+		ctx, stop := signal.NotifyContext(context.Background(), shutdownSignals()...)
+		code, err := resolveReceiveCode(ctx, request.code)
+		stop()
+		if err != nil {
+			reportFailure(os.Stdout, os.Stderr, err, request.jsonOutput)
+			return 1
+		}
+		request.code = code
+	}
 	if request.resume || strings.Contains(request.code, "#v2.") {
 		return runResumableReceive(request)
 	}

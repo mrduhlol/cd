@@ -47,13 +47,13 @@ class SendInstrumentation : Instrumentation() {
             var nextTreeAt = 0L
             val deadline = System.currentTimeMillis() + 15 * 60 * 1000
             while (System.currentTimeMillis() < deadline) {
-                if (System.currentTimeMillis() >= nextTreeAt) {
+                if (args.getString("tree", "true") != "false" && System.currentTimeMillis() >= nextTreeAt) {
                     exportTree()
                     nextTreeAt = System.currentTimeMillis() + 400
                 }
                 val view = TransferBus.find(id, Direction.SEND)
                 if (view != null) {
-                    File(context.filesDir, "send-test-status.json").writeText(JSONObject().put("id", id).put("phase", view.phase.name).put("done", view.done).put("link", view.link).put("rate", view.bytesPerSecond).put("route", view.route.name).put("message", view.message).put("activityCreates", activityCreates.get()).put("activityResumes", activityResumes.get()).toString())
+                    File(context.filesDir, "send-test-status.json").writeText(JSONObject().put("id", id).put("phase", view.phase.name).put("done", view.done).put("link", view.link).put("code", view.code).put("rate", view.bytesPerSecond).put("route", view.route.name).put("message", view.message).put("activityCreates", activityCreates.get()).put("activityResumes", activityResumes.get()).toString())
                     if (view.phase == TransferPhase.COMPLETE) { finish(0, Bundle().apply { putString("result", "complete") }); return }
                     if (view.phase in listOf(TransferPhase.PAUSED, TransferPhase.FAILED)) {
                         if (args.getString("action") == "failure") {
