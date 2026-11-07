@@ -470,11 +470,10 @@ export function startRelaySend(source, hooks = {}) {
 
 // mountRelaySender wires startRelaySend to the standalone `/send` page.
 // `els` provides: fileInput, pickBtn, fileLine, shareBox, shareCode,
-// shareLink, receiveCommand, copyCodeBtn, copyLinkBtn, copyCmdBtn, progress,
+// receiveCommand, copyCodeBtn, copyCmdBtn, progress,
 // progressBar, progressFill, progressCopy, status, cancelBtn, againBtn.
 export function mountRelaySender(els) {
   let active = null;
-  let shareUrl = '';
   let shareCode = '';
 
   function paintProgress(sent, total) {
@@ -491,12 +490,10 @@ export function mountRelaySender(els) {
     els.againBtn.hidden = true;
     els.fileLine.textContent = `${file.name} · ${formatSize(file.size)}`;
     active = startRelaySend(fileSource(file), {
-      onShare({ code, url }) {
+      onShare({ code }) {
         shareCode = code;
-        shareUrl = url;
         els.shareBox.hidden = false;
         els.shareCode.textContent = code;
-        els.shareLink.textContent = url;
         els.receiveCommand.textContent = `cdx receive ${code}`;
       },
       onStatus(text) { els.status.textContent = text; },
@@ -539,7 +536,6 @@ export function mountRelaySender(els) {
     els.againBtn.hidden = true;
     els.status.textContent = '';
   });
-  els.copyLinkBtn.addEventListener('click', () => void copyText(shareUrl, els.copyLinkBtn));
   els.copyCodeBtn.addEventListener('click', () => void copyText(shareCode, els.copyCodeBtn));
   els.copyCmdBtn.addEventListener('click', () => void copyText(`cdx receive ${shareCode}`, els.copyCmdBtn));
 

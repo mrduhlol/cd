@@ -28,7 +28,7 @@ require(cdAbi == null || cdAbi in setOf("arm64-v8a", "armeabi-v7a", "x86", "x86_
 android {
     namespace = "in.yash0.cd"
     compileSdk = 35
-    defaultConfig { applicationId = "in.yash0.cd"; minSdk = 29; targetSdk = 35; versionCode = 1; versionName = "0.1.0"; if (cdAbi != null) ndk { abiFilters += cdAbi } }
+    defaultConfig { testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"; applicationId = "in.yash0.cd"; minSdk = 29; targetSdk = 35; versionCode = 1; versionName = "0.1.0"; if (cdAbi != null) ndk { abiFilters += cdAbi } }
     buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
@@ -60,6 +60,8 @@ dependencies {
     }
     implementation("io.github.webrtc-sdk:android:150.7871.01")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("junit:junit:4.13.2")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
 }
