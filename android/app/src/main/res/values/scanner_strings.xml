@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="scanner_title">Scan code</string>
+    <string name="scanner_back">Close scanner</string>
+    <string name="scanner_flash_on">Turn on flashlight</string>
+    <string name="scanner_flash_off">Turn off flashlight</string>
+    <string name="scanner_prompt_default">Scan a CD link or the cdx pair QR code</string>
+    <string name="scanner_hint">Keep the code inside the frame. It opens by itself.</string>
+    <string name="scanner_permission_title">Camera access is off</string>
+    <string name="scanner_permission_body">CD uses the camera only to read a QR code. Nothing is saved.</string>
+    <string name="scanner_allow_camera">Allow camera</string>
+    <string name="scanner_open_settings">Open settings</string>
+</resources>

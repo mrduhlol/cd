@@ -1,193 +1,356 @@
 package `in`.yash0.cd
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.view.WindowManager
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import androidx.core.content.IntentCompat
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import `in`.yash0.cd.ui.CdActions
+import `in`.yash0.cd.ui.CdDialog
+import `in`.yash0.cd.ui.CdIcons
+import `in`.yash0.cd.ui.CdApp
+import `in`.yash0.cd.ui.CdTheme
+import `in`.yash0.cd.ui.DebugFakes
+import `in`.yash0.cd.ui.PreviewData
+import `in`.yash0.cd.ui.ReceiveMode
+import `in`.yash0.cd.ui.Tab
+import `in`.yash0.cd.ui.TrustedOffers
+import `in`.yash0.cd.ui.Screen
+import `in`.yash0.cd.ui.UiState
+import `in`.yash0.cd.ui.active
 import org.json.JSONObject
 
-class MainActivity: ComponentActivity() {
+class MainActivity: ComponentActivity(), CdActions {
     private lateinit var store: Store
-    private var incoming by mutableStateOf("")
-    private var backgroundAfterPermission = false
-    private var incomingFromLink = false
+    private val ui = UiState()
+    private val debug by lazy { applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0 }
+    private var downloadLink by mutableStateOf<String?>(null)
+    private var returnAfterReceive = false
+    private var returnAfterPermission = false
+    // Asked only when a transfer starts or a device is paired, never on first launch.
     private val notifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (!granted) Status.text = "Receiving in the background. Notifications are disabled."
-        if (backgroundAfterPermission) moveTaskToBack(true)
-        backgroundAfterPermission = false
+        if (!granted) ui.toast("Progress won’t show in notifications")
+        if (returnAfterPermission) moveTaskToBack(true)
+        returnAfterPermission = false
+        refresh()
     }
-    private val pushNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) PushBridge.setEnabled(this, true) else Status.text = "Allow notifications to enable trusted wake-up" }
-    private val scan = registerForActivityResult(ScanContract()) { result -> result.contents?.let { incomingFromLink = false; incoming = it } }
+    private val pushNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) PushBridge.setEnabled(this, true) else TransferBus.status("Allow notifications to enable trusted wake-up"); refresh() }
+    private val scanner = registerForActivityResult(ScanContract()) { result -> result.contents?.let { ui.input = it; submit(it.trim()) } }
+    // OPEN_DOCUMENT (not GET_CONTENT) so the read grant can be persisted: a send interrupted by the app
+    // closing can be resumed later from the same uris.
+    private val picker = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        uris.forEach { runCatching { contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION) } }
+        val to = pickTarget?.let { id -> ui.pairs.firstOrNull { it.id == id } }
+        pickTarget = null
+        if (uris.isNotEmpty()) startSend(uris, to)
+    }
+    /** Pair id the open picker is choosing files for; survives recreation while the picker is up. */
+    private var pickTarget: String? = null
+    private val prefs by lazy { getSharedPreferences("cd-ui", MODE_PRIVATE) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge(SystemBarStyle.dark(Color.TRANSPARENT), SystemBarStyle.dark(Color.TRANSPARENT))
         super.onCreate(savedInstanceState)
         store = StoreRegistry.get(this)
+        Senders.install(applicationContext)
+        ReceiveViews.load(applicationContext)
         PushBridge.start(this)
-        backgroundAfterPermission = savedInstanceState?.getBoolean("backgroundAfterPermission") ?: false
-        if (savedInstanceState == null) acceptIntent(intent)
-        if (store.enabled()) startReceiver()
-        setContent { MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xff225a45), background = Color(0xfff7f6f1), surface = Color(0xfff7f6f1))) { App() } }
+        ReceiveMode.load(this)
+        // Control links to paired computers start in onStart (ReceiveMode.onForeground) and stop once idle in the background.
+        refresh()
+        ui.restoreNav(savedInstanceState?.getString("cd.navigation"))
+        pickTarget = savedInstanceState?.getString("cd.pickTarget")
+        downloadLink = savedInstanceState?.getString("cd.downloadLink")
+        returnAfterPermission = savedInstanceState?.getBoolean("cd.returnAfterPermission") ?: false
+        ui.sendPrivate = prefs.getBoolean("sendPrivate", false)
+        lifecycleScope.launch { TrustedOffers.messages.collect { (text, error) -> ui.toast(text, error) } }
+        if (savedInstanceState == null && intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY == 0) acceptIntent(intent)
+        setContent {
+            val transfers by TransferBus.transfers.collectAsState()
+            val status by TransferBus.receivingStatus.collectAsState()
+            val paused by ReceiveMode.paused.collectAsState()
+            val wake by ReceiveMode.wakeAvailable.collectAsState()
+            LaunchedEffect(status, paused, wake) { refresh() }
+            // Sending is foreground-only by design, so keep the screen on while a send is running.
+            val sending = transfers.any { it.direction == Direction.SEND && it.active }
+            LaunchedEffect(sending) { if (sending) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+            CdTheme {
+                CdApp(ui, transfers, status, this, debug, versionName())
+                downloadLink?.takeUnless { ui.resolving }?.let { raw ->
+                    CdDialog(
+                        title = "Accept download?",
+                        body = "Accept to download this file to Downloads/CD in the background. You can leave CD or turn off the screen. The sender must stay online.",
+                        detail = ui.inputError.takeIf { it.isNotBlank() } ?: if (ui.mobile) "Mobile data is allowed." else "Downloads wait for unmetered Wi-Fi or Ethernet.",
+                        confirm = "Accept", dismiss = "Reject", icon = CdIcons.ArrowDown,
+                        onConfirm = {
+                            returnAfterReceive = true
+                            submit(raw)
+                        },
+                        onDismiss = {
+                            downloadLink = null
+                            returnAfterReceive = false
+                            ui.inputError = ""
+                            moveTaskToBack(true)
+                        },
+                    )
+                }
+            }
+        }
     }
-    override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); acceptIntent(intent) }
+
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean("backgroundAfterPermission", backgroundAfterPermission)
+        outState.putString("cd.navigation", ui.saveNav())
+        pickTarget?.let { outState.putString("cd.pickTarget", it) }
+        outState.putString("cd.downloadLink", downloadLink)
+        outState.putBoolean("cd.returnAfterPermission", returnAfterPermission)
         super.onSaveInstanceState(outState)
     }
+
+    override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); acceptIntent(intent) }
+    override fun onResume() { super.onResume(); refresh() }
+    // Paired computers can pair, confirm and send while CD is open; see ReceiveMode.
+    override fun onStart() { super.onStart(); ReceiveMode.onForeground(this) }
+    override fun onStop() { ReceiveMode.onBackground(this); super.onStop() }
+
     private fun acceptIntent(intent: Intent) {
-        incomingFromLink = intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND
-        incoming = intent.dataString ?: intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty()
+        if (debug) intent.getStringExtra("cd.debug")?.let { debugScenario(it, intent); return }
+        if (intent.action == Intent.ACTION_SEND || intent.action == Intent.ACTION_SEND_MULTIPLE) {
+            val uris = if (intent.action == Intent.ACTION_SEND_MULTIPLE) IntentCompat.getParcelableArrayListExtra(intent, Intent.EXTRA_STREAM, Uri::class.java).orEmpty()
+                else listOfNotNull(IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java))
+            if (uris.isNotEmpty()) { startSend(uris); return }
+        }
+        val text = (intent.dataString ?: intent.getStringExtra(Intent.EXTRA_TEXT)).orEmpty().trim()
+        if (text.isEmpty()) return
+        ui.home(); ui.tab = Tab.RECEIVE; ui.input = ""; ui.inputError = ""
+        if (text.startsWith("cdpair:", ignoreCase = true)) submit(text)
+        else downloadLink = text
     }
-    private fun enable(background: Boolean = false) {
-        startReceiver()
-        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            backgroundAfterPermission = background
-            notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
-        } else if (background) moveTaskToBack(true)
+
+    private fun notificationsAllowed() = Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+
+    private fun refresh() {
+        ui.paused = ReceiveMode.paused.value
+        ui.wakeAvailable = ReceiveMode.wakeAvailable.value
+        ui.pairs = store.pairs() + (if (debug) DebugFakes.pairs else emptyList())
+        ui.mobile = store.allowedMobile()
+        ui.push = store.pushEnabled()
     }
-    private fun startReceiver() { store.enabled(true); ContextCompat.startForegroundService(this, Intent(this, ReceiverService::class.java)); Status.text = "Ready to receive" }
+
+    private fun askNotifications() { if (!notificationsAllowed()) notifications.launch(Manifest.permission.POST_NOTIFICATIONS) }
+    /** A real receive transfer was queued: ask for notifications once, then run it. */
+    private fun receiveNow() {
+        if (returnAfterReceive) {
+            ReceiveMode.setPaused(this, false)
+            returnAfterPermission = !notificationsAllowed()
+        }
+        askNotifications()
+        ReceiveMode.startTransfer(this)
+        if (returnAfterReceive) {
+            downloadLink = null
+            if (!returnAfterPermission) moveTaskToBack(true)
+            returnAfterReceive = false
+        }
+    }
     private fun refreshService() { if (store.enabled()) startService(Intent(this, ReceiverService::class.java).setAction("refresh")) }
     private fun taskAction(id: String, cancel: Boolean) {
         if (store.enabled()) startService(Intent(this, ReceiverService::class.java).setAction(if (cancel) "cancel-task" else "pause-task").putExtra("taskId", id))
         else { store.state(id, "paused"); if (cancel) { store.state(id, "cancelled"); TransferFiles.discard(this, store, id) } }
     }
-    @Composable private fun App() {
-        var input by rememberSaveable { mutableStateOf("") }
-        var downloadLink by rememberSaveable { mutableStateOf<String?>(null) }
-        var returnToCaller by rememberSaveable { mutableStateOf(false) }
-        var downloadError by rememberSaveable { mutableStateOf("") }
-        var pending by remember { mutableStateOf<Pairing?>(null) }
-        var error by remember { mutableStateOf("") }
-        var revision by remember { mutableIntStateOf(0) }
-        LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(1000); revision++ } }
-        fun parse(raw: String, external: Boolean = false) {
-            if (!raw.startsWith("cdpair:")) {
-                downloadLink = raw
-                returnToCaller = external
-                downloadError = ""
+
+    /** Sends to a trusted computer always use a private link: a code's key is held by the relay. */
+    private fun startSend(uris: List<Uri>, to: Pairing? = null) {
+        ui.home(); ui.tab = Tab.SEND
+        askNotifications()
+        runCatching { TransferBus.sender.start(this, uris, privateLink = to != null || ui.sendPrivate) }
+            .onSuccess { id -> ui.sendError = null; ui.open(Screen.Transfer(id, Direction.SEND)); if (to != null) TrustedOffers.whenReady(this, id, to) }
+            .onFailure { ui.sendError = it.message ?: "Sending failed" }
+    }
+
+    /* ---------- CdActions ---------- */
+
+    override fun pickFiles(to: Pairing?) {
+        pickTarget = to?.id
+        runCatching { picker.launch(arrayOf("*/*")) }.onFailure { pickTarget = null; ui.sendError = "No file picker is available on this phone" }
+    }
+
+    override fun setSendPrivate(on: Boolean) { ui.sendPrivate = on; prefs.edit().putBoolean("sendPrivate", on).apply() }
+
+    override fun sendToDevice(view: TransferView, pair: Pairing) = TrustedOffers.offerNow(this, view, pair)
+
+    override fun scan() {
+        scanner.launch(ScanOptions().setDesiredBarcodeFormats(ScanOptions.QR_CODE).setBeepEnabled(false).setCaptureActivity(QrScannerActivity::class.java).setOrientationLocked(false))
+    }
+
+    override fun submit(raw: String) {
+        val input = raw.trim()
+        if (ui.resolving) return
+        val lookup = runCatching { ShareCodes.lookupUrl(input) }.getOrElse { ui.inputError = it.message ?: "Invalid code"; return }
+        if (lookup == null) { submitLink(input); return }
+        ui.resolving = true
+        lifecycleScope.launch {
+            runCatching { withContext(Dispatchers.IO) { ShareCodes.resolve(lookup) } }
+                .onSuccess { ui.resolving = false; submitLink(it) }
+                .onFailure { returnAfterReceive = false; ui.resolving = false; ui.inputError = it.message ?: "Could not look up code" }
+        }
+    }
+
+    private fun submitLink(raw: String) {
+        if (raw.isBlank()) return
+        runCatching {
+            if (raw.startsWith("cdpair:", ignoreCase = true)) ui.pending = Pairing.parse(raw)
+            else {
+                val invitation = runCatching { Invitation.parse(raw) }.getOrElse { e -> throw IllegalArgumentException(if (e.message?.contains("v2") == true) e.message else "That isn’t a CD link. Paste the sender’s private link.") }
+                val id = invitation.id
+                if (TransferBus.sender.owns(id)) {
+                    returnAfterReceive = false
+                    downloadLink = null
+                    ui.open(Screen.Transfer(id, Direction.SEND))
+                    ui.input = ""; ui.inputError = ""
+                    ui.toast("This phone is sending this file. Open the invitation on another device.")
+                    return
+                }
+                val prior = store.task(id)
+                require(prior?.optString("state") != "complete") { "This transfer is already saved" }
+                require(prior?.optString("state") != "cancelled") { "This transfer was cancelled. Ask the sender for a new link." }
+                require(prior == null || prior.getString("url") == raw) { "This transfer already has a different private link" }
+                require(prior != null || receiveQueueHasRoom(store.tasks())) { "Receive queue full" }
+                val task = prior ?: JSONObject().put("id", id).put("url", raw)
+                if (task.optString("state") !in listOf("connecting", "receiving", "verifying")) task.put("state", "queued")
+                task.put("resumable", invitation.version == 2).remove("error")
+                store.putTask(task)
+                if (ReceiveMode.paused.value) ui.toast("Receiving is paused in Settings")
+                receiveNow(); ui.input = ""
+                // Optimistic row so the user lands on the transfer immediately; the receiver replaces it by id.
+                if (TransferBus.transfers.value.none { it.id == id && it.direction == Direction.RECEIVE }) TransferBus.publish(TransferView(id, Direction.RECEIVE, prior?.optString("filename")?.takeIf { it.isNotEmpty() } ?: "Private transfer", prior?.optString("size")?.toLongOrNull() ?: -1, 0, 0, TransferPhase.WAITING, message = "Connecting to the sender"))
+                ui.open(Screen.Transfer(id, Direction.RECEIVE))
+            }
+            ui.inputError = ""
+        }.onFailure { returnAfterReceive = false; returnAfterPermission = false; ui.inputError = it.message ?: "Invalid link" }
+        refresh()
+    }
+
+    override fun setPaused(paused: Boolean) { ReceiveMode.setPaused(this, paused); refresh() }
+
+    override fun trust(pair: Pairing) {
+        runCatching {
+            require(pair.json.getLong("expiresAt") > System.currentTimeMillis())
+            if (!pair.json.optBoolean("debugFake")) { store.trust(pair); ReceiveMode.paired(this); askNotifications() }
+            ui.pending = null; ui.input = ""; ui.toast("Trusted ${pair.name}")
+        }.onFailure { ui.inputError = "Pairing expired. Run cdx pair again."; ui.pending = null }
+        refresh()
+    }
+
+    override fun revoke(pair: Pairing) {
+        if (pair.json.optBoolean("debugFake")) DebugFakes.revoke(pair.id)
+        else { PushBridge.revoke(this, pair); store.revoke(pair.id); refreshService() }
+        refresh()
+    }
+
+    override fun setMobile(on: Boolean) { store.mobile(on); refreshService(); refresh() }
+
+    override fun setPush(on: Boolean) {
+        if (on && !notificationsAllowed()) pushNotifications.launch(Manifest.permission.POST_NOTIFICATIONS) else PushBridge.setEnabled(this, on)
+        refresh()
+    }
+
+    override fun pause(view: TransferView) {
+        if (view.direction == Direction.SEND) runCatching { TransferBus.sender.pause(this, view.id) }.onFailure { ui.toast(it.message ?: "Can’t pause", error = true) } else taskAction(view.id, cancel = false)
+    }
+
+    override fun resume(view: TransferView) {
+        if (view.direction == Direction.SEND) runCatching { TransferBus.sender.resume(this, view.id) }.onFailure { ui.toast(it.message ?: "Can’t resume", error = true) }
+        else {
+            if (store.task(view.id)?.let { !receiveCanResume(it) } == true) {
+                ui.toast("Ask the sender for a new link or code", error = true)
                 return
             }
-            runCatching { pending = Pairing.parse(raw); error = "" }
-                .onFailure { error = it.message ?: "Invalid pairing link" }
+            store.state(view.id, "queued"); receiveNow()
         }
-        LaunchedEffect(incoming) {
-            if (incoming.isNotBlank()) {
-                val raw = incoming.trim()
-                incoming = ""
-                input = raw
-                parse(raw, incomingFromLink)
-            }
-        }
-        val pairs = remember(revision) { store.pairs() }
-        val tasks = remember(revision) { store.tasks() }
-        val enabled = remember(revision) { store.enabled() }
-        Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
-            Text("CD", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold)
-            Text("Your files. Your devices.", style = MaterialTheme.typography.titleLarge)
-            Text(if (enabled) Status.text else "Receiving is off", style = MaterialTheme.typography.bodyLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(onClick = { enable(); revision++ }) { Text(if (enabled) "Receiving enabled" else "Enable receiving") }
-                if (enabled) OutlinedButton(onClick = { startService(Intent(this@MainActivity, ReceiverService::class.java).setAction("pause")); revision++ }) { Text("Stop") }
-            }
-            Text("Stop keeps saved progress for resumable transfers. Ordinary transfers need a new link after stopping.", style = MaterialTheme.typography.bodyMedium)
-            HorizontalDivider()
-            Text("Account receiving", style = MaterialTheme.typography.headlineSmall)
-            Text(Account.status)
-            Text("Signing in authorizes your own signed-in terminals to send files automatically while receiving is enabled.")
-            if (store.account() == null) Button(onClick = { Account.login(this@MainActivity); enable(); revision++ }, enabled = !Account.signingIn) { Text("Sign in with Clerk") }
-            else OutlinedButton(onClick = { Account.logout(this@MainActivity); refreshService(); revision++ }) { Text("Sign out and revoke account devices") }
-            Text("Trusted devices", style = MaterialTheme.typography.headlineSmall)
-            if (pairs.isEmpty()) Text("Run cdx pair on your laptop. Scan its QR code and confirm Trust here.")
-            pairs.forEach { pair ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(Modifier.weight(1f)) { Text(pair.name, style = MaterialTheme.typography.titleMedium); Text("Trusted · ${pair.id.take(8)}", style = MaterialTheme.typography.bodySmall) }
-                    TextButton(onClick = { PushBridge.revoke(this@MainActivity, pair); store.revoke(pair.id); refreshService(); revision++ }) { Text("Revoke") }
-                }
-            }
-            OutlinedButton(onClick = { scan.launch(ScanOptions().setDesiredBarcodeFormats(ScanOptions.QR_CODE).setPrompt("Scan the cdx pair QR code").setBeepEnabled(false).setOrientationLocked(false)) }) { Text("Scan pairing QR") }
-            OutlinedTextField(value = input, onValueChange = { input = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Pairing link, transfer link or short code") }, minLines = 2, maxLines = 4)
-            Button(onClick = { parse(input.trim()) }, enabled = input.isNotBlank()) { Text(if (input.startsWith("cdpair:")) "Review device" else "Receive file") }
-            if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error)
-            HorizontalDivider()
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column(Modifier.weight(1f)) { Text("Allow mobile or metered data", style = MaterialTheme.typography.titleMedium); Text("Off by default. Unmetered Wi-Fi still works.", style = MaterialTheme.typography.bodySmall) }
-                Switch(checked = remember(revision) { store.allowedMobile() }, onCheckedChange = { store.mobile(it); refreshService(); revision++ })
-            }
-            if (PushBridge.available) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(Modifier.weight(1f)) { Text("Trusted wake-up notifications", style = MaterialTheme.typography.titleMedium); Text(PushBridge.status, style = MaterialTheme.typography.bodySmall) }
-                    Switch(checked = remember(revision) { store.pushEnabled() }, onCheckedChange = { enabled ->
-                        if (enabled && Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) pushNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        else PushBridge.setEnabled(this@MainActivity, enabled)
-                        revision++
-                    })
-                }
-                Text("Google delivers a wake-up hint for trusted devices. Receiving must stay enabled. Stop and paused transfers stay paused. File transfers still follow your mobile data setting.", style = MaterialTheme.typography.bodySmall)
-            }
-            Text("Keep Ready to receive enabled for trusted transfers with the screen off. Samsung battery settings can stop background apps. After a force-stop, open CD and enable receiving again.", style = MaterialTheme.typography.bodySmall)
-            Text("Transfers", style = MaterialTheme.typography.headlineSmall)
-            if (tasks.isEmpty()) Text("Received files appear in Downloads/CD.")
-            tasks.asReversed().take(30).forEach { task ->
-                val state = task.getString("state")
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(task.optString("filename", "Private transfer"), style = MaterialTheme.typography.titleMedium)
-                    Text(state.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium)
-                    if (state == "paused" && !task.optBoolean("resumable", true)) Text("This transfer cannot resume. Ask the sender for a new link.", style = MaterialTheme.typography.bodySmall)
-                    if (state in listOf("retrying", "paused") && task.optString("error").isNotEmpty()) Text(task.optString("error"), style = MaterialTheme.typography.bodySmall)
-                    Row {
-                        if (state in listOf("paused", "retrying") && task.optBoolean("resumable", true)) TextButton(onClick = { store.state(task.getString("id"), "queued"); enable(); revision++ }) { Text("Resume") }
-                        if (state in listOf("queued", "receiving", "retrying")) TextButton(onClick = { taskAction(task.getString("id"), cancel = false); revision++ }) { Text("Pause") }
-                        if (state == "paused") TextButton(onClick = { taskAction(task.getString("id"), cancel = true); revision++ }) { Text("Cancel and discard") }
-                        if (state == "complete") TextButton(onClick = { runCatching { startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(android.net.Uri.parse(task.getString("publishedUri")), "*/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)) }.onFailure { error = "Open the file in Downloads/CD" } }) { Text("Open") }
-                    }
-                }
-            }
-        }
-        downloadLink?.let { raw ->
-            val request = remember(raw) { runCatching { DownloadRequest.parse(raw) } }
-            fun dismissDownload() {
-                downloadLink = null
-                input = ""
-                if (returnToCaller) moveTaskToBack(true)
-            }
-            AlertDialog(
-                onDismissRequest = { dismissDownload() },
-                title = { Text("Accept download?") },
-                text = { Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Accept to save this transfer to Downloads/CD in the background. You can leave CD or turn off the screen. The sender must stay online.")
-                    Text(if (store.allowedMobile()) "Mobile data is allowed." else "Downloads wait for unmetered Wi-Fi or Ethernet.")
-                    if (request.isFailure) Text(request.exceptionOrNull()?.message ?: "Invalid download link", color = MaterialTheme.colorScheme.error)
-                    if (downloadError.isNotBlank()) Text(downloadError, color = MaterialTheme.colorScheme.error)
-                } },
-                confirmButton = { TextButton(enabled = request.isSuccess, onClick = {
-                    runCatching {
-                        val download = request.getOrThrow()
-                        store.putTask(download.queuedTask(download.invitation?.id?.let(store::task)))
-                        enable(background = returnToCaller)
-                        downloadLink = null
-                        input = ""
-                        revision++
-                    }.onFailure { downloadError = it.message ?: "Could not start the download" }
-                }) { Text("Accept") } },
-                dismissButton = { TextButton(onClick = { dismissDownload() }) { Text("Reject") } },
-            )
-        }
-        pending?.let { pair -> AlertDialog(onDismissRequest = { pending = null }, title = { Text("Trust ${pair.name}?") }, text = { Text("This laptop will be able to send files directly to Downloads/CD while receiving is enabled. Confirm that you scanned the QR shown by your own laptop. You can revoke access here at any time.") }, confirmButton = { TextButton(onClick = { runCatching { require(pair.json.getLong("expiresAt") > System.currentTimeMillis()); store.trust(pair); enable(); pending = null; input = ""; revision++ }.onFailure { error = "Pairing expired. Run cdx pair again."; pending = null } }) { Text("Trust device") } }, dismissButton = { TextButton(onClick = { pending = null }) { Text("Cancel") } }) }
     }
+
+    override fun cancel(view: TransferView) {
+        if (view.direction == Direction.SEND) runCatching { TransferBus.sender.cancel(this, view.id) }.onFailure { ui.toast(it.message ?: "Can’t cancel", error = true) } else taskAction(view.id, cancel = true)
+    }
+
+    override fun open(view: TransferView) {
+        val uri = view.openUri ?: store.task(view.id)?.optString("publishedUri")?.takeIf { it.isNotEmpty() }
+        runCatching {
+            require(!uri.isNullOrBlank())
+            val fileUri = Uri.parse(uri)
+            val inferred = fileMime(view.name) { android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(it) }
+            val mime = if (inferred != "application/octet-stream") inferred else contentResolver.getType(fileUri) ?: inferred
+            startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(fileUri, mime).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+        }
+            .onFailure { ui.toast("Open the file in Downloads/CD", error = true) }
+    }
+
+    override fun dismiss(view: TransferView) {
+        runCatching {
+            if (view.direction == Direction.SEND || store.dismiss(view.id)) {
+                TransferBus.remove(view.id, view.direction); ui.back()
+            }
+        }.onFailure { ui.toast("Could not remove transfer. Try again.", error = true) }
+    }
+
+    override fun copy(label: String, text: String) {
+        getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText(label, text))
+        ui.toast("$label copied")
+    }
+
+    override fun share(text: String) { startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), "Share")) }
+
+    override fun paste(): String? = getSystemService(ClipboardManager::class.java).primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(this)?.toString()?.trim()
+
+    override fun batterySettings() {
+        runCatching { startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) }
+            .onFailure { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))) }
+    }
+
+    /* ---------- debug-only fake data ---------- */
+
+    override fun debugInject() { if (debug) { DebugFakes.apply("all"); refresh(); ui.toast("Injected fake transfers") } }
+
+    private fun debugScenario(scenario: String, intent: Intent) {
+        DebugFakes.apply(scenario); refresh()
+        ui.pending = null; ui.sendError = null
+        ui.home(); ui.tab = Tab.SEND
+        when (intent.getStringExtra("cd.debug.screen")) {
+            "send" -> ui.tab = Tab.SEND
+            "receive" -> ui.tab = Tab.RECEIVE
+            "transfers", "history" -> ui.tab = Tab.TRANSFERS
+            "devices" -> ui.tab = Tab.DEVICES
+            "settings" -> ui.open(Screen.Settings)
+            "transfer" -> if (scenario in PreviewData.scenarios) ui.open(PreviewData.view(scenario).let { Screen.Transfer(it.id, it.direction) })
+        }
+        if (intent.getBooleanExtra("cd.debug.pairing", false)) ui.pending = PreviewData.fakePair("yash-thinkpad", "pY3kQ9mVt2LwR8cZ1nB4xA")
+        intent.getStringExtra("cd.debug.error")?.let { ui.sendError = it }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun versionName(): String = runCatching { packageManager.getPackageInfo(packageName, 0).versionName }.getOrNull() ?: ""
 }

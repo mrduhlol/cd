@@ -43,3 +43,44 @@ test('rechunk emits fixed-size pieces', async () => {
   for await (const piece of rechunk(source.stream(), 4096)) sizes.push(piece.length);
   assert.deepEqual(sizes, [4096, 4096, 1808]);
 });
+
+test('rechunk yields exact-size pieces from the source without copying', async () => {
+  const first = new Uint8Array(4096).fill(1);
+  const second = new Uint8Array(4096).fill(2);
+  async function* source() {
+    yield first;
+    yield second;
+  }
+  const out = [];
+  for await (const piece of rechunk(source(), 4096)) out.push(piece);
+  assert.equal(out.length, 2);
+  assert.equal(out[0], first);
+  assert.equal(out[1], second);
+});
+
+test('rechunk mixes fast-path and buffered pieces in order', async () => {
+  const bytes = Uint8Array.from({ length: 10 }, (_, index) => index);
+  async function* source() {
+    yield bytes.slice(0, 3); // partial: starts buffering
+    yield bytes.slice(3, 7); // 4 bytes: completes the first chunk
+    yield bytes.slice(7, 11); // 3 bytes: not exact, goes through the buffer
+  }
+  const out = [];
+  for await (const piece of rechunk(source(), 4)) out.push(Array.from(piece));
+  assert.deepEqual(out, [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9]]);
+
+  // A buffered partial piece is copied; once the buffer flushes to empty, an
+  // exact-size piece takes the fast path and is yielded as the same object.
+  const data = Uint8Array.from({ length: 14 }, (_, index) => index);
+  const exact = data.slice(8, 12);
+  async function* mixed() {
+    yield data.slice(0, 2); // buffered
+    yield data.slice(2, 8); // completes [0..3], leaves [4..7] to copy
+    yield exact; // exact size with nothing buffered
+    yield data.slice(12, 14); // tail, flushed at end
+  }
+  const result = [];
+  for await (const piece of rechunk(mixed(), 4)) result.push(piece);
+  assert.deepEqual(result.map((piece) => Array.from(piece)), [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13]]);
+  assert.equal(result[2], exact);
+});

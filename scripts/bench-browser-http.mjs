@@ -6,6 +6,7 @@ import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {chromium} from 'playwright-core';
 import {findChromium,startWorker} from './harness.mjs';
+import {echoWebSocket} from './websocket-echo.mjs';
 const mib=Number(process.env.CD_CEILING_MIB||16),runs=Number(process.env.CD_CEILING_RUNS||3);
 assert.ok(Number.isInteger(mib)&&mib>0&&mib<=16);assert.ok(Number.isInteger(runs)&&runs>0);
 const output=resolve(process.env.CD_CEILING_OUTPUT||'/tmp/cd-browser-http.json'),work=await mkdtemp('/dev/shm/cd-http-ceiling-');
@@ -21,21 +22,13 @@ try{
   try{
    const page=await context.newPage();await page.goto(worker.publicBase);await page.evaluate(()=>{document.body.innerHTML='<input type="file" id="payload">'});await page.locator('#payload').setInputFiles(source);
    await page.evaluate(async()=>{window.payload=new Uint8Array(await document.getElementById('payload').files[0].arrayBuffer())});
-   const result=await page.evaluate(async({transport})=>{
-    let received,ms;
-    if(transport==='http'){
-     const start=performance.now(),response=await fetch('/echo',{method:'POST',body:payload,headers:{'X-Diagnostic-Bytes':String(payload.byteLength)},signal:AbortSignal.timeout(60000)});
-     if(!response.ok)throw new Error('echo rejected');received=new Uint8Array(await response.arrayBuffer());ms=performance.now()-start;
-    }else{
-     const socket=new WebSocket(location.origin.replace('http','ws')+'/echo');socket.binaryType='arraybuffer';await new Promise((resolve,reject)=>{socket.onopen=resolve;socket.onerror=reject});
-     received=new Uint8Array(payload.byteLength);let offset=0;
-     const complete=new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('echo timed out')),60000);socket.onclose=()=>{clearTimeout(timer);if(offset!==received.length)reject(new Error('echo closed'))};socket.onmessage=({data})=>{const bytes=new Uint8Array(data);if(offset+bytes.length>received.length){clearTimeout(timer);reject(new Error('echo overflow'));return}received.set(bytes,offset);offset+=bytes.length;if(offset===received.length){clearTimeout(timer);resolve()}}});
-     const start=performance.now();
-     for(let offset=0;offset<payload.length;offset+=262144){const bytes=payload.subarray(offset,offset+262144);while(socket.bufferedAmount+bytes.byteLength>4*1048576)await new Promise(resolve=>setTimeout(resolve,10));socket.send(bytes)}
-     await complete;ms=performance.now()-start;socket.close();
-    }
-    const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',received))].map(n=>n.toString(16).padStart(2,'0')).join('');return {ms,hash,bytes:received.byteLength};
-   },{transport});
+   const result=transport==='websocket' ? await page.evaluate(echoWebSocket,{}) : await page.evaluate(async()=>{
+    const start=performance.now(),response=await fetch('/echo',{method:'POST',body:payload,headers:{'X-Diagnostic-Bytes':String(payload.byteLength)},signal:AbortSignal.timeout(60000)});
+    if(!response.ok)throw new Error('echo rejected');
+    const received=new Uint8Array(await response.arrayBuffer()),ms=performance.now()-start;
+    const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',received))].map(n=>n.toString(16).padStart(2,'0')).join('');
+    return {ms,hash,bytes:received.byteLength};
+   });
    assert.equal(result.hash,expected);assert.equal(result.bytes,payload.byteLength);report.rows.push({run,transport,...result,mibPerSecond:mib/(result.ms/1000)});console.error(transport+' #'+(run+1)+': '+result.ms.toFixed(1)+'ms');
   }finally{await context.close()}
   await writeFile(output,JSON.stringify(report,null,2));

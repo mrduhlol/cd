@@ -10,11 +10,14 @@ const ZIP64_END = 0x06064b50;
 const CENTRAL = 0x02014b50;
 const LOCAL = 0x04034b50;
 const MAX_COMMENT = 0xffff;
+// Larger directories remain available as a ZIP download instead of using more heap.
+const MAX_DIRECTORY_BYTES = 8 * 1024 * 1024;
+const MAX_ENTRIES = 10_000;
 const decoder = new TextDecoder('utf-8', { fatal: true });
 
 async function bytesAt(blob, start, length) {
   const end = Math.min(blob.size, start + length);
-  if (start < 0 || end - start !== length) throw new Error('bundle is truncated');
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(length) || start < 0 || length < 0 || end - start !== length) throw new Error('bundle is truncated');
   return new DataView(await blob.slice(start, end).arrayBuffer());
 }
 
@@ -52,6 +55,7 @@ export async function readBundle(blob) {
     directorySize = Number(zip64.getBigUint64(40, true));
     directoryOffset = Number(zip64.getBigUint64(48, true));
   }
+  if (!Number.isSafeInteger(count) || !Number.isSafeInteger(directorySize) || !Number.isSafeInteger(directoryOffset) || count > MAX_ENTRIES || directorySize > MAX_DIRECTORY_BYTES) throw new Error('bundle directory exceeds automatic extraction limits');
   const directory = await bytesAt(blob, directoryOffset, directorySize);
   const files = [];
   const seen = new Set();
@@ -87,6 +91,7 @@ export async function readBundle(blob) {
     if (!path || seen.has(path)) throw new Error('bundle has an unsafe filename');
     seen.add(path);
     if (name.endsWith('/')) continue;
+    if (![size, compressed, offset].every(Number.isSafeInteger)) throw new Error('bundle entry is invalid');
     if (method !== 0 || compressed !== size) throw new Error('bundle is compressed');
     const local = await bytesAt(blob, offset, 30);
     if (local.getUint32(0, true) !== LOCAL) throw new Error('bundle entry is invalid');
@@ -100,13 +105,29 @@ export async function readBundle(blob) {
 // downloadNames gives each file a flat download name: its own name, or its
 // folder path joined with "_" when two files would otherwise collide.
 export function downloadNames(paths) {
+  // Downloads are flat; case-insensitive filesystems also treat differently
+  // cased or canonically equivalent names as the same file.
+  const key = (name) => name.normalize('NFC').toLowerCase();
+  const bases = paths.map((path) => path.slice(path.lastIndexOf('/') + 1));
   const counts = new Map();
-  for (const path of paths) {
-    const base = path.slice(path.lastIndexOf('/') + 1);
-    counts.set(base, (counts.get(base) || 0) + 1);
-  }
-  return paths.map((path) => {
-    const base = path.slice(path.lastIndexOf('/') + 1);
-    return counts.get(base) > 1 ? path.replaceAll('/', '_') : base;
+  for (const base of bases) counts.set(key(base), (counts.get(key(base)) || 0) + 1);
+
+  // Reserve unique original basenames before flattening folder paths so a
+  // generated name cannot steal a later file's original download name.
+  const reserved = new Set(bases.filter((base) => counts.get(key(base)) === 1).map(key));
+  const used = new Set();
+  return paths.map((path, index) => {
+    const base = bases[index];
+    const collides = counts.get(key(base)) > 1;
+    const preferred = collides ? path.replaceAll('/', '_') : base;
+    const dot = preferred.lastIndexOf('.');
+    const stem = dot > 0 ? preferred.slice(0, dot) : preferred;
+    const extension = dot > 0 ? preferred.slice(dot) : '';
+    let name = preferred;
+    for (let copy = 2; used.has(key(name)) || (collides && reserved.has(key(name))); copy += 1) {
+      name = `${stem} (${copy})${extension}`;
+    }
+    used.add(key(name));
+    return name;
   });
 }

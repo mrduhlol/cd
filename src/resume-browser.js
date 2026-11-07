@@ -4,6 +4,8 @@ import {
 } from './resume-protocol.js';
 import { KIND_ACCEPT, KIND_ACK, KIND_CHUNK, KIND_COMPLETE, KIND_END, KIND_OFFER, RECEIVER_DIRECTION, SENDER_DIRECTION, encodeBase64Url } from './agent-protocol.js';
 import { IncrementalSHA256 } from './incremental-sha256.js';
+import { downloadUrlFor } from './sink.js';
+import { createResumeWriter } from './resume-opfs.js';
 
 export const RESUME_CHUNK_SIZE = 256 * 1024;
 export const RESUME_LIMIT_MS = 24 * 60 * 60 * 1000;
@@ -137,6 +139,7 @@ export async function createReceiverStage({ invitation, rootId, offer, storage =
     handle = await directory.getFileHandle(stagingId, { create: true });
   }
 
+  const writer = await createResumeWriter(handle);
   const expiresAt = checkpoint?.expiresAt ?? Math.min(now + RESUME_LIMIT_MS, Number(offer.expiresAt) || now + RESUME_LIMIT_MS);
   let currentOffset = offset;
   let closed = false;
@@ -152,10 +155,7 @@ export async function createReceiverStage({ invitation, rootId, offer, storage =
     const nextOffset = currentOffset + value.byteLength;
     if (!value.byteLength || value.byteLength > RESUME_CHUNK_SIZE || nextOffset > Number(offer.size) || (nextOffset < Number(offer.size) && value.byteLength !== RESUME_CHUNK_SIZE)) throw new Error('The sender sent an invalid chunk boundary.');
     const nextHash = hash.clone().update(value);
-    const writable = await handle.createWritable({ keepExistingData: true });
-    await writable.seek(currentOffset);
-    await writable.write(value);
-    await writable.close();
+    await writer.write(value, currentOffset);
     await persist(nextOffset, nextHash, priorSessionNonce);
     currentOffset = nextOffset;
     hash = nextHash;
@@ -169,6 +169,7 @@ export async function createReceiverStage({ invitation, rootId, offer, storage =
     if (closed) throw new Error('The saved receive stage is closed.');
     if (currentOffset !== Number(offer.size) || hash.digestHex() !== offer.wholeSha256) throw new Error('The received file did not match the sender’s whole-file digest.');
     closed = true;
+    await writer.close();
     return handle.getFile();
   }
   function finish() {
@@ -176,11 +177,17 @@ export async function createReceiverStage({ invitation, rootId, offer, storage =
     operation = current.catch(() => {});
     return current;
   }
-  async function cancel() {
+  async function release() {
     closed = true;
     await operation.catch(() => {});
-    try { await directory.removeEntry(stagingId); } catch { /* Best effort. */ }
-    await checkpoints.delete(checkpointKey);
+    await writer.close();
+  }
+  async function cancel() {
+    try { await release(); }
+    finally {
+      try { await directory.removeEntry(stagingId); } catch { /* Best effort. */ }
+      await checkpoints.delete(checkpointKey);
+    }
   }
   function bindSession(priorSessionNonce) {
     const current = operation.then(() => {
@@ -190,7 +197,7 @@ export async function createReceiverStage({ invitation, rootId, offer, storage =
     operation = current.catch(() => {});
     return current;
   }
-  return { offset, prefixSha256: hash.digestHex(), expiresAt, stagingId, bindSession, append, finish, cancel, get currentOffset() { return currentOffset; }, get wholeHash() { return hash.digestHex(); } };
+  return { offset, prefixSha256: hash.digestHex(), expiresAt, stagingId, bindSession, append, finish, cancel, release, get currentOffset() { return currentOffset; }, get wholeHash() { return hash.digestHex(); } };
 }
 
 export async function hashFilePrefix(file, offset) {
@@ -246,7 +253,8 @@ function createSocketInbox(socket) {
     if (waiter) waiter.resolve(event);
     else {
       const size = typeof event.data === 'string' ? textEncoder.encode(event.data).byteLength : event.data?.byteLength ?? 0;
-      if (pending.length >= 16 || queuedBytes + size > 2 * 1024 * 1024) {
+      // CLI senders allow 4 MiB outstanding, plus encrypted headers and control records.
+      if (pending.length >= 32 || queuedBytes + size > 4 * 1024 * 1024 + 64 * 1024) {
         failure = new Error('The peer exceeded the bounded resume receive queue.');
         try { socket.close(4429, 'receive queue full'); } catch { /* Best effort. */ }
         while (waiters.length) waiters.shift().reject(failure);
@@ -446,27 +454,38 @@ export function startResumableSend(file, { link = '', secrets, checkpoints, hook
     let chunksSent = Math.ceil(offset / RESUME_CHUNK_SIZE);
     let ackedBytes = offset;
     reportResumeProgress(hooks, 'sender', offset, file.size, { bytesRead: sourceBytesRead, resumedBytes: offset, maxWorkingBytes });
-    for (let position = offset; position < file.size; position += RESUME_CHUNK_SIZE) {
+    const outstanding = [];
+    let position = offset;
+    while (position < file.size || outstanding.length) {
       if (cancelled) throw new Error('Transfer canceled.');
-      const block = new Uint8Array(await file.slice(position, Math.min(file.size, position + RESUME_CHUNK_SIZE)).arrayBuffer());
-      sourceBytesRead += block.byteLength;
-      const sealed = await sealer.seal(KIND_CHUNK, block);
-      maxWorkingBytes = Math.max(maxWorkingBytes, block.byteLength + sealed.byteLength);
-      sendRecord(socket, sealed);
+      // Four records fit the receiver's bounded inbox while durable ACKs are in flight.
+      if (position < file.size && outstanding.length < 4) {
+        const block = new Uint8Array(await file.slice(position, Math.min(file.size, position + RESUME_CHUNK_SIZE)).arrayBuffer());
+        if (cancelled) throw new Error('Transfer canceled.');
+        if (block.byteLength !== Math.min(RESUME_CHUNK_SIZE, file.size - position)) throw new Error('The selected file changed while sending.');
+        sourceBytesRead += block.byteLength;
+        const sealed = await sealer.seal(KIND_CHUNK, block);
+        if (cancelled) throw new Error('Transfer canceled.');
+        maxWorkingBytes = Math.max(maxWorkingBytes, block.byteLength + sealed.byteLength + outstanding.length * (RESUME_CHUNK_SIZE + 28));
+        sendRecord(socket, sealed);
+        bytesSent += block.byteLength;
+        chunksSent++;
+        position += block.byteLength;
+        prefixState.update(block);
+        outstanding.push({ bytes: bytesSent, chunks: chunksSent, prefixSha256: prefixState.digestHex() });
+        continue;
+      }
       const ack = decodeResumeAck(await nextRecord(connection.inbox, opener, KIND_ACK));
-      bytesSent += block.byteLength;
-      chunksSent++;
-      if (ack.bytes !== BigInt(bytesSent) || ack.chunks !== chunksSent) throw new Error('The receiver acknowledged invalid saved progress.');
-      ackedBytes = bytesSent;
-      reportResumeProgress(hooks, 'sender', ackedBytes, file.size, { bytesRead: sourceBytesRead, resumedBytes: offset, maxWorkingBytes });
-      prefixState.update(block);
-      const prefix = prefixState.digestHex();
+      const expected = outstanding.shift();
+      if (ack.bytes !== BigInt(expected.bytes) || ack.chunks !== expected.chunks) throw new Error('The receiver acknowledged invalid saved progress.');
+      ackedBytes = expected.bytes;
       const savedCheckpoint = await signResumeCheckpoint({
         version: 2, role: 'sender', rootId, filename: file.name, size: file.size, chunkSize: RESUME_CHUNK_SIZE,
-        wholeSha256, offset: ackedBytes, prefixSha256: prefix, stagingId: 'sender-source', destination: 'source-reselect',
+        wholeSha256, offset: ackedBytes, prefixSha256: expected.prefixSha256, stagingId: 'sender-source', destination: 'source-reselect',
         expiresAt: activeExpiry, priorSessionNonce: encodeBase64Url(session.sessionNonce)
       }, senderToken);
       await checkpoints.put(`sender:${rootId}`, savedCheckpoint);
+      reportResumeProgress(hooks, 'sender', ackedBytes, file.size, { bytesRead: sourceBytesRead, resumedBytes: offset, maxWorkingBytes });
     }
     if (cancelled) throw new Error('Transfer canceled.');
     sendRecord(socket, await sealer.seal(KIND_END, encodeResumeCounts(chunksSent, bytesSent, wholeSha256)));
@@ -522,7 +541,10 @@ export function mountResumableReceiver(container, link, { storage = globalThis.n
   const cancelClick = () => {
     stopped = true;
     discard = true;
-    void stage?.cancel();
+    void stage?.cancel().catch(error => {
+      status.textContent = error.message || 'Could not remove saved progress.';
+      hooks.onError?.(error);
+    });
     try { socket?.close(1000, 'receiver canceled'); } catch { /* Best effort. */ }
     status.textContent = 'Saved progress removed.';
   };
@@ -549,11 +571,11 @@ export function mountResumableReceiver(container, link, { storage = globalThis.n
     stage = await createReceiverStage({ invitation, rootId: parsed.rootId, offer, storage, checkpoints, secrets, now: Date.now() });
     if (stopped) {
       if (discard) await stage.cancel();
-      else await stage.bindSession(encodeBase64Url(session.sessionNonce));
+      else { await stage.bindSession(encodeBase64Url(session.sessionNonce)); await stage.release(); }
       return;
     }
     await stage.bindSession(encodeBase64Url(session.sessionNonce));
-    if (stopped) { if (discard) await stage.cancel(); return; }
+    if (stopped) { if (discard) await stage.cancel(); else await stage.release(); return; }
     const resumeControl = { offset: String(stage.offset), prefixSha256: stage.prefixSha256 };
     sendRecord(socket, await sealer.seal(KIND_ACCEPT, textEncoder.encode(JSON.stringify(resumeControl))));
     let chunks = Math.ceil(stage.offset / RESUME_CHUNK_SIZE);
@@ -578,37 +600,38 @@ export function mountResumableReceiver(container, link, { storage = globalThis.n
       const end = decodeResumeCounts(opened.plaintext);
       if (end.chunks !== chunks || end.bytes !== BigInt(offer.size) || end.wholeSha256 !== offer.wholeSha256 || stage.currentOffset !== Number(offer.size)) throw new Error('The sender’s final counts did not match the staged file.');
       const stagedFile = await stage.finish();
-      if (stopped) { if (discard) await stage.cancel(); return; }
+      if (stopped) { if (discard) await stage.cancel(); else await stage.release(); return; }
       const endHash = await hashFile(stagedFile);
-      if (stopped) { if (discard) await stage.cancel(); return; }
+      if (stopped) { if (discard) await stage.cancel(); else await stage.release(); return; }
       if (endHash.digestHex() !== offer.wholeSha256) throw new Error('The received file failed its whole-file digest check.');
+      let publishedDownload;
       if (download) {
-        const url = URL.createObjectURL(stagedFile);
+        publishedDownload = downloadUrlFor(stagedFile, offer.name, () => stage.cancel());
         const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = offer.name;
+        anchor.href = publishedDownload.url;
+        anchor.download = publishedDownload.name;
         anchor.click();
-        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        setTimeout(publishedDownload.revoke, 60_000);
+        globalThis.addEventListener?.('pagehide', publishedDownload.revoke, { once: true });
       }
       sendRecord(socket, await sealer.seal(KIND_COMPLETE, encodeResumeCounts(chunks, stage.currentOffset, offer.wholeSha256)));
       socket.send(JSON.stringify({ type: 'complete', protocol: 'cd-transfer-v2', sessionNonce: encodeBase64Url(session.sessionNonce), receiverNonce: encodeBase64Url(session.receiverNonce) }));
       await waitForRelayEvent(inbox, ['completed'], 15000);
-      await stage.cancel();
+      // OPFS-backed download URLs read lazily; revoke owns their staging cleanup.
+      if (!publishedDownload) await stage.cancel();
       status.textContent = 'File received and verified.';
       hooks.onComplete?.();
-      return { bytesWritten: Number(offer.size), resumedBytes: stage.offset, retainedBytes: 0, maxWorkingBytes };
+      return { bytesWritten: Number(offer.size), resumedBytes: stage.offset, retainedBytes: publishedDownload ? stage.currentOffset : 0, maxWorkingBytes };
     }
   })().catch(async (error) => {
+    await stage?.release().catch(() => {});
+    try { socket?.close(1011, 'receiver failed'); } catch { /* Best effort. */ }
     if (stopped) { if (discard) status.textContent = 'Saved progress removed.'; return; }
-    if (stage && !stopped) {
-      // An interruption preserves only data whose stage close and checkpoint
-      // write completed. Explicit cancel removes the file and checkpoint.
-    }
     status.textContent = error.message || 'The resumable transfer failed.';
     hooks.onError?.(error);
     throw error;
   });
-  return { done, stop() { stopped = true; try { socket?.close(1000, 'receiver left'); } catch { /* Best effort. */ } }, cancel: cancelClick };
+  return { done, stop() { stopped = true; void stage?.release().catch(() => {}); try { socket?.close(1000, 'receiver left'); } catch { /* Best effort. */ } }, cancel: cancelClick };
 }
 
 function waitSocketOpen(socket, timeout = 15000) {

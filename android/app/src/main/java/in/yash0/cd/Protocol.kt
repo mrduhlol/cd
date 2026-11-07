@@ -1,6 +1,8 @@
 package `in`.yash0.cd
 
+import org.json.JSONArray
 import org.json.JSONObject
+import java.math.BigInteger
 import java.net.InetAddress
 import java.net.URI
 import java.nio.ByteBuffer
@@ -59,20 +61,34 @@ data class Pairing(val json: JSONObject) {
         val nonce = Crypto.random(12)
         return nonce + Crypto.cipher(true, key("receiver messages"), nonce, "cd-device-v1 receiver $id".toByteArray(), message.toString().toByteArray())
     }
+    /** Opens a computer-sent message: an offer to the phone, or a reply to a [TrustedSend] share. */
     fun open(frame: ByteArray, now: Long = System.currentTimeMillis()): JSONObject {
         require(frame.size in 29..16384) { "Invalid control frame length" }
         val msg = JSONObject(String(Crypto.cipher(false, key("sender messages"), frame.copyOfRange(0, 12), "cd-device-v1 sender $id".toByteArray(), frame.copyOfRange(12, frame.size))))
         require(msg.getInt("version") == 1 && msg.getLong("expiresAt") in (now + 1)..(now + 330000)) { "Expired control message" }
         Crypto.decode(msg.getString("messageId"), 16)
-        require(msg.getString("type") == "offer") { "Unexpected sender control message" }
+        val type = msg.getString("type")
+        require(type in SENDER_TYPES) { "Unexpected sender control message" }
+        if (type != "offer") Crypto.decode(msg.getString("transferId"), 16)
         return msg
     }
     companion object {
+        const val DEFAULT_RELAY = "wss://cd.yash0.in"
+        const val MAX_COMPACT_NAME = 40
+        private val SENDER_TYPES = setOf("offer", "receiving", "received", "paused")
+
+        /** Matches Go devices.PairIDFromSecret: compact codes carry only the 256-bit secret. */
+        fun pairIdFromSecret(secret: ByteArray): String = Crypto.encode(Crypto.sha("cd-device-v1 pair id ".toByteArray() + secret).copyOfRange(0, 16))
+
+        /** Accepts the compact numeric `cdpair:<digits>` code and the legacy `cdpair://v1#<base64 JSON>`. */
         fun parse(raw: String, now: Long = System.currentTimeMillis()): Pairing {
-            require(raw.length <= 16384)
-            val u = URI(raw.trim())
-            require(u.scheme == "cdpair" && u.host == "v1" && u.rawQuery == null)
-            val j = JSONObject(String(Base64.getUrlDecoder().decode(u.rawFragment)))
+            val text = raw.trim()
+            require(text.length <= 16384)
+            val j = if (text.startsWith("cdpair://", ignoreCase = true)) {
+                val u = URI(text)
+                require(u.scheme.equals("cdpair", ignoreCase = true) && u.host == "v1" && u.rawQuery == null)
+                JSONObject(String(Base64.getUrlDecoder().decode(u.rawFragment)))
+            } else compact(text)
             require(j.getInt("version") == 1)
             Crypto.decode(j.getString("pairId"), 16); Crypto.decode(j.getString("secret"), 32)
             require(j.getString("name").length in 1..80)
@@ -82,6 +98,41 @@ data class Pairing(val json: JSONObject) {
             require(URI(relay).path == "/ws/devices/v1/${j.getString("pairId")}")
             j.optJSONArray("localUrls")?.let { urls -> require(urls.length() <= 16); repeat(urls.length()) { require(localEndpoint(urls.getString(it))) } }
             return Pairing(j)
+        }
+
+        /** Layout (big-endian, written as one decimal integer): version 2, secret(32), expiresSeconds(4), port(2), count(1), IPv4 x count, relayLength(1), relay origin, name. */
+        internal fun compact(text: String): JSONObject {
+            require(text.length > 7 && text.substring(0, 7).equals("cdpair:", ignoreCase = true)) { "Not a CD pairing code" }
+            val digits = text.substring(7)
+            require(digits.length <= 1024 && digits.all { it in '0'..'9' } && !digits.startsWith("0")) { "Invalid pairing code" }
+            val b = BigInteger(digits).toByteArray().let { if (it.size > 1 && it[0] == 0.toByte()) it.copyOfRange(1, it.size) else it }
+            require(b.size >= 42 && b[0] == 2.toByte()) { "Unsupported pairing code. Update CD." }
+            val buffer = ByteBuffer.wrap(b)
+            buffer.get()
+            val secret = ByteArray(32).also { buffer.get(it) }
+            val expires = (buffer.int.toLong() and 0xffffffffL) * 1000
+            val port = buffer.short.toInt() and 0xffff
+            val count = buffer.get().toInt() and 0xff
+            require(count <= 4 && (count > 0) == (port != 0) && buffer.remaining() >= 4 * count + 1) { "Invalid pairing code" }
+            val id = pairIdFromSecret(secret)
+            val path = "/ws/devices/v1/$id"
+            val local = JSONArray()
+            repeat(count) {
+                val ip = ByteArray(4).also { buffer.get(it) }.joinToString(".") { (it.toInt() and 0xff).toString() }
+                local.put("ws://$ip:$port$path")
+            }
+            val relayLength = buffer.get().toInt() and 0xff
+            require(buffer.remaining() >= relayLength + 1) { "Invalid pairing code" }
+            val relayBytes = ByteArray(relayLength).also { buffer.get(it) }
+            val nameBytes = ByteArray(buffer.remaining()).also { buffer.get(it) }
+            val decoder = Charsets.UTF_8.newDecoder()
+            val origin = if (relayLength == 0) DEFAULT_RELAY else decoder.decode(ByteBuffer.wrap(relayBytes)).toString()
+            val name = decoder.decode(ByteBuffer.wrap(nameBytes)).toString()
+            require(nameBytes.size <= MAX_COMPACT_NAME) { "Invalid pairing code" }
+            val relay = URI(origin)
+            require(relay.rawPath.isNullOrEmpty() && relay.rawQuery == null && relay.rawFragment == null && relay.rawUserInfo == null) { "Invalid pairing relay" }
+            return JSONObject().put("version", 1).put("pairId", id).put("secret", Crypto.encode(secret)).put("name", name)
+                .put("relayUrl", origin + path).put("localUrls", local).put("expiresAt", expires)
         }
     }
 }
@@ -96,10 +147,10 @@ data class Invitation(val id: String, val key: ByteArray, val relay: String, val
             require(u.scheme == "https" || (u.scheme == "http" && localEndpoint("ws://${u.rawAuthority}${u.path}")))
             require(u.userInfo == null && u.query == null && u.path.matches(Regex("/s/[A-Za-z0-9_-]{22}")))
             val id = u.path.substringAfterLast('/')
-            require(u.rawFragment?.matches(Regex("v[12]\\.[A-Za-z0-9_-]{43}")) == true) { "Use a private v1 or v2 CD transfer link" }
-            val version = u.rawFragment[1].digitToInt()
+            val fragment = requireNotNull(u.rawFragment) { "Paste the complete CD link, including its key" }
+            val version = if (fragment.startsWith("v2.")) 2 else 1
             Crypto.decode(id, 16)
-            val key = Crypto.decode(u.rawFragment.substring(3), 32)
+            val key = Crypto.decode(if (version == 2 || fragment.startsWith("v1.")) fragment.substring(3) else fragment, 32)
             val relay = "${if (u.scheme == "https") "wss" else "ws"}://${u.rawAuthority}/ws/v$version/$id"
             require(validEndpoint(relay))
             return Invitation(id, key, relay, version)
@@ -109,14 +160,22 @@ data class Invitation(val id: String, val key: ByteArray, val relay: String, val
 
 class Records(private val invitation: Invitation, private val sender: ByteArray, private val receiver: ByteArray, private val fromSender: Boolean) {
     private var sequence = 0L
-    private val session = if (invitation.version == 2) sender + receiver else byteArrayOf()
-    private val key = Crypto.derive(invitation.key, invitation.rawId + session, "cd-transfer-v${invitation.version} ${if (fromSender) "sender" else "receiver"} frames")
-    private fun nonce(): ByteArray = ByteBuffer.allocate(12).put("${if (fromSender) "CDS" else "CDR"}${invitation.version}".toByteArray()).putLong(sequence).array()
+    private val key = Crypto.derive(invitation.key, invitation.rawId + sender + receiver, "cd-transfer-v${invitation.version} ${if (fromSender) "sender" else "receiver"} frames")
+    private val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+    private val aesKey = SecretKeySpec(key, "AES")
+    private val recordContext = invitation.rawId + sender + receiver
+    private fun crypt(encrypt: Boolean, header: ByteArray, bytes: ByteArray, offset: Int = 0): ByteArray {
+        cipher.init(if (encrypt) Cipher.ENCRYPT_MODE else Cipher.DECRYPT_MODE, aesKey, GCMParameterSpec(128, nonce()))
+        cipher.updateAAD(header)
+        cipher.updateAAD(recordContext)
+        return cipher.doFinal(bytes, offset, bytes.size - offset)
+    }
+    private fun nonce(): ByteArray = ByteBuffer.allocate(12).put((if (fromSender) "CDS${invitation.version}" else "CDR${invitation.version}").toByteArray()).putLong(sequence).array()
     private fun validKind(kind: Int): Boolean = if (fromSender) kind in 1..3 else kind in 4..6 || kind == 9
     fun seal(kind: Int, plaintext: ByteArray): ByteArray {
         require(validKind(kind) && sequence <= 0xffffffffL && plaintext.size <= 1048548)
         val header = ByteBuffer.allocate(12).put('C'.code.toByte()).put('D'.code.toByte()).put(invitation.version.toByte()).put(kind.toByte()).putInt(sequence.toInt()).putInt(plaintext.size).array()
-        val out = header + Crypto.cipher(true, key, nonce(), header + invitation.rawId + session, plaintext)
+        val out = header + crypt(true, header, plaintext)
         sequence++; return out
     }
     fun open(record: ByteArray): Pair<Int, ByteArray> {
@@ -126,7 +185,7 @@ class Records(private val invitation: Invitation, private val sender: ByteArray,
         val kind = h.get().toInt() and 255
         require(validKind(kind) && h.int.toLong().and(0xffffffffL) == sequence)
         require(h.int == record.size - 28)
-        val out = Crypto.cipher(false, key, nonce(), record.copyOfRange(0, 12) + invitation.rawId + session, record.copyOfRange(12, record.size))
+        val out = crypt(false, record.copyOfRange(0, 12), record, 12)
         sequence++; return kind to out
     }
 }

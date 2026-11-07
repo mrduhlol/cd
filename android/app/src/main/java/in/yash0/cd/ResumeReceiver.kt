@@ -16,7 +16,6 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
     private fun active() { if (!shouldContinue()) throw UserPausedException() }
     fun receive(task: JSONObject, endpoint: String, localRoute: Boolean = localEndpoint(endpoint)) {
         val invitation = Invitation.parse(task.getString("url"))
-        require(invitation.version == 2)
         val nonce = Crypto.random(32)
         val join = JSONObject().put("type", "join").put("protocol", "cd-transfer-v2").put("role", "receiver").put("receiverNonce", Crypto.encode(nonce)).put("receiverToken", Crypto.encode(invitation.token())).put("nonceProof", Crypto.encode(invitation.proof("receiver", nonce)))
         var direct: DirectReceiver? = null
@@ -84,7 +83,7 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
                 val d = MessageDigest.getInstance("SHA-256"); FileInputStream(stage).use { input -> var left = writtenOffset; val b = ByteArray(262144); while (left > 0) { val n = input.read(b, 0, minOf(left, b.size.toLong()).toInt()); check(n > 0); d.update(b, 0, n); left -= n } }; Crypto.hex(d.digest())
             }
             require(prefix() == cp.getString("prefixSha256")) { "Retained prefix failed verification" }
-            diagnostic("checkpoint-verified")
+            diagnostic("checkpoint-verified-offset=$writtenOffset")
             RandomAccessFile(stage, "rw").use { output ->
                 output.setLength(writtenOffset); output.seek(writtenOffset)
                 fun persist() {
@@ -100,7 +99,8 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
                 if (!localRoute) offer.optJSONObject("direct")?.optString("sdp")?.takeIf { it.isNotEmpty() }?.let { sdp ->
                     direct = DirectReceiver(context, store.allowedMobile(), { signal -> writer.send(9, signal.toString().toByteArray()) }, wire::direct, wire::abort, diagnostic).also { it.start(sdp) }
                 }
-                progress(filename, writtenOffset, size)
+                store.state(task.getString("id"), "receiving") ?: throw UserPausedException()
+                progress(filename, committedOffset, size)
                 while (true) {
                     val (kind, data) = nextRecord()
                     if (kind == 2) {
@@ -110,8 +110,9 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
                             persist()
                             writer.send(5, counts(committedOffset))
                         }
-                        progress(filename, writtenOffset, size)
+                        progress(filename, committedOffset, size)
                     } else {
+                        store.state(task.getString("id"), "verifying") ?: throw UserPausedException()
                         val expectedEnd = counts(size) + digest.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
                         require(kind == 3 && writtenOffset == size && prefix() == digest && MessageDigest.isEqual(data, expectedEnd)) { "Final digest or size failed verification" }
                         writer.stopSignals()
@@ -119,7 +120,7 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
                         output.fd.sync()
                         active()
                         task.put("wholeSha256", digest)
-                        publishDownload(context, store, task, stage, filename, size, ::active)
+                        publish(task, stage, filename, size)
                         diagnostic("published")
                         writer.send(6, expectedEnd)
                         wire.send(JSONObject().put("type", "complete").put("protocol", "cd-transfer-v2").put("sessionNonce", paired.getString("sessionNonce")).put("receiverNonce", paired.getString("receiverNonce")))
@@ -131,4 +132,6 @@ class ResumeReceiver(private val context: Context, private val store: Store, pri
             }
         } } finally { direct?.close() }
     }
+    private fun publish(task: JSONObject, stage: File, filename: String, size: Long) =
+        publishDownload(context, store, task, stage, filename, size, ::active)
 }

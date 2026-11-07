@@ -98,17 +98,3 @@ func TestQRSaveFailureAndOptOut(t *testing.T) {
 		t.Fatalf("bad output directory: %#v, %v", ready, err)
 	}
 }
-
-func TestPairTerminalQRIsCompact(t *testing.T) {
-	value := readyOutput{URL: "cdpair://v1#" + strings.Repeat("a", 550)}
-	var output bytes.Buffer
-	writeTerminalQR(&output, value)
-	normal, err := qrcode.New(value.URL, qrcode.Medium)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rows := strings.Count(output.String(), "\n") - 1
-	if rows >= (len(normal.Bitmap())+1)/2 {
-		t.Fatalf("pairing QR was not reduced: %d rows", rows)
-	}
-}

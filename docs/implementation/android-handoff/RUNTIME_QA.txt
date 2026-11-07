@@ -1,0 +1,60 @@
+CD Preview: cloud Android runtime QA
+Completed 2026-10-19, 16:20 UTC
+
+RESULT: PASS on Android API 29, x86_64, Android Emulator 37.2.12.
+The emulator used software CPU emulation (no KVM). The complete visual and
+transport run used the supported swangle renderer (ANGLE + SwiftShader).
+All data was synthetic and transferred through a local test relay only.
+
+Passed checks
+- Accepted v2 invitation displayed as a QR code; actual screenshot pixels
+  decoded to the exact accepted invitation.
+- Scroll down and back preserved the invitation; QR pixels decoded again.
+- Landscape and portrait rotations caused real Activity recreations and
+  retained the transfer screen (creation/resume counts increased to 3).
+- Process interruption while waiting, followed by explicit resume, preserved
+  the same invitation.
+- Abrupt receiver and Android process interruption during data transfer,
+  followed by explicit resume, completed successfully.
+- Receiver resumed a verified retained prefix of 1,048,576 bytes.
+- All 33,554,432 received bytes matched the source SHA-256:
+  2439a01839f32efe5b96967de49ad51a0f487f6b05695ce1a72e27e3e9292a42
+- Completion removed the invitation from sender state.
+- Actual MainActivity self-receive guard rejected its own invitation without
+  creating a receive-queue entry.
+- Pause, immediate resume, cancel, retained cancellation, rejection of resume
+  after cancellation, and retained-source cleanup passed.
+- A relay returning HTTP 404 produced the expected actionable unsupported-
+  relay error without exposing a premature invitation.
+- An unreadable source produced the expected actionable read error without
+  exposing a premature invitation.
+
+The nonvisual controls/error suites passed on API 29 with SwiftShader before
+switching renderer. The full visual/transport suite passed with swangle.
+The main verification process exited with code 0.
+
+Installed artifact identity
+The installed application and test APK SHA-256 values were checked against
+the immutable local artifacts and matched exactly:
+cd-preview-x86_64.apk
+  f55949b120f605f6b0eaf7393b9185631b71c29c964fc1ebaa865ce26e221fd7
+cd-preview-test.apk
+  558470c8973d189b9cae580ac399aaccdb61afdcf1e8541de760b8e35ee20aed
+
+Initial environment failures and limits
+- API 35 software emulation had an Android system-server startup watchdog
+  restart and repeated launcher/System UI startup ANRs. A CD process also
+  failed the platform startup deadline; no app-specific Java/native exception
+  was established. API 35 was not accepted as a successful runtime target.
+- API 29 with the initial SwiftShader GLES renderer returned black/corrupt
+  framebuffer captures, with emulator openColorBuffer errors. The QR pixel
+  assertion correctly failed; it was not skipped or weakened.
+- API 29 swangle rendered correctly. One System UI startup ANR was dismissed
+  before testing; no new platform ANR was observed during the passing run.
+- Initial UI harness polling was made asynchronous to handle slow emulator
+  transitions. This did not remove any functional assertion.
+- No physical ARM64 device, API 35 runtime, or production relay/deployment
+  validation is claimed. This report is not a production compatibility or
+  security certification.
+
+This report intentionally omits private invitations, screenshots and raw logs.

@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	qrcode "github.com/skip2/go-qrcode"
 )
@@ -47,12 +46,7 @@ func saveReadyQR(value *readyOutput, path string) error {
 }
 
 func writeTerminalQR(output io.Writer, value readyOutput) {
-	level := qrcode.Medium
-	if strings.HasPrefix(receiveLink(value), "cdpair://") {
-		// Terminal screens need less error correction than photographed printouts.
-		level = qrcode.Low
-	}
-	qr, err := qrcode.New(receiveLink(value), level)
+	qr, err := qrcode.New(receiveLink(value), qrcode.Medium)
 	if err != nil {
 		fmt.Fprintln(output, "  QR unavailable:", err)
 		return

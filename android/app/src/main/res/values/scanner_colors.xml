@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="cd_scanner_muted">#B3A38C</color>
+    <color name="cd_scanner_panel">#160907</color>
+    <color name="cd_scanner_line">#26E4D4B6</color>
+    <color name="cd_scanner_line_strong">#66E4D4B6</color>
+    <color name="cd_scanner_accent_soft">#6B2F1C</color>
+    <color name="cd_scanner_ripple">#33E4D4B6</color>
+    <color name="cd_scanner_scrim_strong">#E60D0503</color>
+    <color name="cd_scanner_scrim_clear">#000D0503</color>
+</resources>

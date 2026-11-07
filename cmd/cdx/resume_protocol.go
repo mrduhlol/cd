@@ -124,7 +124,7 @@ func (s *resumeRecordSealer) seal(kind messageKind, plain []byte) ([]byte, error
 	if s.sequence > uint64(^uint32(0)) {
 		return nil, NewFailure(failureProtocol, "record sequence exhausted", retryNever)
 	}
-	if headerBytes+len(plain)+s.aead.Overhead() > maxRecordBytes {
+	if len(plain) > maxRecordBytes-headerBytes-s.aead.Overhead() {
 		return nil, NewFailure(failureProtocol, "record is too large", retryNever)
 	}
 	h := make([]byte, headerBytes, headerBytes+len(plain)+s.aead.Overhead())

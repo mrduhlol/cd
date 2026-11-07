@@ -1,1 +1,12 @@
-<resources><style name="Theme.CD" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:fontFamily">sans</item><item name="android:windowLightStatusBar">true</item><item name="android:colorAccent">#225A45</item></style></resources>
+<resources>
+    <!-- Dark only, like cd.yash0.in. windowBackground matches the site background so launch never flashes white. -->
+    <style name="Theme.CD" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/cd_bg</item>
+        <item name="android:colorBackground">@color/cd_bg</item>
+        <item name="android:colorAccent">@color/cd_accent</item>
+        <item name="android:colorPrimary">@color/cd_accent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

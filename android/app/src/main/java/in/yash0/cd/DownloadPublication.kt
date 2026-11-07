@@ -16,7 +16,7 @@ internal fun publishDownload(context: Context, store: Store, task: JSONObject, s
     var uri = existing.takeIf { it.isNotEmpty() }?.let(Uri::parse)
     if (uri == null) {
         uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, filename); put(MediaStore.MediaColumns.MIME_TYPE, "application/octet-stream"); put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/CD"); put(MediaStore.MediaColumns.IS_PENDING, 1)
+            put(MediaStore.MediaColumns.DISPLAY_NAME, filename); put(MediaStore.MediaColumns.MIME_TYPE, fileMime(filename) { android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(it) }); put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/CD"); put(MediaStore.MediaColumns.IS_PENDING, 1)
         }) ?: error("Could not create Downloads file")
         try { store.publication(task.getString("id"), uri.toString(), task.getString("wholeSha256")); task.put("publishedUri", uri.toString()) } catch (e: Exception) { resolver.delete(uri, null, null); throw e }
     }

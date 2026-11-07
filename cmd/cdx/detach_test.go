@@ -224,3 +224,10 @@ func TestHolderArgsPreservesProgressOptIn(t *testing.T) {
 		}
 	}
 }
+
+func TestParseStateArgsAcceptsDashPrefixedTransferID(t *testing.T) {
+	jsonOutput, timeout, rest, err := parseStateArgs([]string{"--json", "--timeout", "30s", "--", "-ABCDEFGHIJKLMNOPQRSTU"})
+	if err != nil || !jsonOutput || timeout != 30*time.Second || len(rest) != 1 || rest[0] != "-ABCDEFGHIJKLMNOPQRSTU" {
+		t.Fatalf("state arguments = %v %v %v %v", jsonOutput, timeout, rest, err)
+	}
+}

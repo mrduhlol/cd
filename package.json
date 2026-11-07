@@ -8,7 +8,8 @@
     "build": "npm run skill:check && node scripts/build-design.mjs && node scripts/sync-install.mjs && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "audit": "npm audit --audit-level=moderate",
-    "test": "npm run skill:check && node --test src/*.test.js scripts/bench-metrics.test.mjs scripts/firebase-config.test.mjs scripts/prof-gates.test.mjs scripts/bench-croc-matrix.test.mjs scripts/bench-browser-croc-gates.test.mjs",
+    "test": "npm run skill:check && node --test src/*.test.js scripts/bench-metrics.test.mjs scripts/firebase-config.test.mjs scripts/prof-gates.test.mjs scripts/bench-croc-matrix.test.mjs scripts/bench-browser-croc-gates.test.mjs scripts/resume-admission.test.mjs scripts/websocket-echo.test.mjs scripts/bench-direct-runtime.test.mjs",
+    "verify:security": "node scripts/verify-code-security.mjs",
     "test:cli": "go test ./...",
     "typecheck": "tsc",
     "verify:agent": "npm run build && node scripts/verify-agent.mjs",
@@ -23,10 +24,13 @@
     "verify:transports": "npm run build && node scripts/verify-transports.mjs",
     "verify:resume-auth": "npm run build && node scripts/verify-resume-auth.mjs",
     "verify:resume": "npm run build && node scripts/verify-resume.mjs",
+    "verify:browser-resume": "npm run build && node scripts/verify-browser-resume.mjs",
     "verify:devices": "node scripts/verify-devices.mjs",
     "verify:android": "node scripts/verify-android-transfer.mjs",
     "verify:device-push": "node scripts/verify-device-push.mjs",
-    "verify:resume-limits": "node scripts/verify-resume-limits.mjs"
+    "verify:resume-limits": "node scripts/verify-resume-limits.mjs",
+    "verify:v2": "npm run build && node scripts/verify-v2-relay.mjs",
+    "verify:v2:browser": "npm run build && node scripts/verify-v2-browser.mjs"
   },
   "dependencies": {
     "jsqr": "1.4.0",
@@ -35,9 +39,12 @@
   },
   "devDependencies": {
     "miniflare": "5.20261104.0-beta",
-    "playwright-core": "1.63.0",
+    "playwright-core": "1.64.1",
     "typescript": "7.0.2",
     "vite": "8.3.6",
     "wrangler": "4.158.0"
+  },
+  "overrides": {
+    "undici": "7.30.1"
   }
 }

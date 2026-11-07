@@ -13,15 +13,12 @@ object TransferFiles {
     fun finish(task: JSONObject) { active.remove(Invitation.parse(task.getString("url")).id, task.getString("id")) }
     fun staging(context: Context, task: JSONObject) {
         val invite = Invitation.parse(task.getString("url"))
+        File(context.filesDir, "legacy-${invite.id}.part").delete()
         File(context.filesDir, "resume-${invite.id}.part").delete()
         AtomicFile(File(context.filesDir, "resume-${invite.id}.json")).delete()
     }
     fun discard(context: Context, store: Store, id: String, receiverFinished: Boolean = false) {
         val task = store.task(id) ?: return
-        if (task.has("code")) {
-            if (task.getString("state") == "cancelled") store.putTask(task.put("discarded", true))
-            return
-        }
         if (!receiverFinished && active.containsKey(Invitation.parse(task.getString("url")).id)) return
         if (task.getString("state") != "cancelled") return
         runCatching {

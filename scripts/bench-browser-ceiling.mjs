@@ -45,11 +45,12 @@ try{
  }else worker=await startWorker(work);
  if(process.env.CD_CEILING_NO_EXTENSION==='1'){
   const upstream=new URL(worker.publicBase),connections=new Set();
-  const headers=req=>{const result={...req.headers,host:upstream.host};delete result['sec-websocket-extensions'];return result};
-  proxy=createServer((req,res)=>{const outgoing=httpRequest(new URL(req.url,upstream),{method:req.method,headers:headers(req)},incoming=>{res.writeHead(incoming.statusCode,incoming.headers);incoming.pipe(res)});outgoing.on('error',()=>res.destroy());req.pipe(outgoing)});
+  const target=req=>{const url=new URL(req.url,'http://localhost');return {protocol:upstream.protocol,hostname:upstream.hostname,port:upstream.port,path:url.pathname+url.search}};
+  const headers=req=>{const result={...req.headers};delete result['sec-websocket-extensions'];return result};
+  proxy=createServer((req,res)=>{const outgoing=httpRequest({...target(req),method:req.method,headers:headers(req)},incoming=>{res.writeHead(incoming.statusCode,incoming.headers);incoming.pipe(res)});outgoing.on('error',()=>res.destroy());req.pipe(outgoing)});
   proxy.on('connection',socket=>{connections.add(socket);socket.on('close',()=>connections.delete(socket))});
   proxy.on('upgrade',(req,socket,head)=>{
-   const outgoing=httpRequest(new URL(req.url,upstream),{headers:headers(req)});
+   const outgoing=httpRequest({...target(req),headers:headers(req)});
    outgoing.on('upgrade',(response,peer,peerHead)=>{
     socket.write('HTTP/1.1 101 Switching Protocols\r\n'+Object.entries(response.headers).map(([key,value])=>key+': '+value).join('\r\n')+'\r\n\r\n');
     if(head.length)peer.write(head);if(peerHead.length)socket.write(peerHead);

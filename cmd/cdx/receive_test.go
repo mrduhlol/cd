@@ -84,21 +84,19 @@ func TestResolveReceiveDestRefusesOverwriteWithoutForce(t *testing.T) {
 	if err := os.WriteFile(existing, []byte("x"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := resolveReceiveDest("file.bin", existing, false); err == nil {
-		t.Fatal("overwrote without --force")
-	}
-	final, staging, err := resolveReceiveDest("file.bin", existing, true)
-	if err != nil || final != existing {
-		t.Fatalf("force = %q, %v", final, err)
-	}
-	if !strings.HasSuffix(staging, ".cd-part") {
-		t.Fatalf("staging = %q", staging)
-	}
-	if final, _, err := resolveReceiveDest("file.bin", dir, false); err == nil {
-		t.Fatalf("directory out overwrote without force: %q", final)
-	}
-	if final, _, err := resolveReceiveDest("file.bin", dir, true); err != nil || final != existing {
-		t.Fatalf("directory out with force = %q, %v", final, err)
+	for _, out := range []string{existing, dir} {
+		if dest, err := resolveReceiveDest("file.bin", out, false); err == nil {
+			_ = dest.root.Close()
+			t.Fatalf("%q overwrote without --force", out)
+		}
+		dest, err := resolveReceiveDest("file.bin", out, true)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer dest.root.Close()
+		if dest.dir != dir || dest.name != "file.bin" {
+			t.Fatalf("force destination = %q / %q", dest.dir, dest.name)
+		}
 	}
 }
 
@@ -190,5 +188,19 @@ func TestLookupShareCodeMapsMissingToBadCode(t *testing.T) {
 	if _, err := lookupShareCode(context.Background(), server.URL, "00000"); err == nil ||
 		!strings.Contains(err.Error(), "Bad code") && !strings.Contains(err.Error(), "bad code") {
 		t.Fatalf("missing code = %v", err)
+	}
+}
+
+func TestShortCodeFromLink(t *testing.T) {
+	for input, want := range map[string]string{
+		"https://cd.yash0.in/#48291":  "48291",
+		" https://cd.yash0.in#4829 ":  "4829",
+		"https://cd.yash0.in/#abcde":  "",
+		"https://cd.yash0.in/s/#4829": "",
+		"48291":                       "",
+	} {
+		if got := shortCodeFromLink(input); got != want {
+			t.Errorf("shortCodeFromLink(%q) = %q, want %q", input, got, want)
+		}
 	}
 }

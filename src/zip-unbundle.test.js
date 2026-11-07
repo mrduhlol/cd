@@ -51,3 +51,60 @@ test('safeEntryPath rejects escapes and control characters', () => {
 test('downloadNames flattens only colliding paths', () => {
   assert.deepEqual(downloadNames(['a.txt', 'x/b.txt', 'y/b.txt']), ['a.txt', 'x_b.txt', 'y_b.txt']);
 });
+
+test('downloadNames reserves unique basenames against flattened collisions', () => {
+  assert.deepEqual(
+    downloadNames(['x/a.txt', 'y/a.txt', 'x_a.txt']),
+    ['x_a (2).txt', 'y_a.txt', 'x_a.txt']
+  );
+  assert.deepEqual(
+    downloadNames(['x/a.txt', 'y/a.txt', 'x_a.txt', 'x_a (2).txt']),
+    ['x_a (3).txt', 'y_a.txt', 'x_a.txt', 'x_a (2).txt']
+  );
+});
+
+test('downloadNames avoids case-insensitive and Unicode-equivalent collisions', () => {
+  assert.deepEqual(
+    downloadNames(['A.txt', 'a.txt', 'a (2).txt']),
+    ['A.txt', 'a (3).txt', 'a (2).txt']
+  );
+  const names = downloadNames(['x/café.txt', 'x/cafe\u0301.txt']);
+  assert.equal(new Set(names.map((name) => name.normalize('NFC').toLowerCase())).size, names.length);
+});
+
+test('downloadNames is deterministic and keeps all suggested names distinct', () => {
+  const paths = ['x/a.txt', 'y/a.txt', 'x_a.txt', 'x_a (2).txt', 'z/a.txt'];
+  const first = downloadNames(paths);
+  assert.deepEqual(downloadNames(paths), first);
+  assert.equal(new Set(first.map((name) => name.normalize('NFC').toLowerCase())).size, paths.length);
+});
+
+
+test('bundle directory limits reject oversized metadata before reading it', async () => {
+  const end = new Uint8Array(22);
+  const view = new DataView(end.buffer);
+  view.setUint32(0, 0x06054b50, true);
+  view.setUint16(10, 1, true);
+  view.setUint32(12, 64 * 1024 * 1024, true);
+  const reads = [];
+  const size = 64 * 1024 * 1024 + 22;
+  const blob = { size, slice(start, finish) {
+    reads.push(finish - start);
+    if (finish - start > 65557) throw new Error('oversized allocation requested');
+    const bytes = new Uint8Array(finish - start);
+    bytes.set(end, bytes.length - 22);
+    return new Blob([bytes]);
+  } };
+  await assert.rejects(readBundle(blob), /bundle directory exceeds/);
+  assert.ok(reads.every(size => size <= 65557));
+});
+
+test('ZIP64 metadata must use safe integer offsets', async () => {
+  const bytes = new Uint8Array(98);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(76, 0x06054b50, true);
+  view.setUint16(86, 0xffff, true);
+  view.setUint32(56, 0x07064b50, true);
+  view.setBigUint64(64, 2n ** 53n + 1n, true);
+  await assert.rejects(readBundle(new Blob([bytes])), /bundle is truncated/);
+});

@@ -14,7 +14,7 @@ const MAX_FRAME = 1024 * 1024;
 const MAX_BUFFER = 32 * 1024 * 1024;
 const encode = (v: Uint8Array) => { let s=''; for(const b of v)s+=String.fromCharCode(b); return btoa(s).replaceAll('+','-').replaceAll('/','_').replaceAll('=',''); };
 const decode = (v: string) => { const x=atob(v.replaceAll('-','+').replaceAll('_','/')+'='.repeat((4-v.length%4)%4)); return Uint8Array.from(x,c=>c.charCodeAt(0)); };
-const is32 = (v: unknown): v is string => typeof v==='string' && /^[A-Za-z0-9_-]{43}$/.test(v);
+const is32 = (v: unknown): v is string => typeof v==='string' && /^[A-Za-z0-9_-]{43}$/.test(v) && encode(decode(v))===v;
 const equal = (a:string,b:string) => { try { const x=decode(a),y=decode(b);if(x.length!==32||y.length!==32)return false;let d=0;for(let i=0;i<32;i++)d|=x[i]^y[i];return d===0; } catch { return false; } };
 async function hash(value:string){return encode(new Uint8Array(await crypto.subtle.digest('SHA-256',decode(value))));}
 function event(type:string, extra:Record<string,unknown>={}) { return JSON.stringify({type,protocol:'cd-transfer-v2',...extra}); }
@@ -42,7 +42,7 @@ export class ResumeRoomProtocol {
   async message(socket:WebSocket,message:string|ArrayBuffer){
     const a=socket.deserializeAttachment() as Attachment;if(!a||!a.kind?.startsWith('resume-'))return;
     let state=await this.state();if(state.status!=='empty'&&state.expiresAt<=Date.now()){this.reject(socket,4408,'transfer expired');return;}
-    if(a.kind==='resume-pending') {if(typeof message!=='string'||new TextEncoder().encode(message).length>MAX_JOIN){this.reject(socket,4406,'invalid protocol join');return;}let j:any;try{j=JSON.parse(message);}catch{this.reject(socket,4406,'invalid protocol join');return;}await this.admit(socket,a,j,state);return;}
+    if(a.kind==='resume-pending') {if(typeof message!=='string'||new TextEncoder().encode(message).length>MAX_JOIN){this.reject(socket,4406,'invalid protocol join');return;}let j:any;try{j=JSON.parse(message);}catch{this.reject(socket,4406,'invalid protocol join');return;}await this.ctx.blockConcurrencyWhile(async()=>this.admit(socket,a,j,await this.state()));return;}
     if(state.status==='terminal') {
       if(typeof message==='string'&&a.role==='sender'&&this.isComplete(message,{...a,role:'receiver',receiverNonce:state.receiverNonce},state)){try{socket.send(event('completed'));}catch{};return;}
       if(typeof message==='string'&&this.isComplete(message,a,state)){try{socket.send(event('completed'));}catch{};return;}
@@ -86,7 +86,7 @@ export class ResumeRoomProtocol {
       if(state.sessions>=128){this.exhausted(socket);return;}
       // The relay cannot validate master-key HMAC proofs. It binds the opaque
       // proof to this session and forwards it for end-to-end verification.
-      state.status='waiting';state.sessions++;state.nonces=[...state.nonces.slice(-127),j.sessionNonce];state.sessionNonce=j.sessionNonce;state.senderProof=j.nonceProof;state.receiverNonce=undefined;state.receiverProof=undefined;state.receiverCompleteForwarded=false;
+      state.status='waiting';state.sessions++;state.nonces=[...state.nonces,j.sessionNonce];state.sessionNonce=j.sessionNonce;state.senderProof=j.nonceProof;state.receiverNonce=undefined;state.receiverProof=undefined;state.receiverCompleteForwarded=false;
       socket.serializeAttachment({kind:'resume-peer',role:'sender',rootId:p.rootId,sessionNonce:j.sessionNonce,lastActivityAt:Date.now()} satisfies Peer);
       await this.save(state);socket.send(event('accepted',{expiresAt:state.expiresAt,sessionNonce:j.sessionNonce,senderNonceProof:j.nonceProof}));
       const receiver=this.peer('receiver');if(receiver){this.reject(receiver,4409,'session interrupted');}return;
@@ -96,7 +96,7 @@ export class ResumeRoomProtocol {
     if(state.nonces.includes(j.receiverNonce)){this.reject(socket,4409,'receiver nonce replay');return;}
     if(state.status==='interrupted'){if(state.sessions>=128)this.exhausted(socket);else this.reject(socket,4409,'sender must resume first');return;}
     const sender=this.peer('sender');if(!sender||!state.sessionNonce){this.reject(socket,4404,'sender unavailable');return;}
-    state.status='paired';state.receiverNonce=j.receiverNonce;state.receiverProof=j.nonceProof;state.nonces=[...state.nonces.slice(-255),j.receiverNonce];state.receiverCompleteForwarded=false;socket.serializeAttachment({kind:'resume-peer',role:'receiver',rootId:p.rootId,sessionNonce:state.sessionNonce,receiverNonce:j.receiverNonce,lastActivityAt:Date.now()} satisfies Peer);sender.serializeAttachment({...sender.deserializeAttachment() as Peer,receiverNonce:j.receiverNonce,lastActivityAt:Date.now()});await this.save(state);
+    state.status='paired';state.receiverNonce=j.receiverNonce;state.receiverProof=j.nonceProof;state.nonces=[...state.nonces,j.receiverNonce];state.receiverCompleteForwarded=false;socket.serializeAttachment({kind:'resume-peer',role:'receiver',rootId:p.rootId,sessionNonce:state.sessionNonce,receiverNonce:j.receiverNonce,lastActivityAt:Date.now()} satisfies Peer);sender.serializeAttachment({...sender.deserializeAttachment() as Peer,receiverNonce:j.receiverNonce,lastActivityAt:Date.now()});await this.save(state);
     const bound={sessionNonce:state.sessionNonce,receiverNonce:j.receiverNonce,senderNonceProof:state.senderProof,receiverNonceProof:j.nonceProof,expiresAt:state.expiresAt};
     socket.send(event('accepted',bound));socket.send(event('peer-joined',bound));sender.send(event('peer-joined',bound));
   }

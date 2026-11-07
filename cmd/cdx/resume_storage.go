@@ -149,6 +149,9 @@ func resumeLoadCapability(id string) (resumeCapability, invitation, []byte, erro
 }
 
 func resumeDest(name, out, id string) (string, string, error) {
+	if !filepath.IsLocal(name) {
+		return "", "", resumeFailure("resumable offer filename is unsafe")
+	}
 	safe, err := safeFilename(name)
 	if err != nil || safe != name {
 		return "", "", resumeFailure("resumable offer filename is unsafe")

@@ -4,7 +4,8 @@
 
 To send a local file with CD, follow
 [`skills/cd-file-sharing/SKILL.md`](skills/cd-file-sharing/SKILL.md): run
-`cdx send <file>` and reply with the code it prints.
+`cdx send <file>` and reply with the link `https://cd.yash0.in/#<code>` built
+from the code it prints.
 
 ## Agent skills
 

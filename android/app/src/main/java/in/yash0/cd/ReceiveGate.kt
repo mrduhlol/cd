@@ -17,7 +17,7 @@ object ReceiveGate {
         }
     }
     fun check(running: Boolean, state: String?, networkAllowed: Boolean) {
-        if (!running || state !in listOf("queued", "receiving", "retrying")) throw UserPausedException()
+        if (!running || state !in listOf("queued", "connecting", "receiving", "verifying", "retrying")) throw UserPausedException()
         if (!networkAllowed) throw TransientNetworkException()
     }
     fun expiry(expiresAt: Long, now: Long = System.currentTimeMillis()) {

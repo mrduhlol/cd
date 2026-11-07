@@ -139,3 +139,11 @@ func TestResumeCompletionBindsWholeDigest(t *testing.T) {
 		t.Fatal("accepted modified ENDdigest")
 	}
 }
+
+func TestResumeDestRejectsRemotePathComponents(t *testing.T) {
+	for _, name := range []string{"../outside", "/absolute", "folder/file", "folder\\file", ".", "..", ""} {
+		if _, _, err := resumeDest(name, t.TempDir(), "AAAAAAAAAAAAAAAAAAAAAA"); err == nil {
+			t.Fatalf("accepted remote path %q", name)
+		}
+	}
+}

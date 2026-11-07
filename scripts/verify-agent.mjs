@@ -69,6 +69,8 @@ try {
     stdio: ['ignore', 'pipe', 'pipe']
   });
   const senderExit = new Promise((resolve) => sender.once('exit', resolve));
+  let senderDiagnostics = '';
+  sender.stderr.on('data', (chunk) => { senderDiagnostics = (senderDiagnostics + chunk.toString()).slice(-16 * 1024); });
   const stderr = collect(sender.stderr);
   const link = await firstLine(sender.stdout);
   const linkUrl = new URL(link);
@@ -89,7 +91,7 @@ try {
     headless: true,
     args: ['--disable-dev-shm-usage']
   });
-  const context = await browser.newContext({ acceptDownloads: true });
+  const context = await browser.newContext({ acceptDownloads: true, reducedMotion: 'reduce' });
   await context.addInitScript(() => { delete window.showSaveFilePicker; });
   const page = await context.newPage();
   page.setDefaultTimeout(30_000);
@@ -108,7 +110,9 @@ try {
   const receivedPath = join(work, await download.suggestedFilename());
   await download.saveAs(receivedPath);
   const received = await readFile(receivedPath);
-  const exitCode = await withTimeout(senderExit, 30_000, 'sender did not finish');
+  const exitCode = await withTimeout(senderExit, 30_000, 'sender did not finish').catch((error) => {
+    throw new Error(`${error.message}\nSender output:\n${senderDiagnostics}`, { cause: error });
+  });
   const senderLog = await stderr;
   assert.equal(exitCode, 0, senderLog);
   // The direct path is opportunistic: on a slow runner the relay can finish
@@ -130,13 +134,21 @@ try {
   await rm(work, { recursive: true, force: true });
 }
 
-// A folder plus a file go out detached as one streamed zip; pasting the link
-// into the home page's Receive box receives it in place, without leaving.
+// A folder plus a file go out detached under one code; pasting the link into
+// the home page's Receive box downloads each file on its own, in place.
 async function verifyFolderBundle(context) {
   const folder = join(work, 'bundle folder');
   await mkdir(join(folder, 'nested'), { recursive: true });
   await writeFile(join(folder, 'nested', 'a.bin'), source);
   await writeFile(join(work, 'extra.txt'), 'extra');
+  await mkdir(join(folder, 'x'), { recursive: true });
+  await mkdir(join(folder, 'y'), { recursive: true });
+  const collisionFiles = {
+    'x/a.txt': 'first collision payload',
+    'y/a.txt': 'second collision payload',
+    'bundle folder_x_a.txt': 'reserved basename payload'
+  };
+  for (const [path, bytes] of Object.entries(collisionFiles)) await writeFile(join(folder, path), bytes);
   const bundleSender = spawn(executable, ['send', '--link', folder, join(work, 'extra.txt')], {
     env: { ...process.env, CD_RELAY_URL: relayBase, CD_PUBLIC_URL: publicBase, CD_STATE_DIR: join(work, 'state') },
     stdio: ['ignore', 'pipe', 'pipe']
@@ -146,18 +158,29 @@ async function verifyFolderBundle(context) {
   const page = await context.newPage();
   await page.goto(publicBase);
   await page.locator('#receive-mode-btn').click();
-  const downloadEvent = page.waitForEvent('download');
+  const downloads = [];
+  const onDownload = (download) => downloads.push(download);
+  page.on('download', onDownload);
   await page.locator('#code-input').fill(bundleLink);
-  const download = await downloadEvent;
-  assert.equal(download.suggestedFilename(), 'bundle folder-and-1-more.zip');
-  const bundlePath = join(work, 'received-bundle.zip');
-  await download.saveAs(bundlePath);
-  const bundle = await readFile(bundlePath);
-  assert.deepEqual([...bundle.subarray(0, 4)], [0x50, 0x4b, 0x03, 0x04], 'bundle is not a zip');
-  assert.ok(bundle.includes(Buffer.from('bundle folder/nested/a.bin')), 'bundle is missing the nested file');
+  for (let waited = 0; downloads.length < 5 && waited < 300; waited += 1) await page.waitForTimeout(100);
+  page.off('download', onDownload);
+  assert.deepEqual(downloads.map((download) => download.suggestedFilename()).sort(), ['a.bin', 'bundle folder_x_a (2).txt', 'bundle folder_x_a.txt', 'bundle folder_y_a.txt', 'extra.txt'], 'folder send did not arrive as separate files');
+  const nested = downloads.find((download) => download.suggestedFilename() === 'a.bin');
+  const nestedPath = join(work, 'received-a.bin');
+  await nested.saveAs(nestedPath);
+  assert.deepEqual(await readFile(nestedPath), Buffer.from(source), 'nested file differs from the original');
+  const expectedCollisions = {
+    'bundle folder_x_a (2).txt': 'first collision payload',
+    'bundle folder_y_a.txt': 'second collision payload',
+    'bundle folder_x_a.txt': 'reserved basename payload'
+  };
+  for (const [name, contents] of Object.entries(expectedCollisions)) {
+    const download = downloads.find((download) => download.suggestedFilename() === name);
+    assert.equal((await readFile(await download.path())).toString(), contents, name);
+  }
   assert.equal(new URL(page.url()).pathname, '/', 'receiving left the home page');
   await page.close();
-  console.log(`verified a ${bundle.byteLength}-byte folder bundle into the browser`);
+  console.log(`verified a folder send arrived as ${downloads.length} separate files in the browser`);
 }
 
 async function assertVisibleBrand(page) {

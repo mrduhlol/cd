@@ -38,16 +38,23 @@ data class TransferView(
     val bytesPerSecond: Long,   // smoothed, 0 when idle
     val phase: TransferPhase,
     val route: Route = Route.NONE,
-    val link: String? = null,   // send: private resumable link (https://.../s/...#v2...)
-    val code: String? = null,   // send: short share code, when available
-    val message: String? = null,// human-readable status / error
+    // Default sharing uses a five-digit code URL; private sends use a full capability URL.
+    val link: String? = null,
+    val code: String? = null,
+    val message: String? = null,// human-readable status / error; never contains keys or raw URLs
     val openUri: String? = null,// receive: published MediaStore uri when COMPLETE
     val updatedAt: Long = System.currentTimeMillis(),
+    val privateLink: String? = null,
+    val isPrivate: Boolean = true,
+    val codeExpiresAt: Long = 0,
+    val codeSpent: Boolean = false,
+    val expiresAt: Long = 0,    // send: unix ms when the invitation expires; 0 when unknown
+    val resumable: Boolean = true,
 )
 
 object TransferBus {
     private val _transfers = MutableStateFlow<List<TransferView>>(emptyList())
-    /** Newest first. */
+    /** Newest first. A transfer is identified by (direction, id): the same root can be sent and received. */
     val transfers: StateFlow<List<TransferView>> = _transfers.asStateFlow()
 
     private val _receiving = MutableStateFlow("Receiving is off")
@@ -57,10 +64,23 @@ object TransferBus {
     fun status(text: String) { _receiving.value = text }
 
     @Synchronized fun publish(view: TransferView) {
-        _transfers.value = (listOf(view) + _transfers.value.filterNot { it.id == view.id }).sortedByDescending { it.updatedAt }.take(50)
+        val newest = (listOf(view) + _transfers.value.filterNot { it.id == view.id && it.direction == view.direction }).sortedByDescending { it.updatedAt }
+        // Hydrating old receives on Activity recreation must never evict a live or resumable send.
+        // Bound finished history only; unfinished transfers still need their controls and invitation.
+        var finished = 0
+        _transfers.value = newest.filter {
+            when (it.phase) {
+                TransferPhase.COMPLETE, TransferPhase.CANCELLED, TransferPhase.FAILED -> finished++ < 50
+                else -> true
+            }
+        }
     }
 
+    @Synchronized fun remove(id: String, direction: Direction) { _transfers.value = _transfers.value.filterNot { it.id == id && it.direction == direction } }
+
     @Synchronized fun remove(id: String) { _transfers.value = _transfers.value.filterNot { it.id == id } }
+
+    fun find(id: String, direction: Direction): TransferView? = transfers.value.firstOrNull { it.id == id && it.direction == direction }
 
     /** Pluggable send engine; the transport layer installs a real implementation. */
     @Volatile var sender: SendEngine = SendEngine.Unavailable
@@ -68,13 +88,15 @@ object TransferBus {
 
 interface SendEngine {
     /** Starts a foreground (in-app) resumable send. Returns the transfer id. */
-    fun start(context: Context, uris: List<Uri>): String
+    fun start(context: Context, uris: List<Uri>, privateLink: Boolean = false): String
     fun pause(context: Context, id: String)
     fun resume(context: Context, id: String)
     fun cancel(context: Context, id: String)
+    /** True when [id] is a send this device owns that is not cancelled/complete; the UI must not receive it. */
+    fun owns(id: String): Boolean = false
 
     object Unavailable: SendEngine {
-        override fun start(context: Context, uris: List<Uri>): String = error("Sending is not available in this build")
+        override fun start(context: Context, uris: List<Uri>, privateLink: Boolean): String = error("Sending is not available in this build")
         override fun pause(context: Context, id: String) {}
         override fun resume(context: Context, id: String) {}
         override fun cancel(context: Context, id: String) {}

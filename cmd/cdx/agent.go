@@ -29,21 +29,35 @@ const (
 const agentBlock = agentBlockBegin + `
 ## Sharing files
 
-For generated APKs, documents and file handoffs, run ` + "`cdx devices --json`" + ` first.
-If the user has not chosen a destination and devices are paired, use the host's
-built-in choice tool (` + "`request_user_input`" + `, ` + "`request_user_input_async`" + `, or T3 Code's
-available question tool) to offer each device and a download link. With multiple
-devices, ask which device before sending. Wait for the answer. If the user already
-asked for their phone and exactly one device is paired, send there immediately.
-Send with ` + "`cdx send --to <name> --json -- <path>`" + ` using the exact paired name.
-Read the returned private log; only ` + "`phase: verified`" + ` confirms delivery.
-Report offline sends as pending. If pairing is needed, explain ` + "`cdx pair`" + `.
-When a link is selected, or no devices are paired for an unspecified handoff, run
-` + "`cdx send --json -- <path>`" + ` and reply with https://cd.yash0.in/#<code>, using
-the printed code. A failed device send must not silently create a link.
-For a QR in chat, run ` + "`cdx send --json --qr <fresh-png-path> <path>`" + ` and embed
-the returned qrPath as a Markdown image with an absolute path (works in T3 Code).
-Use ` + "`cdx send --link <path>`" + ` for sensitive files. Details: ` + "`cdx help send`" + `.
+For generated APKs, documents and requested file handoffs, honor an explicit
+phone, named device, link or QR choice. For phone or unspecified delivery, run
+` + "`cdx devices --json`" + `. Saved pairings do not prove that a phone is online;
+listing errors are errors, not an empty list. An explicit phone request with one
+pair sends immediately. An explicit named device uses its exact alias without
+another question. Otherwise, with multiple pairs ask which phone. With none, explain
+` + "`cdx pair`" + `, phone approval and enabling receiving before sending.
+For an unspecified destination with pairs, offer each device and "Download link"
+in one question using the host's available ` + "`request_user_input`" + `,
+` + "`request_user_input_async`" + ` or T3 Code question tool, only where enabled.
+Otherwise ask in chat. Wait for the answer; a default is not a selection.
+Run ` + "`cdx send --to <saved-name> --json -- <path>...`" + ` with the exact alias.
+Its ` + "`pid`" + `/` + "`log`" + ` result means started. Read the returned private log;
+only ` + "`phase: verified`" + ` confirms receipt. For a pause, explain resuming in
+CD and rerunning the same command after the old sender exits; await user choice.
+Check the returned PID is alive before calling a waiting send pending. Keep it
+running and avoid duplicate sends. An exit without verified is unconfirmed.
+Keep credentials and raw private logs out of chat. Ask before replacing a failed
+phone send with a link. ` + "`cdx wait <code>`" + ` is for link sends, not phone logs.
+When a link is selected, or no pairs exist for an unspecified handoff, run
+` + "`cdx send --json -- <path>...`" + ` and return https://cd.yash0.in/#<code>.
+Use ` + "`CD_PUBLIC_URL`" + ` as the origin when set.
+For sensitive link sharing, add ` + "`--link`" + ` and return the exact JSON URL,
+including its fragment; paired delivery is already end-to-end encrypted.
+For a QR, add ` + "`--qr <fresh-png-path>`" + ` and embed the returned absolute
+qrPath as a Markdown image alongside its receive link. Sensitive QR sharing also
+needs ` + "`--link`" + `. Quote paths and use ` + "`--`" + ` before filenames.
+Use ` + "`cdx help send`" + ` for options. Update installed agents with
+` + "`cdx agent setup`" + ` after updating the CLI.
 ` + agentBlockEnd + "\n"
 
 // agentTarget is one place an agent reads instructions from.
@@ -227,8 +241,8 @@ func agentState(target agentTarget, home string) string {
 
 func agentSetup(targets []agentTarget, home string, yes, dryRun bool, input io.Reader, output io.Writer) int {
 	fmt.Fprintln(output, "cdx can teach your AI coding agents to share files. Ask one to")
-	fmt.Fprintln(output, "\"send me report.pdf\" and it runs `cdx send`, then replies with a link")
-	fmt.Fprintln(output, "like https://cd.yash0.in/#48291 that starts the download when opened.")
+	fmt.Fprintln(output, "\"send me report.pdf\" and it offers your paired devices or a download link.")
+	fmt.Fprintln(output, "An explicit phone request uses the selected pairing without a share code.")
 	fmt.Fprintln(output, "")
 	var found []agentTarget
 	for _, target := range targets {

@@ -19,7 +19,12 @@ func TestReverseLANFallsBackToWorkingForwardListener(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer forward.close()
-	go forward.serve(sender.adoptStreamConfirmed)
+	adopted := make(chan bool, 1)
+	go forward.serve(func(stream net.Conn, confirm func() error) bool {
+		ok := sender.adoptStreamConfirmed(stream, confirm)
+		adopted <- ok
+		return ok
+	})
 	offer := fileOffer{ReverseLAN: true, LAN: &forward.offer}
 	reverse, err := prepareReverseLAN(receiver, testInvitation(), offer)
 	if err != nil || reverse == nil {
@@ -37,6 +42,14 @@ func TestReverseLANFallsBackToWorkingForwardListener(t *testing.T) {
 	defer cancel()
 	dialReverseLAN(ctx, sender, testInvitation(), &lanOffer{Port: port, Hosts: []string{"127.0.0.1"}})
 	reverse.await(ctx, receiver, offer)
+	select {
+	case ok := <-adopted:
+		if !ok {
+			t.Fatal("sender rejected forward fallback")
+		}
+	case <-ctx.Done():
+		t.Fatal("sender did not finish adopting forward fallback")
+	}
 	if sender.direct.Load() == nil || receiver.direct.Load() == nil {
 		t.Fatal("failed reverse dial did not fall back to forward TCP")
 	}

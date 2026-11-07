@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -306,8 +307,15 @@ func TestDirectPathConnectsWithTrickledCandidates(t *testing.T) {
 	case <-time.After(10 * time.Second):
 		t.Skip("no usable network interface for a local WebRTC connection")
 	}
-	if route := senderPath.route(); route != "same network" {
-		t.Fatalf("route = %q for a local connection", route)
+	if err := sender.send(kindChunk, []byte("trickled candidates")); err != nil {
+		t.Fatal(err)
+	}
+	kind, payload, err := receiver.next(context.Background(), 5*time.Second)
+	if err != nil || kind != kindChunk || !bytes.Equal(payload, []byte("trickled candidates")) {
+		t.Fatalf("trickled transfer = %v %q %v", kind, payload, err)
+	}
+	if !sender.directUsed.Load() || !receiver.directUsed.Load() {
+		t.Fatal("trickled transfer did not use the direct path at both ends")
 	}
 }
 
@@ -330,5 +338,46 @@ func TestPeerLeftRightAfterCompleteIsNotAFailure(t *testing.T) {
 		if err := progress.handle(kind, payload); err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestRecordLinkBoundsHeldBytes(t *testing.T) {
+	link := &recordLink{pending: map[uint32][]byte{}}
+	for sequence := uint32(1); sequence <= 32; sequence++ {
+		record := make([]byte, maxRecordBytes)
+		binary.BigEndian.PutUint32(record[4:8], sequence)
+		if err := link.accept(linkItem{record: record}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	record := make([]byte, headerBytes)
+	binary.BigEndian.PutUint32(record[4:8], 33)
+	if err := link.accept(linkItem{record: record}); err == nil {
+		t.Fatal("accepted more than 32 MiB while sequence 0 is missing")
+	}
+}
+
+func TestLinkClearsAdmissionReadDeadline(t *testing.T) {
+	value := testInvitation()
+	senderSealer, _ := newSealer(value, senderDirection)
+	senderOpener, _ := newOpener(value, receiverDirection)
+	receiverSealer, _ := newSealer(value, receiverDirection)
+	receiverOpener, _ := newOpener(value, senderDirection)
+	left, right, _ := relayPair(t)
+	_ = left.SetReadDeadline(time.Now().Add(50 * time.Millisecond))
+	_ = right.SetReadDeadline(time.Now().Add(50 * time.Millisecond))
+	sender := newRecordLink(left, senderSealer, senderOpener, errors.New("receiver left"))
+	receiver := newRecordLink(right, receiverSealer, receiverOpener, errors.New("sender left"))
+	sender.start()
+	receiver.start()
+	defer sender.close()
+	defer receiver.close()
+	time.Sleep(100 * time.Millisecond)
+	if err := sender.send(kindChunk, []byte("after admission deadline")); err != nil {
+		t.Fatal(err)
+	}
+	kind, payload, err := receiver.next(context.Background(), time.Second)
+	if err != nil || kind != kindChunk || string(payload) != "after admission deadline" {
+		t.Fatalf("delayed record = %v %q %v", kind, payload, err)
 	}
 }
