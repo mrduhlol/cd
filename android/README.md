@@ -1,30 +1,6 @@
 # CD for Android
 
-Native Kotlin and Jetpack Compose app for numeric-code sending and trusted CLI receiving. Requires Android 10 or newer. The first physical-device target is the Samsung S24 Ultra.
-
-## Send files
-
-Tap **Send files**, select one or more files, and keep CD open. Multiple files are prepared as `files.zip`. After preparation, share or copy the numeric code. The recipient enters it in browser Receive or runs `cdx receive <code>`.
-
-Sending stages a private copy on the phone and requires enough free storage for that copy. Progress counts bytes acknowledged by the recipient. The final confirmation state waits for the recipient to finish saving. Cancel removes the staged copy. Interrupted sends retain it until you restart or cancel. Restart sends from zero with a new code. Background and screen-off sending are not supported by this sender.
-
-Numeric codes use the relay directory, which holds the transfer key. Code sharing relies on TLS and the relay. Private-link sender controls are not available. Existing receiving and trusted-device permissions are unchanged.
-
-A background desktop receiver is a separate [proposed design](../docs/guides/desktop-receiving-design.md). It is not an available daemon command.
-
-## Verify native sending
-
-Build and install both test APKs in a test emulator using the project's device tools. Build the website assets, then run the local integration harness:
-
-```sh
-cd android
-./gradlew :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest
-cd ..
-npm run build
-CD_VERIFY_ANDROID_SERIAL=emulator-5554 node scripts/native-interop-local.mjs
-```
-
-Set `ANDROID_HOME` or `ADB` if `adb` is not on your path. The harness sends a ZIP larger than the send window from the real Android sender to CDX and Chromium through a local Worker, then checks the received size and SHA-256. The APKs must already be installed. The harness does not install apps or drive device UI.
+Native Kotlin and Jetpack Compose receiver for trusted CLI transfers. Requires Android 10 or newer. The first physical-device target is the Samsung S24 Ultra.
 
 ## Build and install
 

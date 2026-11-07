@@ -36,12 +36,8 @@ class MainActivity: ComponentActivity() {
     }
     private val pushNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) PushBridge.setEnabled(this, true) else Status.text = "Allow notifications to enable trusted wake-up" }
     private val scan = registerForActivityResult(ScanContract()) { result -> result.contents?.let { incomingFromLink = false; incoming = it } }
-    private val sendFiles = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        if (uris.isNotEmpty()) runCatching { Senders.install(this).start(this, uris) }.onFailure { Status.text = it.message ?: "Could not send files" }
-    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Senders.install(this)
         store = StoreRegistry.get(this)
         PushBridge.start(this)
         backgroundAfterPermission = savedInstanceState?.getBoolean("backgroundAfterPermission") ?: false
@@ -104,33 +100,6 @@ class MainActivity: ComponentActivity() {
         Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
             Text("CD", style = MaterialTheme.typography.displayLarge, fontWeight = FontWeight.Bold)
             Text("Your files. Your devices.", style = MaterialTheme.typography.titleLarge)
-            Button(onClick = { sendFiles.launch(arrayOf("*/*")) }) { Text("Send files") }
-            Text("Keep CD open while sending. Restarting a paused send starts from the beginning.")
-            val sends by TransferBus.transfers.collectAsState()
-            sends.filter { it.direction == Direction.SEND }.forEach { transfer ->
-                Text(transfer.name, style = MaterialTheme.typography.titleMedium)
-                Text(when (transfer.phase) {
-                    TransferPhase.PREPARING -> "Preparing files…"
-                    TransferPhase.VERIFYING -> "Waiting for receiver to save and verify…"
-                    else -> "${transfer.phase.name.lowercase()} · ${transfer.done} / ${transfer.size} bytes"
-                })
-                if (transfer.phase == TransferPhase.TRANSFERRING && transfer.size > 0) {
-                    LinearProgressIndicator(progress = { (transfer.done.toDouble() / transfer.size).toFloat().coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
-                }
-                transfer.message?.let { Text(it) }
-                transfer.code?.let { code ->
-                    Text(code, style = MaterialTheme.typography.headlineLarge)
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedButton(onClick = {
-                            (getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager).setPrimaryClip(android.content.ClipData.newPlainText("CD code", code))
-                        }) { Text("Copy code") }
-                        OutlinedButton(onClick = { startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, code), "Share code")) }) { Text("Share code") }
-                    }
-                }
-                if (transfer.phase == TransferPhase.PAUSED) Button(onClick = { runCatching { TransferBus.sender.resume(this@MainActivity, transfer.id) }.onFailure { Status.text = it.message ?: "Could not restart send" } }) { Text("Restart send") }
-                if (transfer.phase !in listOf(TransferPhase.COMPLETE, TransferPhase.CANCELLED)) OutlinedButton(onClick = { runCatching { TransferBus.sender.cancel(this@MainActivity, transfer.id) }.onFailure { Status.text = it.message ?: "Could not cancel send" } }) { Text("Cancel send") }
-            }
-
             Text(if (enabled) Status.text else "Receiving is off", style = MaterialTheme.typography.bodyLarge)
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(onClick = { enable(); revision++ }) { Text(if (enabled) "Receiving enabled" else "Enable receiving") }
