@@ -69,7 +69,6 @@ export function createZipBundle(files, { now = new Date(), chunkBytes = 256 * 10
   let directorySize = 0;
   const layout = files.map((file, index) => {
     if (!Number.isSafeInteger(file.size) || file.size < 0) throw new Error('invalid file size');
-    if (names[index].length > 0xffff) throw new Error('filename too long');
     const large = file.size > ZIP_LIMIT;
     const largeOffset = layoutOffset > ZIP_LIMIT;
     const entry = { large, largeOffset };

@@ -122,6 +122,10 @@ test('bundle rejects unsafe sizes and oversized UTF8 names before reading', () =
   for (const size of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => createZipBundle([{ name: 'x', size }]), /invalid file size/);
   }
-  assert.throws(() => createZipBundle([{ name: 'é'.repeat(32768), size: 0 }]), /filename too long/);
+  assert.throws(() => createZipBundle([{ name: 'é'.repeat(32768), size: 0 }]), /file name too long/);
   assert.throws(() => createZipBundle([{ name: 'x', size: Number.MAX_SAFE_INTEGER }]), /bundle too large/);
+});
+
+test('zip rejects names that overflow the UTF-8 filename length field', () => {
+  assert.throws(() => createZipBundle([new File(['x'], 'é'.repeat(32768))]), /name too long/);
 });
