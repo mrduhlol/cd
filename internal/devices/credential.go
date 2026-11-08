@@ -237,9 +237,8 @@ func (p Pair) Join(role string) (Join, error) {
 	}
 	j := Join{Type: "join", Protocol: Protocol, Role: role, Token: base64.RawURLEncoding.EncodeToString(token)}
 	if role == Sender {
-		s, _ := p.derive(Sender + " join")
 		r, _ := p.derive(Receiver + " join")
-		sh := sha256.Sum256(s)
+		sh := sha256.Sum256(token)
 		rh := sha256.Sum256(r)
 		j.SenderTokenHash = base64.RawURLEncoding.EncodeToString(sh[:])
 		j.ReceiverTokenHash = base64.RawURLEncoding.EncodeToString(rh[:])

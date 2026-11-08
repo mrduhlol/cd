@@ -1,0 +1,4024 @@
+{
+  "method": "Loopback on a heavily shared host, disk outputs, private local relays, three rotating trials per tool/mode, per-file SHA256/name/size/empty-directory verification after equal recursive file and directory fsync. No physical LAN/WAN or mobile claim.",
+  "crocRelease": "https://github.com/schollz/croc/releases/tag/v11.6.3",
+  "crocReleaseChecksumVerified": true,
+  "passedTransfers": 90,
+  "targetAchieved": false,
+  "binaryNote": "Folder cases use the final binary after copy-buffer reuse. Other cases use the preceding compression binary; their single-file path is unaffected by the folder-only change. Per-task hashes identify each tested executable.",
+  "tasks": [
+    {
+      "task": "Small source file",
+      "binary": {
+        "cdx": "/tmp/cdx-prf-compression",
+        "sha256": "6288e2c46cea1856d18530e8090f00ce449b18d651538acc3f9b601910598d7a",
+        "croc": "croc version 11.6.3"
+      },
+      "crocFolderMode": "default per-file transfer",
+      "summary": [
+        {
+          "case": "disk/auto/input",
+          "tools": {
+            "cd": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 79.29320700000017,
+              "receiverMs": 58.665812999999616,
+              "durableMs": 67.37160399999993,
+              "totalMs": 146.6648110000001,
+              "spread": {
+                "readyMs": {
+                  "min": 24.15947199999937,
+                  "max": 102.72344299999986
+                },
+                "receiverMs": {
+                  "min": 40.36267500000031,
+                  "max": 145.03254099999958
+                },
+                "durableMs": {
+                  "min": 43.14417300000059,
+                  "max": 170.2265010000001
+                },
+                "totalMs": {
+                  "min": 67.30364499999996,
+                  "max": 272.94994399999996
+                }
+              }
+            },
+            "croc": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 9.141869000000952,
+              "receiverMs": 789.8186910000004,
+              "durableMs": 802.8018470000006,
+              "totalMs": 817.8135910000001,
+              "spread": {
+                "readyMs": {
+                  "min": 8.036695000000236,
+                  "max": 23.081278999999995
+                },
+                "receiverMs": {
+                  "min": 718.4061789999996,
+                  "max": 798.2289720000008
+                },
+                "durableMs": {
+                  "min": 794.7323120000001,
+                  "max": 835.5659409999998
+                },
+                "totalMs": {
+                  "min": 811.9437160000016,
+                  "max": 843.6026360000001
+                }
+              }
+            },
+            "croc-no-compress": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 24.886681999999382,
+              "receiverMs": 694.6832139999997,
+              "durableMs": 703.7422710000001,
+              "totalMs": 747.2161299999998,
+              "spread": {
+                "readyMs": {
+                  "min": 15.189006999999947,
+                  "max": 43.47385899999972
+                },
+                "receiverMs": {
+                  "min": 687.8209770000003,
+                  "max": 765.417555
+                },
+                "durableMs": {
+                  "min": 695.665892,
+                  "max": 771.2160809999996
+                },
+                "totalMs": {
+                  "min": 720.5525739999994,
+                  "max": 786.4050879999995
+                }
+              }
+            }
+          },
+          "speedup": {
+            "croc": {
+              "readyMs": 0.11529195685074174,
+              "receiverMs": 13.46301449875084,
+              "durableMs": 11.91602692137182,
+              "totalMs": 5.576072306805751
+            },
+            "croc-no-compress": {
+              "readyMs": 0.3138564189994148,
+              "receiverMs": 11.841363453021682,
+              "durableMs": 10.44568080938077,
+              "totalMs": 5.094719891603715
+            }
+          },
+          "pass1_5": false,
+          "pass2": false
+        },
+        {
+          "case": "disk/relay/input",
+          "tools": {
+            "cd": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 50.00372200000129,
+              "receiverMs": 157.1497959999997,
+              "durableMs": 160.94629899999927,
+              "totalMs": 210.95002100000056,
+              "spread": {
+                "readyMs": {
+                  "min": 38.80065900000045,
+                  "max": 67.22215099999994
+                },
+                "receiverMs": {
+                  "min": 81.4280859999999,
+                  "max": 168.28788800000075
+                },
+                "durableMs": {
+                  "min": 98.24040099999911,
+                  "max": 173.03871100000106
+                },
+                "totalMs": {
+                  "min": 137.04105999999956,
+                  "max": 240.260862000001
+                }
+              }
+            },
+            "croc": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 24.34221400000024,
+              "receiverMs": 144.23360200000025,
+              "durableMs": 147.3949080000002,
+              "totalMs": 177.34143500000027,
+              "spread": {
+                "readyMs": {
+                  "min": 12.449595000000045,
+                  "max": 29.94652700000006
+                },
+                "receiverMs": {
+                  "min": 117.68660400000044,
+                  "max": 203.46143800000027
+                },
+                "durableMs": {
+                  "min": 121.97051800000008,
+                  "max": 211.40461499999947
+                },
+                "totalMs": {
+                  "min": 134.42011300000013,
+                  "max": 235.7468289999997
+                }
+              }
+            },
+            "croc-no-compress": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 10.277783999999883,
+              "receiverMs": 181.00086100000044,
+              "durableMs": 187.61427800000092,
+              "totalMs": 197.8920620000008,
+              "spread": {
+                "readyMs": {
+                  "min": 7.1558920000006765,
+                  "max": 29.453559999999925
+                },
+                "receiverMs": {
+                  "min": 146.89543400000002,
+                  "max": 239.31993899999907
+                },
+                "durableMs": {
+                  "min": 157.91700800000035,
+                  "max": 247.09525899999971
+                },
+                "totalMs": {
+                  "min": 165.07290000000103,
+                  "max": 276.54881899999964
+                }
+              }
+            }
+          },
+          "speedup": {
+            "croc": {
+              "readyMs": 0.4868080420093451,
+              "receiverMs": 0.9178096674080348,
+              "durableMs": 0.9158017855384228,
+              "totalMs": 0.8406798641655494
+            },
+            "croc-no-compress": {
+              "readyMs": 0.20554037957413687,
+              "receiverMs": 1.1517728028103886,
+              "durableMs": 1.1656948880819047,
+              "totalMs": 0.9380992761313841
+            }
+          },
+          "pass1_5": false,
+          "pass2": false
+        }
+      ],
+      "rows": [
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 0,
+          "ok": true,
+          "readyMs": 79.29320700000017,
+          "receiverMs": 58.665812999999616,
+          "durableMs": 67.37160399999993,
+          "totalMs": 146.6648110000001,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 0,
+          "ok": true,
+          "readyMs": 8.036695000000236,
+          "receiverMs": 718.4061789999996,
+          "durableMs": 835.5659409999998,
+          "totalMs": 843.6026360000001,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 0,
+          "ok": true,
+          "readyMs": 24.886681999999382,
+          "receiverMs": 687.8209770000003,
+          "durableMs": 695.665892,
+          "totalMs": 720.5525739999994,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 1,
+          "ok": true,
+          "readyMs": 23.081278999999995,
+          "receiverMs": 789.8186910000004,
+          "durableMs": 794.7323120000001,
+          "totalMs": 817.8135910000001,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 1,
+          "ok": true,
+          "readyMs": 15.189006999999947,
+          "receiverMs": 765.417555,
+          "durableMs": 771.2160809999996,
+          "totalMs": 786.4050879999995,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 1,
+          "ok": true,
+          "readyMs": 102.72344299999986,
+          "receiverMs": 145.03254099999958,
+          "durableMs": 170.2265010000001,
+          "totalMs": 272.94994399999996,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 2,
+          "ok": true,
+          "readyMs": 43.47385899999972,
+          "receiverMs": 694.6832139999997,
+          "durableMs": 703.7422710000001,
+          "totalMs": 747.2161299999998,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 2,
+          "ok": true,
+          "readyMs": 24.15947199999937,
+          "receiverMs": 40.36267500000031,
+          "durableMs": 43.14417300000059,
+          "totalMs": 67.30364499999996,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 2,
+          "ok": true,
+          "readyMs": 9.141869000000952,
+          "receiverMs": 798.2289720000008,
+          "durableMs": 802.8018470000006,
+          "totalMs": 811.9437160000016,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 0,
+          "ok": true,
+          "readyMs": 67.22215099999994,
+          "receiverMs": 168.28788800000075,
+          "durableMs": 173.03871100000106,
+          "totalMs": 240.260862000001,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 0,
+          "ok": true,
+          "readyMs": 29.94652700000006,
+          "receiverMs": 144.23360200000025,
+          "durableMs": 147.3949080000002,
+          "totalMs": 177.34143500000027,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 0,
+          "ok": true,
+          "readyMs": 29.453559999999925,
+          "receiverMs": 239.31993899999907,
+          "durableMs": 247.09525899999971,
+          "totalMs": 276.54881899999964,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 1,
+          "ok": true,
+          "readyMs": 12.449595000000045,
+          "receiverMs": 117.68660400000044,
+          "durableMs": 121.97051800000008,
+          "totalMs": 134.42011300000013,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 1,
+          "ok": true,
+          "readyMs": 7.1558920000006765,
+          "receiverMs": 146.89543400000002,
+          "durableMs": 157.91700800000035,
+          "totalMs": 165.07290000000103,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 1,
+          "ok": true,
+          "readyMs": 50.00372200000129,
+          "receiverMs": 157.1497959999997,
+          "durableMs": 160.94629899999927,
+          "totalMs": 210.95002100000056,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 2,
+          "ok": true,
+          "readyMs": 10.277783999999883,
+          "receiverMs": 181.00086100000044,
+          "durableMs": 187.61427800000092,
+          "totalMs": 197.8920620000008,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 2,
+          "ok": true,
+          "readyMs": 38.80065900000045,
+          "receiverMs": 81.4280859999999,
+          "durableMs": 98.24040099999911,
+          "totalMs": 137.04105999999956,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 6933,
+          "run": 2,
+          "ok": true,
+          "readyMs": 24.34221400000024,
+          "receiverMs": 203.46143800000027,
+          "durableMs": 211.40461499999947,
+          "totalMs": 235.7468289999997,
+          "crocZip": false,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        }
+      ],
+      "manifest": [
+        {
+          "name": "small-file.go",
+          "size": 6933,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        }
+      ],
+      "strictPass2": false
+    },
+    {
+      "task": "Source folder (croc ZIP)",
+      "binary": {
+        "cdx": "/tmp/cdx-prf-final",
+        "sha256": "39fcd0c69cb6bf735cf84b916bd13e5aa487bef1f32313fb913fb5ef9b0c892b",
+        "croc": "croc version 11.6.3"
+      },
+      "crocFolderMode": "directory inputs use send --zip, including native archive preparation and extraction before receiver exit; regular files unchanged",
+      "summary": [
+        {
+          "case": "disk/auto/input",
+          "tools": {
+            "cd": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 35.80815199999961,
+              "receiverMs": 102.59978900000169,
+              "durableMs": 528.8278689999988,
+              "totalMs": 558.5765929999998,
+              "spread": {
+                "readyMs": {
+                  "min": 29.748724000000948,
+                  "max": 46.59306400000014
+                },
+                "receiverMs": {
+                  "min": 59.272485999999844,
+                  "max": 125.46474899999885
+                },
+                "durableMs": {
+                  "min": 428.472444,
+                  "max": 555.092974000001
+                },
+                "totalMs": {
+                  "min": 475.06550800000014,
+                  "max": 590.9011260000007
+                }
+              }
+            },
+            "croc": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 127.84490600000026,
+              "receiverMs": 1018.2930749999996,
+              "durableMs": 1348.297109000001,
+              "totalMs": 1476.1420150000013,
+              "spread": {
+                "readyMs": {
+                  "min": 111.94699100000025,
+                  "max": 160.55569099999957
+                },
+                "receiverMs": {
+                  "min": 907.289573,
+                  "max": 1423.7462650000002
+                },
+                "durableMs": {
+                  "min": 1295.623931000001,
+                  "max": 1905.2918729999997
+                },
+                "totalMs": {
+                  "min": 1456.1796220000006,
+                  "max": 2017.238864
+                }
+              }
+            },
+            "croc-no-compress": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 94.82524000000012,
+              "receiverMs": 1012.9725180000005,
+              "durableMs": 1389.0042410000005,
+              "totalMs": 1483.8294810000007,
+              "spread": {
+                "readyMs": {
+                  "min": 52.72208200000023,
+                  "max": 141.1486220000006
+                },
+                "receiverMs": {
+                  "min": 970.223634,
+                  "max": 1193.596873999999
+                },
+                "durableMs": {
+                  "min": 1349.1833889999998,
+                  "max": 1518.3277829999988
+                },
+                "totalMs": {
+                  "min": 1401.905471,
+                  "max": 1659.4764049999994
+                }
+              }
+            }
+          },
+          "speedup": {
+            "croc": {
+              "readyMs": 3.570273774530494,
+              "receiverMs": 9.924904182794984,
+              "durableMs": 2.549595412869597,
+              "totalMs": 2.6426850560850514
+            },
+            "croc-no-compress": {
+              "readyMs": 2.648146712513987,
+              "receiverMs": 9.873046795446955,
+              "durableMs": 2.62657156028213,
+              "totalMs": 2.6564476556933014
+            }
+          },
+          "pass1_5": true,
+          "pass2": true
+        },
+        {
+          "case": "disk/relay/input",
+          "tools": {
+            "cd": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 33.02457499999946,
+              "receiverMs": 96.27107400000023,
+              "durableMs": 1573.4719360000017,
+              "totalMs": 1593.1363980000024,
+              "spread": {
+                "readyMs": {
+                  "min": 19.66446200000064,
+                  "max": 51.03801399999793
+                },
+                "receiverMs": {
+                  "min": 66.36675500000274,
+                  "max": 96.82376999999906
+                },
+                "durableMs": {
+                  "min": 471.27197200000046,
+                  "max": 1624.2458640000004
+                },
+                "totalMs": {
+                  "min": 504.2965469999999,
+                  "max": 1675.2838779999984
+                }
+              }
+            },
+            "croc": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 96.45971999999892,
+              "receiverMs": 716.5160790000009,
+              "durableMs": 1153.4719420000001,
+              "totalMs": 1249.931661999999,
+              "spread": {
+                "readyMs": {
+                  "min": 30.99303300000065,
+                  "max": 135.9317119999978
+                },
+                "receiverMs": {
+                  "min": 473.38663599999927,
+                  "max": 987.4696719999993
+                },
+                "durableMs": {
+                  "min": 899.317067,
+                  "max": 11153.601328
+                },
+                "totalMs": {
+                  "min": 930.3101000000006,
+                  "max": 11289.533039999998
+                }
+              }
+            },
+            "croc-no-compress": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 105.10186699999758,
+              "receiverMs": 515.7550910000027,
+              "durableMs": 1067.8461900000002,
+              "totalMs": 1180.8865839999999,
+              "spread": {
+                "readyMs": {
+                  "min": 25.62794700000086,
+                  "max": 113.04039399999965
+                },
+                "receiverMs": {
+                  "min": 495.2718780000032,
+                  "max": 795.1668409999984
+                },
+                "durableMs": {
+                  "min": 815.3839510000034,
+                  "max": 1655.2345800000003
+                },
+                "totalMs": {
+                  "min": 920.485818000001,
+                  "max": 1680.8625270000011
+                }
+              }
+            }
+          },
+          "speedup": {
+            "croc": {
+              "readyMs": 2.9208466725158613,
+              "receiverMs": 7.442693316166798,
+              "durableMs": 0.7330743660622866,
+              "totalMs": 0.7845729113772951
+            },
+            "croc-no-compress": {
+              "readyMs": 3.182535036408472,
+              "receiverMs": 5.357321462934978,
+              "durableMs": 0.6786560125848975,
+              "totalMs": 0.7412338237218519
+            }
+          },
+          "pass1_5": false,
+          "pass2": false
+        }
+      ],
+      "rows": [
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 0,
+          "ok": true,
+          "readyMs": 46.59306400000014,
+          "receiverMs": 59.272485999999844,
+          "durableMs": 428.472444,
+          "totalMs": 475.06550800000014,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 0,
+          "ok": true,
+          "readyMs": 111.94699100000025,
+          "receiverMs": 1423.7462650000002,
+          "durableMs": 1905.2918729999997,
+          "totalMs": 2017.238864,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 0,
+          "ok": true,
+          "readyMs": 52.72208200000023,
+          "receiverMs": 970.223634,
+          "durableMs": 1349.1833889999998,
+          "totalMs": 1401.905471,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 1,
+          "ok": true,
+          "readyMs": 160.55569099999957,
+          "receiverMs": 907.289573,
+          "durableMs": 1295.623931000001,
+          "totalMs": 1456.1796220000006,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 1,
+          "ok": true,
+          "readyMs": 94.82524000000012,
+          "receiverMs": 1012.9725180000005,
+          "durableMs": 1389.0042410000005,
+          "totalMs": 1483.8294810000007,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 1,
+          "ok": true,
+          "readyMs": 35.80815199999961,
+          "receiverMs": 102.59978900000169,
+          "durableMs": 555.092974000001,
+          "totalMs": 590.9011260000007,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 2,
+          "ok": true,
+          "readyMs": 141.1486220000006,
+          "receiverMs": 1193.596873999999,
+          "durableMs": 1518.3277829999988,
+          "totalMs": 1659.4764049999994,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 2,
+          "ok": true,
+          "readyMs": 29.748724000000948,
+          "receiverMs": 125.46474899999885,
+          "durableMs": 528.8278689999988,
+          "totalMs": 558.5765929999998,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 2,
+          "ok": true,
+          "readyMs": 127.84490600000026,
+          "receiverMs": 1018.2930749999996,
+          "durableMs": 1348.297109000001,
+          "totalMs": 1476.1420150000013,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 0,
+          "ok": true,
+          "readyMs": 33.02457499999946,
+          "receiverMs": 96.27107400000023,
+          "durableMs": 471.27197200000046,
+          "totalMs": 504.2965469999999,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 0,
+          "ok": true,
+          "readyMs": 30.99303300000065,
+          "receiverMs": 473.38663599999927,
+          "durableMs": 899.317067,
+          "totalMs": 930.3101000000006,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 0,
+          "ok": true,
+          "readyMs": 105.10186699999758,
+          "receiverMs": 515.7550910000027,
+          "durableMs": 815.3839510000034,
+          "totalMs": 920.485818000001,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 1,
+          "ok": true,
+          "readyMs": 96.45971999999892,
+          "receiverMs": 716.5160790000009,
+          "durableMs": 1153.4719420000001,
+          "totalMs": 1249.931661999999,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 1,
+          "ok": true,
+          "readyMs": 113.04039399999965,
+          "receiverMs": 495.2718780000032,
+          "durableMs": 1067.8461900000002,
+          "totalMs": 1180.8865839999999,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 1,
+          "ok": true,
+          "readyMs": 19.66446200000064,
+          "receiverMs": 96.82376999999906,
+          "durableMs": 1573.4719360000017,
+          "totalMs": 1593.1363980000024,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 2,
+          "ok": true,
+          "readyMs": 25.62794700000086,
+          "receiverMs": 795.1668409999984,
+          "durableMs": 1655.2345800000003,
+          "totalMs": 1680.8625270000011,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 2,
+          "ok": true,
+          "readyMs": 51.03801399999793,
+          "receiverMs": 66.36675500000274,
+          "durableMs": 1624.2458640000004,
+          "totalMs": 1675.2838779999984,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 994224,
+          "run": 2,
+          "ok": true,
+          "readyMs": 135.9317119999978,
+          "receiverMs": 987.4696719999993,
+          "durableMs": 11153.601328,
+          "totalMs": 11289.533039999998,
+          "crocZip": true,
+          "sha256": null
+        }
+      ],
+      "manifest": [
+        {
+          "name": "source-tree",
+          "directory": true
+        },
+        {
+          "name": "source-tree/cmd",
+          "directory": true
+        },
+        {
+          "name": "source-tree/cmd/cdx",
+          "directory": true
+        },
+        {
+          "name": "source-tree/cmd/cdx/README.md",
+          "size": 3947,
+          "sha256": "e16f9fa12f5b8edd4b2c76a40dc807a0489b547c17c53f4580d5fc5549a8bc8e"
+        },
+        {
+          "name": "source-tree/cmd/cdx/agent.go",
+          "size": 9507,
+          "sha256": "25f66d1ccf770d2e6d62b38eb4c11942959eb5dcdd8db5e1410eae3806dce60e"
+        },
+        {
+          "name": "source-tree/cmd/cdx/agent_test.go",
+          "size": 2927,
+          "sha256": "9169646d043d49ae17623a8d137363b9342e190073bbeb39995b5f53f70672ee"
+        },
+        {
+          "name": "source-tree/cmd/cdx/agentskill",
+          "directory": true
+        },
+        {
+          "name": "source-tree/cmd/cdx/agentskill/SKILL.md",
+          "size": 1954,
+          "sha256": "7c52d8072d4921434f789240678d88f017a03ac954338287a52a45d7176c6344"
+        },
+        {
+          "name": "source-tree/cmd/cdx/bundle.go",
+          "size": 10130,
+          "sha256": "f7f82d6f62a36dc0bebf9672b6bed3abcd4296321dcf70296c72a3b4861d2a3e"
+        },
+        {
+          "name": "source-tree/cmd/cdx/bundle_bench_test.go",
+          "size": 1534,
+          "sha256": "5248a2c89448237fe0664dbbd33aac1167f30a41e128a44d8f3313543418294c"
+        },
+        {
+          "name": "source-tree/cmd/cdx/bundle_size_test.go",
+          "size": 3775,
+          "sha256": "fd056cda300b71eccc34eb26cbf25e138f69a8d3b55eda979041e37b4ee808c4"
+        },
+        {
+          "name": "source-tree/cmd/cdx/bundle_test.go",
+          "size": 7075,
+          "sha256": "fafde4055d37c4d49a8422f2ff6be786760f85f632f159152fe5de968f738e9c"
+        },
+        {
+          "name": "source-tree/cmd/cdx/codes.go",
+          "size": 5589,
+          "sha256": "de7dabba074dc7d10806b47218cd3a148a83c26deee2ae20e5825bb4880a2e3a"
+        },
+        {
+          "name": "source-tree/cmd/cdx/detach.go",
+          "size": 15141,
+          "sha256": "3704de04f929731f70f9054fb85d018826cf0f0b81a9fcc6bc6c796b22a23868"
+        },
+        {
+          "name": "source-tree/cmd/cdx/detach_test.go",
+          "size": 8477,
+          "sha256": "068263c03fa7f35944b92ed4c7c52220cd6ad9178beddd37c01706ee374fd615"
+        },
+        {
+          "name": "source-tree/cmd/cdx/device_pending.go",
+          "size": 6335,
+          "sha256": "1fa274bd87ceed80c09a2032d21c402b95b731b2ed27b85ec39257c96a902ec4"
+        },
+        {
+          "name": "source-tree/cmd/cdx/device_pending_test.go",
+          "size": 16252,
+          "sha256": "7389ab95d06c4066c90f56fe6bf8143c3840b9242c6c32afd90ddde5a5716931"
+        },
+        {
+          "name": "source-tree/cmd/cdx/device_push.go",
+          "size": 1964,
+          "sha256": "969d71f18a4883939c52fbcda3efb28f0bd9adb7c376c661e9a89f2a98802d7c"
+        },
+        {
+          "name": "source-tree/cmd/cdx/device_push_test.go",
+          "size": 2559,
+          "sha256": "999c4ee69e98eb9d0f5662d85c9e515a80a49858452d3556668b849992d0c9bf"
+        },
+        {
+          "name": "source-tree/cmd/cdx/device_transport.go",
+          "size": 4529,
+          "sha256": "5f5956e6d10c6cd218f897eb3d4c341ec24c56c680c954e00502845ae41c063a"
+        },
+        {
+          "name": "source-tree/cmd/cdx/device_transport_test.go",
+          "size": 9466,
+          "sha256": "1081d0f63fea852f54fd9f23e7946c5a1cc2013f526895c20381fe6ac1ab9286"
+        },
+        {
+          "name": "source-tree/cmd/cdx/devices.go",
+          "size": 19163,
+          "sha256": "4acbe8306c48f39319d36459a4cbf44811ce6ea3dad00f5cae3dc254407275be"
+        },
+        {
+          "name": "source-tree/cmd/cdx/devices_test.go",
+          "size": 15008,
+          "sha256": "1c861c26e09e8cab89820aa467f5e46bb1eea766f2752e5de60f0fa0f2597a37"
+        },
+        {
+          "name": "source-tree/cmd/cdx/direct.go",
+          "size": 13606,
+          "sha256": "61e2a317aa77014b79ed580338188c6ca18480fdc2bba3ec11c366fd759ca666"
+        },
+        {
+          "name": "source-tree/cmd/cdx/direct_bench_test.go",
+          "size": 1046,
+          "sha256": "f44db8a79e4a9511a52ac451e4a2e08cbd4edcfddffe99c412d112bc125d9242"
+        },
+        {
+          "name": "source-tree/cmd/cdx/direct_candidates_test.go",
+          "size": 2506,
+          "sha256": "b0f2cd2f9f8a84be5af09f048f883dabb3c8b83581bc651afcf3381368575047"
+        },
+        {
+          "name": "source-tree/cmd/cdx/direct_gather_test.go",
+          "size": 1752,
+          "sha256": "6068931e182f3db8af8bafcf839096768142dbd965b34470a0239021c3f97979"
+        },
+        {
+          "name": "source-tree/cmd/cdx/failure.go",
+          "size": 3118,
+          "sha256": "879c3e052999bb08f2c1a96ba3c8f07339c7c89587f5f3d9f58b9e3621a236e5"
+        },
+        {
+          "name": "source-tree/cmd/cdx/failure_test.go",
+          "size": 3707,
+          "sha256": "fe133105cacc4a3472a13b9abd6737e3b03b7c341c22e7f01250c4fd063e1088"
+        },
+        {
+          "name": "source-tree/cmd/cdx/join_code_test.go",
+          "size": 4649,
+          "sha256": "d3e2fa3fb813f3336889094362258f025f93305429350fca5710badfe03907dd"
+        },
+        {
+          "name": "source-tree/cmd/cdx/lan.go",
+          "size": 14527,
+          "sha256": "50d46258a44369e57ea7ea76398f75903b5a5a46acb5440438704ce96b3c03d6"
+        },
+        {
+          "name": "source-tree/cmd/cdx/lan_test.go",
+          "size": 14112,
+          "sha256": "75397b3899dd7b0b830b88b5e98aa4a9172a74836c2de97be64809d87dd04434"
+        },
+        {
+          "name": "source-tree/cmd/cdx/large_chunks_test.go",
+          "size": 5722,
+          "sha256": "89a8b31512305b4fc7acc60eab4d1a0e401d918869f104021493b8058b4a4643"
+        },
+        {
+          "name": "source-tree/cmd/cdx/legacy_fixture_test.go",
+          "size": 1171,
+          "sha256": "ad70aaa8f69485641963b4e5ff966958de6b3c8faffd26a271ab41af82fc91b2"
+        },
+        {
+          "name": "source-tree/cmd/cdx/link.go",
+          "size": 16084,
+          "sha256": "e4ea3db818c8d4f886327d1d31751c8efd837224c591b4def22ad6bd8bcc3994"
+        },
+        {
+          "name": "source-tree/cmd/cdx/link_next_bench_test.go",
+          "size": 2550,
+          "sha256": "7d10e8f570426afb3cd28c9fbdad7f3cdbf11705062937b262b0dbed334c49dd"
+        },
+        {
+          "name": "source-tree/cmd/cdx/link_test.go",
+          "size": 14254,
+          "sha256": "e433aeae382c7a752ccb0ac04941f448e089c94a5ed129c2657f2d340966b935"
+        },
+        {
+          "name": "source-tree/cmd/cdx/main.go",
+          "size": 24260,
+          "sha256": "677b9af2fddc050f1e6ed0ad8fbaf4a79dfaffde09e2c08f4896859cbd650bfb"
+        },
+        {
+          "name": "source-tree/cmd/cdx/main_test.go",
+          "size": 5953,
+          "sha256": "ac153911bd3c18e15e9eacf943b2448f81a20e813029a2b8dd205164496d61a9"
+        },
+        {
+          "name": "source-tree/cmd/cdx/process_unix.go",
+          "size": 443,
+          "sha256": "19894a6a446a1c8cff9dfa34d8bd1077f0e947fff9918b61cdc31c43fd6a8d66"
+        },
+        {
+          "name": "source-tree/cmd/cdx/process_windows.go",
+          "size": 836,
+          "sha256": "abf60bcac0be56cf3127df6924187107ce6e684e331744e404e3aa45b76ada87"
+        },
+        {
+          "name": "source-tree/cmd/cdx/profile_goal_test.go",
+          "size": 566,
+          "sha256": "94050f3001721a8d884e9307c20f36d4c556dac3efb9ab8f8b1ddfa326148d45"
+        },
+        {
+          "name": "source-tree/cmd/cdx/progress.go",
+          "size": 4879,
+          "sha256": "ca1c9eac4bf1c231fbf7751df530d1d9c9219ef3897368279b64dc1a638cbf76"
+        },
+        {
+          "name": "source-tree/cmd/cdx/progress_test.go",
+          "size": 3232,
+          "sha256": "c5cf6bce5faf9d4e194c396a907fb434db349fe49932e7d1e5d97767563a4e73"
+        },
+        {
+          "name": "source-tree/cmd/cdx/protocol.go",
+          "size": 6933,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "name": "source-tree/cmd/cdx/protocol_consume_test.go",
+          "size": 4483,
+          "sha256": "74ee945108583256c870e9ff262b2d482b5be455f7749f3744571666243a384a"
+        },
+        {
+          "name": "source-tree/cmd/cdx/protocol_reuse_test.go",
+          "size": 2164,
+          "sha256": "59be7c10c8278cfc05f3412e1a6b3fee816f256a5da22245a27e2e68102ddbca"
+        },
+        {
+          "name": "source-tree/cmd/cdx/protocol_test.go",
+          "size": 2840,
+          "sha256": "4cdfc4d4cbbb3120ca51dc998d9ad0173625b10bb675aecee9c8266f0f151ee5"
+        },
+        {
+          "name": "source-tree/cmd/cdx/qr.go",
+          "size": 1709,
+          "sha256": "591af6166458e8b2862bed7040ca7b135c5127e0474c33c5ad14f527778fa7d0"
+        },
+        {
+          "name": "source-tree/cmd/cdx/qr_test.go",
+          "size": 2984,
+          "sha256": "7247f1a8cf9cf3c30027dcd1ad045408998f266a83ce83356161c47a0402c4e4"
+        },
+        {
+          "name": "source-tree/cmd/cdx/receive.go",
+          "size": 19743,
+          "sha256": "fc2f1cfc6bb7fcad62af0ffd8eb5c4e16bf6989987c16788c1b6296043403539"
+        },
+        {
+          "name": "source-tree/cmd/cdx/receive_root_test.go",
+          "size": 7426,
+          "sha256": "f3458b8227787c3016215cfa3de7c1433a7b50a5e4c3d7e7e93717667db1fa99"
+        },
+        {
+          "name": "source-tree/cmd/cdx/receive_safety_test.go",
+          "size": 3979,
+          "sha256": "b05376cb3860a76727de53e45ffcb0e099eb57272e4b438ded1a2c7fdb7a7da0"
+        },
+        {
+          "name": "source-tree/cmd/cdx/receive_test.go",
+          "size": 6875,
+          "sha256": "8c7d42bd33d952d97ae788a28f5a7af5b547413505c7193aaf68f7f8ef082e2a"
+        },
+        {
+          "name": "source-tree/cmd/cdx/relay_read_test.go",
+          "size": 5138,
+          "sha256": "a52b7bfbf09811b4f317e694c59256cd65c9f90954b04bdca15f5bc6d458b465"
+        },
+        {
+          "name": "source-tree/cmd/cdx/relay_send_reuse_test.go",
+          "size": 2714,
+          "sha256": "61b0f9d03f0bb5cf8d740010615204119288031f246618e0aaa3f62de4be70c6"
+        },
+        {
+          "name": "source-tree/cmd/cdx/request.go",
+          "size": 9742,
+          "sha256": "f2d5726dfd7893c4d8d5487cca0546febddd0f873ca4002ae59171e606db2e04"
+        },
+        {
+          "name": "source-tree/cmd/cdx/request_test.go",
+          "size": 5399,
+          "sha256": "750c6f248adb54ceb98f8f541ac895dae10d2e0c37acbcb470aba71c44c8f98e"
+        },
+        {
+          "name": "source-tree/cmd/cdx/requestlock_unix.go",
+          "size": 657,
+          "sha256": "dd2ac987f3ef93243a4b4cffc70df551e1c4e8b65195b820b7a2fa47050b551b"
+        },
+        {
+          "name": "source-tree/cmd/cdx/requestlock_windows.go",
+          "size": 792,
+          "sha256": "f3414a8e0c69e6313c5fb7f7520145431a0cac2b0e5ffe6289aedc710cb5508e"
+        },
+        {
+          "name": "source-tree/cmd/cdx/resume.go",
+          "size": 26490,
+          "sha256": "3e7451d883b42d5fb3e8b98f350286d2fa06cedacc3dd15a90f48d37a6334eaa"
+        },
+        {
+          "name": "source-tree/cmd/cdx/resume_direct.go",
+          "size": 3306,
+          "sha256": "9b9442e1e46f61c1376a85984ff2c7481964f0e8776cc2dad7835d41488450a3"
+        },
+        {
+          "name": "source-tree/cmd/cdx/resume_direct_test.go",
+          "size": 12310,
+          "sha256": "479383ec848fdbf5d2da3a6fa965ac61f7da8c58895a8cb06d24d775463a3a54"
+        },
+        {
+          "name": "source-tree/cmd/cdx/resume_limits_test.go",
+          "size": 2156,
+          "sha256": "170fae69fb2b973c50e1e8566204ed8dce4347e2d080b2f6eef445ad561ef607"
+        },
+        {
+          "name": "source-tree/cmd/cdx/resume_protocol.go",
+          "size": 9948,
+          "sha256": "0790aa3d2a73bbc13fa59f241a5c6348a86fb93ee4efb377a1efb3872fe4f2ad"
+        },
+        {
+          "name": "source-tree/cmd/cdx/resume_protocol_test.go",
+          "size": 3398,
+          "sha256": "5c888cf210a512a9a935eb97277558c3fb075323f16c277da568e8291342211c"
+        },
+        {
+          "name": "source-tree/cmd/cdx/resume_storage.go",
+          "size": 7977,
+          "sha256": "4a3b005a5a0abe221085863aa45cb76afc27932cf6852173c0f29cd7e1f157cc"
+        },
+        {
+          "name": "source-tree/cmd/cdx/resume_storage_test.go",
+          "size": 4805,
+          "sha256": "e10ba8322141d75776c1370781a5ca0a26921eae8ba986aa7ee4cd65e72044da"
+        },
+        {
+          "name": "source-tree/cmd/cdx/resume_test.go",
+          "size": 1108,
+          "sha256": "821fea46398fea5a28f45a26c069e9334d1995050255fc108d23527405818a5b"
+        },
+        {
+          "name": "source-tree/cmd/cdx/retry.go",
+          "size": 3210,
+          "sha256": "68a6303940cfb737be7df8389c0c29577d23448fda62e7e48047a2594385b6f4"
+        },
+        {
+          "name": "source-tree/cmd/cdx/retry_integration_test.go",
+          "size": 4606,
+          "sha256": "6b09530d805aece1c140a7e63922f8b545ae4925b96b2e3847fb9b19752d0860"
+        },
+        {
+          "name": "source-tree/cmd/cdx/retry_test.go",
+          "size": 3746,
+          "sha256": "1ab54d4c47f1ccc03fce370d396df34ad2f574d46a80ee3b7439caf5e79d0525"
+        },
+        {
+          "name": "source-tree/cmd/cdx/reverse_lan_fallback_test.go",
+          "size": 3686,
+          "sha256": "f19693b1f21a3bb41d23996e8e7742c69addb5e862f4475195e8f5c2e6da5d59"
+        },
+        {
+          "name": "source-tree/cmd/cdx/reverse_lan_grace_test.go",
+          "size": 3570,
+          "sha256": "448cbf91f369142cb91f8498ea3c4c65ae5e0d79b073772a5d06755901bf7aa3"
+        },
+        {
+          "name": "source-tree/cmd/cdx/reverse_lan_test.go",
+          "size": 8738,
+          "sha256": "e0a31391c61c48d00bd0c841fa3fb83e1b70b9248b288ba531b8d24d9443d15f"
+        },
+        {
+          "name": "source-tree/cmd/cdx/review_transfer_reliability_test.go",
+          "size": 7867,
+          "sha256": "06ca0f961eb4930a3dd0e1ecf27c3eaabb3d43f2cb734b7153f2bedb85030b6b"
+        },
+        {
+          "name": "source-tree/cmd/cdx/review_transfer_security_test.go",
+          "size": 5785,
+          "sha256": "ea9f50fe837923906fb14e5654a814454be8dd5ebfb61f9668dcc4ffad63b1ad"
+        },
+        {
+          "name": "source-tree/cmd/cdx/sender.go",
+          "size": 28322,
+          "sha256": "eca064acd4f3aa7cdde12ca81303eb1978e9593420be98ca0773dd67e7201d3f"
+        },
+        {
+          "name": "source-tree/cmd/cdx/sender_progress_test.go",
+          "size": 1817,
+          "sha256": "34fcef68442d2e019ce31afbcd7897e0dc55500bdd41976a1eaaa7d6ee0cd5e8"
+        },
+        {
+          "name": "source-tree/cmd/cdx/sender_test.go",
+          "size": 5169,
+          "sha256": "a8b75b45679a30aedb6bb04d8f020258a3b8fbdacf6ae0d27459c76b9b5effc9"
+        },
+        {
+          "name": "source-tree/cmd/cdx/sender_unix_test.go",
+          "size": 640,
+          "sha256": "c19fc7b3beb5b0611050ae8f736ee592e9db961a7dc83d53cf011f5f2b2ea679"
+        },
+        {
+          "name": "source-tree/cmd/cdx/signals_unix.go",
+          "size": 153,
+          "sha256": "684769cbc784fa98357e98e80efa240f70fc6eac78ffdfb8459e40bff5b50282"
+        },
+        {
+          "name": "source-tree/cmd/cdx/signals_windows.go",
+          "size": 119,
+          "sha256": "846c4046dfa46976600b5d4a0729a0926119fcea4620ee9e52c2f6a2298a509f"
+        },
+        {
+          "name": "source-tree/cmd/cdx/state.go",
+          "size": 9686,
+          "sha256": "e61441c54f3c95102c0eda150f56d7352cec2e80d16513b00ca8a7fd21e8a4ad"
+        },
+        {
+          "name": "source-tree/cmd/cdx/state_test.go",
+          "size": 7651,
+          "sha256": "9e414c921b3821b4f3caa3f6d0c64b6fe01f3242d36cd7e1aefe3caf64fef25c"
+        },
+        {
+          "name": "source-tree/cmd/cdx/stripe.go",
+          "size": 8578,
+          "sha256": "adadac6365aba42da96bfeb619f53798ab3c36c6b37ca49bde01fcd93e6c9e7b"
+        },
+        {
+          "name": "source-tree/cmd/cdx/stripe_test.go",
+          "size": 8243,
+          "sha256": "6010334171e3ca6900047cbf9890859d97fd8b6247490a77b8115f121aae15fb"
+        },
+        {
+          "name": "source-tree/cmd/cdx/style.go",
+          "size": 4181,
+          "sha256": "637550c886a8e0c7b91e98f78de9893845516fc4aa79ec6464fc0da6fe72ccad"
+        },
+        {
+          "name": "source-tree/cmd/cdx/unbundle.go",
+          "size": 6464,
+          "sha256": "e7facf7b265173cc3bd0f7907f3e8f07655e83d025907914ce406eb4a5b8cd37"
+        },
+        {
+          "name": "source-tree/cmd/cdx/unbundle_test.go",
+          "size": 2908,
+          "sha256": "67bdd70adda139dfb203ff8c02a33ad0e85217ac31e660e42a26ea06d48da6b2"
+        },
+        {
+          "name": "source-tree/cmd/cdx/update.go",
+          "size": 6000,
+          "sha256": "aee61d6733559c960d98f16a9885a14deed388e0c9c50ac7c66810f569c6c38e"
+        },
+        {
+          "name": "source-tree/cmd/cdx/update_notice.go",
+          "size": 2934,
+          "sha256": "fefcc241ff334a0a34bf006a3b39b2f9433877890bc69a02c775edacaf1a3114"
+        },
+        {
+          "name": "source-tree/cmd/cdx/update_notice_test.go",
+          "size": 5484,
+          "sha256": "d6f7c231e943cbee9818814975e84aade41ac70a2e40fddf014c69f4822c190d"
+        },
+        {
+          "name": "source-tree/cmd/cdx/update_test.go",
+          "size": 1774,
+          "sha256": "99dd4de55763506f6efd37a44c341d9c3c040fbac0e4553da67d0d469e0a4b64"
+        },
+        {
+          "name": "source-tree/cmd/cdx/welcome.go",
+          "size": 9547,
+          "sha256": "0838708f0ef52540878381c9ebd2d5764c5039fabf1bcc40784285cf7ffaad0e"
+        },
+        {
+          "name": "source-tree/cmd/cdx/window.go",
+          "size": 2073,
+          "sha256": "99660196689f1139492d8b1a8413548c807a8a3006a3bdfaa899036bbc839415"
+        },
+        {
+          "name": "source-tree/cmd/cdx/window_test.go",
+          "size": 2476,
+          "sha256": "7f7474259e20aa6f3a2c5593053f4aeb241251c47b7d043055c03c200193ffba"
+        },
+        {
+          "name": "source-tree/docs",
+          "directory": true
+        },
+        {
+          "name": "source-tree/docs/guides",
+          "directory": true
+        },
+        {
+          "name": "source-tree/docs/guides/cli-performance.md",
+          "size": 3667,
+          "sha256": "891f1722a723f4a4111173528da79cc3e979023a2fcc51264e11b2c04fd54e9a"
+        },
+        {
+          "name": "source-tree/docs/guides/firebase-setup.md",
+          "size": 6147,
+          "sha256": "b729487e6b269c7997d5e30d43068f31bfef6734fe951714e7d8f35438de88ce"
+        },
+        {
+          "name": "source-tree/docs/guides/wl-worker.js",
+          "size": 1527,
+          "sha256": "06874dfc6b4e448c17e406ab7f1b24015b25aecc2ee7b0866853160f142ea4aa"
+        },
+        {
+          "name": "source-tree/docs/guides/wl.html",
+          "size": 7763,
+          "sha256": "eb26afc9f68a93e4a8489f9e115786ed6657691b02f24c3085127f3d3e278b2d"
+        },
+        {
+          "name": "source-tree/src",
+          "directory": true
+        },
+        {
+          "name": "source-tree/src/agent-code.js",
+          "size": 2407,
+          "sha256": "197426c7492424bbb67f7f7b0a119ea13a0f9b11440bf3e158142493600422ab"
+        },
+        {
+          "name": "source-tree/src/agent-code.test.js",
+          "size": 2991,
+          "sha256": "2659568a290dbe5cb41f8ab3a6dc960802b46033412098e99189d05beb708bed"
+        },
+        {
+          "name": "source-tree/src/agent-protocol.js",
+          "size": 6054,
+          "sha256": "d6044d9c6998e009807ecb7aab68cb07262e085679b1ac1027746be601fa344e"
+        },
+        {
+          "name": "source-tree/src/agent-protocol.test.js",
+          "size": 1969,
+          "sha256": "0596d28cdb45e4e00d7a197679bf43f470a9ec65b78491740b5a22dcd56e772e"
+        },
+        {
+          "name": "source-tree/src/agent-send.js",
+          "size": 3973,
+          "sha256": "d35e1aea7b3c0f20c53a1e2f24836ca9d67c1a44ae5318f569064e77f8c4fa8d"
+        },
+        {
+          "name": "source-tree/src/ambient-dots.js",
+          "size": 3261,
+          "sha256": "adcef05231997f3fd96162c899074179b0d71fc4da3f1540c41f060e05e1ab87"
+        },
+        {
+          "name": "source-tree/src/direct-link.js",
+          "size": 10783,
+          "sha256": "78fc0760d390ef46aecbaf3342464fde167d3be9ee34d239b582a5195af6af2d"
+        },
+        {
+          "name": "source-tree/src/direct-link.test.js",
+          "size": 6955,
+          "sha256": "8cb88ef9031302615d44669e058e350838b70e246d7f3b56a71574c9253b8f78"
+        },
+        {
+          "name": "source-tree/src/entry.js",
+          "size": 4280,
+          "sha256": "0ca1dab334d4cfff29e1b45626ac3e044160a8d5ae9ac9b8973e043968cb6d3d"
+        },
+        {
+          "name": "source-tree/src/incremental-sha256.js",
+          "size": 3185,
+          "sha256": "6b7f2d282be3af2039766f32e57899ac77f51d2fdd2417cbdaf4eeb3f9f6ef67"
+        },
+        {
+          "name": "source-tree/src/incremental-sha256.test.js",
+          "size": 1651,
+          "sha256": "723b5c6cfe6355be9264aba98f3e2db3e9ef7a0b0efd81652415ff5a2c306d68"
+        },
+        {
+          "name": "source-tree/src/main.js",
+          "size": 58727,
+          "sha256": "b29e20bd54935103a8f3f26b50c58008bce340a5b4caf585eadc372018c7119e"
+        },
+        {
+          "name": "source-tree/src/p2p-code.js",
+          "size": 4858,
+          "sha256": "925472e3b9c3b54cb0fb9b2518d0415a13e62fb837be7091327254c954c0729b"
+        },
+        {
+          "name": "source-tree/src/p2p-code.test.js",
+          "size": 2596,
+          "sha256": "bf10e09e464233a9b9f77fbd739b835f058fda3a9638b7353f33f1c0868c19b6"
+        },
+        {
+          "name": "source-tree/src/p2p-manifest.js",
+          "size": 1895,
+          "sha256": "c4853ecf22e47a34429fa02f3686496031393fd736d8fdc03d638ec79d950f75"
+        },
+        {
+          "name": "source-tree/src/p2p-manifest.test.js",
+          "size": 877,
+          "sha256": "3a6aaa9d803a1e2bd16a2cf4e99ebdb0799e77ac433198c56a92008a1e7bc4be"
+        },
+        {
+          "name": "source-tree/src/qr-scanner.js",
+          "size": 2948,
+          "sha256": "c5b280eeec3289b06ebe5980ab0e0b57f2a41f786c9116dc527bf81127312192"
+        },
+        {
+          "name": "source-tree/src/raw-channel.js",
+          "size": 3916,
+          "sha256": "7bcc8d4c8e9773f408630c5a7c296a1d985807e901f661921b92f732e4193f15"
+        },
+        {
+          "name": "source-tree/src/raw-channel.test.js",
+          "size": 1418,
+          "sha256": "3d0bafe43c847059c6af7aec285c9943cff3441d4c1550e4289e17e3f0ee5460"
+        },
+        {
+          "name": "source-tree/src/relay-sender.js",
+          "size": 23146,
+          "sha256": "d147a29f25f63f91da853ef86943b0423de776a36c26890c5f98dba169e4648b"
+        },
+        {
+          "name": "source-tree/src/relay-sender.test.js",
+          "size": 8788,
+          "sha256": "f396db99104906abac5a76b5e6f4c373f0a2515be42ad4586314a41bc1d5882e"
+        },
+        {
+          "name": "source-tree/src/relay-tunnel.js",
+          "size": 7827,
+          "sha256": "6c9d78af6d416984c23701598f5a4e570b834c96d826723e33962da3200ad556"
+        },
+        {
+          "name": "source-tree/src/relay-tunnel.test.js",
+          "size": 5581,
+          "sha256": "c947336e069d5d457ab3a8c15afd648ce2331b2a855051ba8aef72bcf588f899"
+        },
+        {
+          "name": "source-tree/src/resume-browser.js",
+          "size": 40375,
+          "sha256": "053c0c161c81828fc2b53d86a92233a8071e60dedd02b00657dd6328064c9dd4"
+        },
+        {
+          "name": "source-tree/src/resume-browser.test.js",
+          "size": 6626,
+          "sha256": "3779d2fdee7dc417307397212bc2bad184118340f87615ff65f09432d023c920"
+        },
+        {
+          "name": "source-tree/src/resume-cancel.test.js",
+          "size": 7478,
+          "sha256": "1952ffc787d9d251e74c0f3fc8ce01d9cfce36020deac9973405ec10727b2e17"
+        },
+        {
+          "name": "source-tree/src/resume-inbox.test.js",
+          "size": 1806,
+          "sha256": "80cb18447ec3b21ea56e5b79d592d7b7d58003c52f4c267fe7a6e8022b7cca6f"
+        },
+        {
+          "name": "source-tree/src/resume-opfs-worker.js",
+          "size": 1231,
+          "sha256": "b671cd59638f6989b98cc250f74a1b8e3fcf4eac23766a0dba5a86461315f9fd"
+        },
+        {
+          "name": "source-tree/src/resume-opfs.js",
+          "size": 2572,
+          "sha256": "62841ebac2fc34316c28b724b731a22ad542dc409aaefc4c0c33645dc5d27136"
+        },
+        {
+          "name": "source-tree/src/resume-opfs.test.js",
+          "size": 4061,
+          "sha256": "3760d284bcac88119c7f9d0a4e14e8bac0c2836296726ad0fc3c2c8f636ce311"
+        },
+        {
+          "name": "source-tree/src/resume-protocol.js",
+          "size": 6894,
+          "sha256": "03fc1169f48f870ac76e16c9d69809205d8b4562eb38f81067985428d529576b"
+        },
+        {
+          "name": "source-tree/src/resume-protocol.test.js",
+          "size": 3670,
+          "sha256": "f9994f117158c39f9aec643f2c83632f86208cccd576f656042c0319be6faa3e"
+        },
+        {
+          "name": "source-tree/src/resume-retention.js",
+          "size": 3108,
+          "sha256": "b0c4b7c04a9a71eb7452f86b66be197fd8af8577da6250c363db54bf5cd68698"
+        },
+        {
+          "name": "source-tree/src/resume-retention.test.js",
+          "size": 4102,
+          "sha256": "dda39fa0fe9a1dc77774f96ce7b3e3a727ff82abfc7362185f2cf71181a63c37"
+        },
+        {
+          "name": "source-tree/src/resume-sender.test.js",
+          "size": 10408,
+          "sha256": "05097b5a988aa0c14ab68809d632bd1efc6f3dbec530526b12304b5256f02017"
+        },
+        {
+          "name": "source-tree/src/resume-window.test.js",
+          "size": 2256,
+          "sha256": "7704c4c2926654dcb35a2ce1926d6534eb1f651cb0d258ba5c2bb4788e9787de"
+        },
+        {
+          "name": "source-tree/src/send-window.js",
+          "size": 3638,
+          "sha256": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473"
+        },
+        {
+          "name": "source-tree/src/send-window.test.js",
+          "size": 6004,
+          "sha256": "61f1320c4f120017dee6c26c54aea750f2471968c1b78259baaf1112837b3315"
+        },
+        {
+          "name": "source-tree/src/share-link.js",
+          "size": 1279,
+          "sha256": "c90c89d9de743f807b68799c2ecc02c97f6434ad6ea1108a5ee65f9726797f5d"
+        },
+        {
+          "name": "source-tree/src/share-link.test.js",
+          "size": 1043,
+          "sha256": "219340af4443fccb8ebb7fc016bd5483f258e97bd499e02fc490c355491d9246"
+        },
+        {
+          "name": "source-tree/src/share-page.js",
+          "size": 1197,
+          "sha256": "47198c0a46a35ee541e6433b2c4852e3d0329f128d97403954c1ee6aaf6aa9c4"
+        },
+        {
+          "name": "source-tree/src/share.js",
+          "size": 23037,
+          "sha256": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c"
+        },
+        {
+          "name": "source-tree/src/sink.js",
+          "size": 10521,
+          "sha256": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470"
+        },
+        {
+          "name": "source-tree/src/sink.test.js",
+          "size": 13736,
+          "sha256": "fd7d7c89d447aefa3cfdf19c689727e5233a00ff48ad98591340bd422fc79c22"
+        },
+        {
+          "name": "source-tree/src/style.css",
+          "size": 29890,
+          "sha256": "2f3ec31938e9c5b4ed9ac3ec8548029c5f68a33289ca8724dbc12538d8b9cb3b"
+        },
+        {
+          "name": "source-tree/src/transfer-limits.js",
+          "size": 1332,
+          "sha256": "f94d60ffda36f7bf13451f867eab9d39cd092436fa9d83b6941a46a9c08a2dab"
+        },
+        {
+          "name": "source-tree/src/transfer-limits.test.js",
+          "size": 1275,
+          "sha256": "6462d7991c1ff3191499d03d0d056ebad2508289b3b6055535eb0781ef20ad77"
+        },
+        {
+          "name": "source-tree/src/zip-bundle.js",
+          "size": 7213,
+          "sha256": "e77460ade3fb1bb292d85865a633873e3aa349981f6c7d994c8425284b8d2339"
+        },
+        {
+          "name": "source-tree/src/zip-bundle.test.js",
+          "size": 3764,
+          "sha256": "26655ca6dbb748d74e05995b5844f3cae70270481a17fb496696de922018e254"
+        },
+        {
+          "name": "source-tree/src/zip-unbundle.js",
+          "size": 6936,
+          "sha256": "fe1f8c8a94668c2168802e937e8dbc8364b3de5d6b9b6f36d57f1b5b71d65804"
+        },
+        {
+          "name": "source-tree/src/zip-unbundle.test.js",
+          "size": 4774,
+          "sha256": "97bda9379b91ce831234f357a3954ba181ba61adcbe7dc3d123c49669fd9538a"
+        }
+      ],
+      "strictPass2": false
+    },
+    {
+      "task": "Gzip archive",
+      "binary": {
+        "cdx": "/tmp/cdx-prf-compression",
+        "sha256": "6288e2c46cea1856d18530e8090f00ce449b18d651538acc3f9b601910598d7a",
+        "croc": "croc version 11.6.3"
+      },
+      "crocFolderMode": "default per-file transfer",
+      "summary": [
+        {
+          "case": "disk/auto/input",
+          "tools": {
+            "cd": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 32.53958800000055,
+              "receiverMs": 72.69906100000026,
+              "durableMs": 79.34248500000012,
+              "totalMs": 111.66680699999961,
+              "spread": {
+                "readyMs": {
+                  "min": 32.32432199999948,
+                  "max": 63.93578500000012
+                },
+                "receiverMs": {
+                  "min": 49.51449899999989,
+                  "max": 101.01601900000014
+                },
+                "durableMs": {
+                  "min": 52.96774899999946,
+                  "max": 119.64009299999998
+                },
+                "totalMs": {
+                  "min": 85.507337,
+                  "max": 183.5758780000001
+                }
+              }
+            },
+            "croc": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 19.992271999999957,
+              "receiverMs": 643.2667940000001,
+              "durableMs": 648.3758740000003,
+              "totalMs": 669.8073420000001,
+              "spread": {
+                "readyMs": {
+                  "min": 16.67676599999959,
+                  "max": 21.431467999999768
+                },
+                "receiverMs": {
+                  "min": 555.2156439999999,
+                  "max": 644.9487900000004
+                },
+                "durableMs": {
+                  "min": 558.2259050000002,
+                  "max": 653.5926410000002
+                },
+                "totalMs": {
+                  "min": 574.9026709999998,
+                  "max": 673.5849130000001
+                }
+              }
+            },
+            "croc-no-compress": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 15.575800999999956,
+              "receiverMs": 651.0458269999999,
+              "durableMs": 658.743923,
+              "totalMs": 670.1664850000002,
+              "spread": {
+                "readyMs": {
+                  "min": 11.422562000000198,
+                  "max": 19.371587999999974
+                },
+                "receiverMs": {
+                  "min": 553.3510609999994,
+                  "max": 690.1481459999995
+                },
+                "durableMs": {
+                  "min": 556.7024839999995,
+                  "max": 702.1658459999999
+                },
+                "totalMs": {
+                  "min": 572.2782849999994,
+                  "max": 721.5374339999998
+                }
+              }
+            }
+          },
+          "speedup": {
+            "croc": {
+              "readyMs": 0.6143984367595441,
+              "receiverMs": 8.848350792316257,
+              "durableMs": 8.171862451749517,
+              "totalMs": 5.998267166356807
+            },
+            "croc-no-compress": {
+              "readyMs": 0.47867234827926197,
+              "receiverMs": 8.95535400381578,
+              "durableMs": 8.302537070776129,
+              "totalMs": 6.001483368285103
+            }
+          },
+          "pass1_5": false,
+          "pass2": false
+        },
+        {
+          "case": "disk/relay/input",
+          "tools": {
+            "cd": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 31.780743000000257,
+              "receiverMs": 113.9767609999999,
+              "durableMs": 119.06372099999862,
+              "totalMs": 199.47551899999962,
+              "spread": {
+                "readyMs": {
+                  "min": 26.65591200000017,
+                  "max": 80.411798000001
+                },
+                "receiverMs": {
+                  "min": 45.619636999999784,
+                  "max": 178.57927400000062
+                },
+                "durableMs": {
+                  "min": 61.767603999999665,
+                  "max": 187.67219600000044
+                },
+                "totalMs": {
+                  "min": 88.42351599999984,
+                  "max": 219.4529390000007
+                }
+              }
+            },
+            "croc": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 7.03899999999885,
+              "receiverMs": 106.39901100000134,
+              "durableMs": 111.15605700000015,
+              "totalMs": 118.195056999999,
+              "spread": {
+                "readyMs": {
+                  "min": 7.01051600000028,
+                  "max": 8.147026000000551
+                },
+                "receiverMs": {
+                  "min": 100.7839529999992,
+                  "max": 111.15436200000022
+                },
+                "durableMs": {
+                  "min": 108.08213099999921,
+                  "max": 117.7323409999999
+                },
+                "totalMs": {
+                  "min": 116.22915699999976,
+                  "max": 124.74285700000019
+                }
+              }
+            },
+            "croc-no-compress": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 13.533215999999811,
+              "receiverMs": 141.1813940000011,
+              "durableMs": 150.27303100000063,
+              "totalMs": 164.46613600000092,
+              "spread": {
+                "readyMs": {
+                  "min": 8.713368000000628,
+                  "max": 14.193105000000287
+                },
+                "receiverMs": {
+                  "min": 125.45478999999978,
+                  "max": 143.6090690000001
+                },
+                "durableMs": {
+                  "min": 138.43727500000023,
+                  "max": 165.43123699999978
+                },
+                "totalMs": {
+                  "min": 151.97049100000004,
+                  "max": 174.1446050000004
+                }
+              }
+            }
+          },
+          "speedup": {
+            "croc": {
+              "readyMs": 0.22148632585458414,
+              "receiverMs": 0.9335149557373492,
+              "durableMs": 0.9335846055071757,
+              "totalMs": 0.5925291363698582
+            },
+            "croc-no-compress": {
+              "readyMs": 0.4258306987976871,
+              "receiverMs": 1.238685787886192,
+              "durableMs": 1.262122750220467,
+              "totalMs": 0.8244928341306946
+            }
+          },
+          "pass1_5": false,
+          "pass2": false
+        }
+      ],
+      "rows": [
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 0,
+          "ok": true,
+          "readyMs": 63.93578500000012,
+          "receiverMs": 101.01601900000014,
+          "durableMs": 119.64009299999998,
+          "totalMs": 183.5758780000001,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 0,
+          "ok": true,
+          "readyMs": 19.992271999999957,
+          "receiverMs": 643.2667940000001,
+          "durableMs": 653.5926410000002,
+          "totalMs": 673.5849130000001,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 0,
+          "ok": true,
+          "readyMs": 11.422562000000198,
+          "receiverMs": 651.0458269999999,
+          "durableMs": 658.743923,
+          "totalMs": 670.1664850000002,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 1,
+          "ok": true,
+          "readyMs": 21.431467999999768,
+          "receiverMs": 644.9487900000004,
+          "durableMs": 648.3758740000003,
+          "totalMs": 669.8073420000001,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 1,
+          "ok": true,
+          "readyMs": 19.371587999999974,
+          "receiverMs": 690.1481459999995,
+          "durableMs": 702.1658459999999,
+          "totalMs": 721.5374339999998,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 1,
+          "ok": true,
+          "readyMs": 32.53958800000055,
+          "receiverMs": 49.51449899999989,
+          "durableMs": 52.96774899999946,
+          "totalMs": 85.507337,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 2,
+          "ok": true,
+          "readyMs": 15.575800999999956,
+          "receiverMs": 553.3510609999994,
+          "durableMs": 556.7024839999995,
+          "totalMs": 572.2782849999994,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 2,
+          "ok": true,
+          "readyMs": 32.32432199999948,
+          "receiverMs": 72.69906100000026,
+          "durableMs": 79.34248500000012,
+          "totalMs": 111.66680699999961,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 2,
+          "ok": true,
+          "readyMs": 16.67676599999959,
+          "receiverMs": 555.2156439999999,
+          "durableMs": 558.2259050000002,
+          "totalMs": 574.9026709999998,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 0,
+          "ok": true,
+          "readyMs": 26.65591200000017,
+          "receiverMs": 45.619636999999784,
+          "durableMs": 61.767603999999665,
+          "totalMs": 88.42351599999984,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 0,
+          "ok": true,
+          "readyMs": 7.01051600000028,
+          "receiverMs": 111.15436200000022,
+          "durableMs": 117.7323409999999,
+          "totalMs": 124.74285700000019,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 0,
+          "ok": true,
+          "readyMs": 13.533215999999811,
+          "receiverMs": 125.45478999999978,
+          "durableMs": 138.43727500000023,
+          "totalMs": 151.97049100000004,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 1,
+          "ok": true,
+          "readyMs": 8.147026000000551,
+          "receiverMs": 100.7839529999992,
+          "durableMs": 108.08213099999921,
+          "totalMs": 116.22915699999976,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 1,
+          "ok": true,
+          "readyMs": 8.713368000000628,
+          "receiverMs": 143.6090690000001,
+          "durableMs": 165.43123699999978,
+          "totalMs": 174.1446050000004,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 1,
+          "ok": true,
+          "readyMs": 31.780743000000257,
+          "receiverMs": 178.57927400000062,
+          "durableMs": 187.67219600000044,
+          "totalMs": 219.4529390000007,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 2,
+          "ok": true,
+          "readyMs": 14.193105000000287,
+          "receiverMs": 141.1813940000011,
+          "durableMs": 150.27303100000063,
+          "totalMs": 164.46613600000092,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 2,
+          "ok": true,
+          "readyMs": 80.411798000001,
+          "receiverMs": 113.9767609999999,
+          "durableMs": 119.06372099999862,
+          "totalMs": 199.47551899999962,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 260569,
+          "run": 2,
+          "ok": true,
+          "readyMs": 7.03899999999885,
+          "receiverMs": 106.39901100000134,
+          "durableMs": 111.15605700000015,
+          "totalMs": 118.195056999999,
+          "crocZip": false,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        }
+      ],
+      "manifest": [
+        {
+          "name": "source-tree.tar.gz",
+          "size": 260569,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        }
+      ],
+      "strictPass2": false
+    },
+    {
+      "task": "Mixed folder (croc ZIP)",
+      "binary": {
+        "cdx": "/tmp/cdx-prf-final",
+        "sha256": "39fcd0c69cb6bf735cf84b916bd13e5aa487bef1f32313fb913fb5ef9b0c892b",
+        "croc": "croc version 11.6.3"
+      },
+      "crocFolderMode": "directory inputs use send --zip, including native archive preparation and extraction before receiver exit; regular files unchanged",
+      "summary": [
+        {
+          "case": "disk/auto/input",
+          "tools": {
+            "cd": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 30.687882999998692,
+              "receiverMs": 129.65112099999988,
+              "durableMs": 526.2372370000003,
+              "totalMs": 557.3347380000005,
+              "spread": {
+                "readyMs": {
+                  "min": 20.257585999999947,
+                  "max": 31.097501000000193
+                },
+                "receiverMs": {
+                  "min": 90.15507600000092,
+                  "max": 235.89422999999988
+                },
+                "durableMs": {
+                  "min": 436.68220599999995,
+                  "max": 532.8207430000002
+                },
+                "totalMs": {
+                  "min": 456.9397919999999,
+                  "max": 563.5086259999989
+                }
+              }
+            },
+            "croc": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 22.543035999999574,
+              "receiverMs": 1112.9018940000005,
+              "durableMs": 1418.2110600000005,
+              "totalMs": 1440.7540960000001,
+              "spread": {
+                "readyMs": {
+                  "min": 21.427097000000003,
+                  "max": 36.75850300000093
+                },
+                "receiverMs": {
+                  "min": 768.1049510000003,
+                  "max": 1124.9686760000004
+                },
+                "durableMs": {
+                  "min": 966.1656370000001,
+                  "max": 1454.1043069999996
+                },
+                "totalMs": {
+                  "min": 987.5927340000001,
+                  "max": 1490.8628100000005
+                }
+              }
+            },
+            "croc-no-compress": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 25.261053999999604,
+              "receiverMs": 1012.3291730000001,
+              "durableMs": 1324.3706170000005,
+              "totalMs": 1349.631671,
+              "spread": {
+                "readyMs": {
+                  "min": 20.191869000000224,
+                  "max": 40.98642000000018
+                },
+                "receiverMs": {
+                  "min": 751.8639210000001,
+                  "max": 1079.7148280000001
+                },
+                "durableMs": {
+                  "min": 1113.6471999999999,
+                  "max": 1433.3785119999993
+                },
+                "totalMs": {
+                  "min": 1133.839069,
+                  "max": 1474.3649319999995
+                }
+              }
+            }
+          },
+          "speedup": {
+            "croc": {
+              "readyMs": 0.7345907829484535,
+              "receiverMs": 8.583820065851969,
+              "durableMs": 2.6950032424254307,
+              "totalMs": 2.5850785852146165
+            },
+            "croc-no-compress": {
+              "readyMs": 0.8231605288641344,
+              "receiverMs": 7.8081019677415755,
+              "durableMs": 2.5166797860030568,
+              "totalMs": 2.4215818232381543
+            }
+          },
+          "pass1_5": false,
+          "pass2": false
+        },
+        {
+          "case": "disk/relay/input",
+          "tools": {
+            "cd": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 20.125794999999925,
+              "receiverMs": 68.76680399999896,
+              "durableMs": 463.75099200000113,
+              "totalMs": 483.87678700000106,
+              "spread": {
+                "readyMs": {
+                  "min": 18.905729999998584,
+                  "max": 25.750097000000096
+                },
+                "receiverMs": {
+                  "min": 62.83137500000157,
+                  "max": 172.618926000001
+                },
+                "durableMs": {
+                  "min": 429.34765000000334,
+                  "max": 576.2221869999994
+                },
+                "totalMs": {
+                  "min": 448.2533800000019,
+                  "max": 601.9722839999995
+                }
+              }
+            },
+            "croc": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 68.42030499999964,
+              "receiverMs": 537.4920899999997,
+              "durableMs": 860.2642070000002,
+              "totalMs": 932.7740809999996,
+              "spread": {
+                "readyMs": {
+                  "min": 46.30250100000194,
+                  "max": 90.40724399999999
+                },
+                "receiverMs": {
+                  "min": 466.75800999999956,
+                  "max": 554.1763079999982
+                },
+                "durableMs": {
+                  "min": 842.3668369999996,
+                  "max": 904.278968999999
+                },
+                "totalMs": {
+                  "min": 928.6845119999998,
+                  "max": 950.581470000001
+                }
+              }
+            },
+            "croc-no-compress": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 96.409807,
+              "receiverMs": 526.600778,
+              "durableMs": 810.8272519999991,
+              "totalMs": 913.4304440000014,
+              "spread": {
+                "readyMs": {
+                  "min": 49.133224999999584,
+                  "max": 102.60319200000231
+                },
+                "receiverMs": {
+                  "min": 403.5786369999987,
+                  "max": 603.5446069999998
+                },
+                "durableMs": {
+                  "min": 728.1727339999998,
+                  "max": 910.5166110000009
+                },
+                "totalMs": {
+                  "min": 824.5825409999998,
+                  "max": 959.6498360000005
+                }
+              }
+            }
+          },
+          "speedup": {
+            "croc": {
+              "readyMs": 3.399632412036389,
+              "receiverMs": 7.816156324496451,
+              "durableMs": 1.855013189923264,
+              "totalMs": 1.927709917194266
+            },
+            "croc-no-compress": {
+              "readyMs": 4.790360182045,
+              "receiverMs": 7.657775952478582,
+              "durableMs": 1.7484108195718904,
+              "totalMs": 1.8877335481687396
+            }
+          },
+          "pass1_5": true,
+          "pass2": false
+        }
+      ],
+      "rows": [
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 0,
+          "ok": true,
+          "readyMs": 20.257585999999947,
+          "receiverMs": 235.89422999999988,
+          "durableMs": 436.68220599999995,
+          "totalMs": 456.9397919999999,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 0,
+          "ok": true,
+          "readyMs": 21.427097000000003,
+          "receiverMs": 768.1049510000003,
+          "durableMs": 966.1656370000001,
+          "totalMs": 987.5927340000001,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 0,
+          "ok": true,
+          "readyMs": 20.191869000000224,
+          "receiverMs": 751.8639210000001,
+          "durableMs": 1113.6471999999999,
+          "totalMs": 1133.839069,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 1,
+          "ok": true,
+          "readyMs": 22.543035999999574,
+          "receiverMs": 1124.9686760000004,
+          "durableMs": 1418.2110600000005,
+          "totalMs": 1440.7540960000001,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 1,
+          "ok": true,
+          "readyMs": 25.261053999999604,
+          "receiverMs": 1012.3291730000001,
+          "durableMs": 1324.3706170000005,
+          "totalMs": 1349.631671,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 1,
+          "ok": true,
+          "readyMs": 31.097501000000193,
+          "receiverMs": 129.65112099999988,
+          "durableMs": 526.2372370000003,
+          "totalMs": 557.3347380000005,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 2,
+          "ok": true,
+          "readyMs": 40.98642000000018,
+          "receiverMs": 1079.7148280000001,
+          "durableMs": 1433.3785119999993,
+          "totalMs": 1474.3649319999995,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 2,
+          "ok": true,
+          "readyMs": 30.687882999998692,
+          "receiverMs": 90.15507600000092,
+          "durableMs": 532.8207430000002,
+          "totalMs": 563.5086259999989,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 2,
+          "ok": true,
+          "readyMs": 36.75850300000093,
+          "receiverMs": 1112.9018940000005,
+          "durableMs": 1454.1043069999996,
+          "totalMs": 1490.8628100000005,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 0,
+          "ok": true,
+          "readyMs": 25.750097000000096,
+          "receiverMs": 172.618926000001,
+          "durableMs": 576.2221869999994,
+          "totalMs": 601.9722839999995,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 0,
+          "ok": true,
+          "readyMs": 68.42030499999964,
+          "receiverMs": 466.75800999999956,
+          "durableMs": 860.2642070000002,
+          "totalMs": 928.6845119999998,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 0,
+          "ok": true,
+          "readyMs": 96.409807,
+          "receiverMs": 403.5786369999987,
+          "durableMs": 728.1727339999998,
+          "totalMs": 824.5825409999998,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 1,
+          "ok": true,
+          "readyMs": 90.40724399999999,
+          "receiverMs": 537.4920899999997,
+          "durableMs": 842.3668369999996,
+          "totalMs": 932.7740809999996,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 1,
+          "ok": true,
+          "readyMs": 49.133224999999584,
+          "receiverMs": 603.5446069999998,
+          "durableMs": 910.5166110000009,
+          "totalMs": 959.6498360000005,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 1,
+          "ok": true,
+          "readyMs": 18.905729999998584,
+          "receiverMs": 62.83137500000157,
+          "durableMs": 429.34765000000334,
+          "totalMs": 448.2533800000019,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 2,
+          "ok": true,
+          "readyMs": 102.60319200000231,
+          "receiverMs": 526.600778,
+          "durableMs": 810.8272519999991,
+          "totalMs": 913.4304440000014,
+          "crocZip": true,
+          "sha256": null
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 2,
+          "ok": true,
+          "readyMs": 20.125794999999925,
+          "receiverMs": 68.76680399999896,
+          "durableMs": 463.75099200000113,
+          "totalMs": 483.87678700000106,
+          "crocZip": false,
+          "sha256": null
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 1254793,
+          "run": 2,
+          "ok": true,
+          "readyMs": 46.30250100000194,
+          "receiverMs": 554.1763079999982,
+          "durableMs": 904.278968999999,
+          "totalMs": 950.581470000001,
+          "crocZip": true,
+          "sha256": null
+        }
+      ],
+      "manifest": [
+        {
+          "name": "mixed",
+          "directory": true
+        },
+        {
+          "name": "mixed/empty-directory",
+          "directory": true
+        },
+        {
+          "name": "mixed/project",
+          "directory": true
+        },
+        {
+          "name": "mixed/project/cmd",
+          "directory": true
+        },
+        {
+          "name": "mixed/project/cmd/cdx",
+          "directory": true
+        },
+        {
+          "name": "mixed/project/cmd/cdx/README.md",
+          "size": 3947,
+          "sha256": "e16f9fa12f5b8edd4b2c76a40dc807a0489b547c17c53f4580d5fc5549a8bc8e"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/agent.go",
+          "size": 9507,
+          "sha256": "25f66d1ccf770d2e6d62b38eb4c11942959eb5dcdd8db5e1410eae3806dce60e"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/agent_test.go",
+          "size": 2927,
+          "sha256": "9169646d043d49ae17623a8d137363b9342e190073bbeb39995b5f53f70672ee"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/agentskill",
+          "directory": true
+        },
+        {
+          "name": "mixed/project/cmd/cdx/agentskill/SKILL.md",
+          "size": 1954,
+          "sha256": "7c52d8072d4921434f789240678d88f017a03ac954338287a52a45d7176c6344"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/bundle.go",
+          "size": 10130,
+          "sha256": "f7f82d6f62a36dc0bebf9672b6bed3abcd4296321dcf70296c72a3b4861d2a3e"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/bundle_bench_test.go",
+          "size": 1534,
+          "sha256": "5248a2c89448237fe0664dbbd33aac1167f30a41e128a44d8f3313543418294c"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/bundle_size_test.go",
+          "size": 3775,
+          "sha256": "fd056cda300b71eccc34eb26cbf25e138f69a8d3b55eda979041e37b4ee808c4"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/bundle_test.go",
+          "size": 7075,
+          "sha256": "fafde4055d37c4d49a8422f2ff6be786760f85f632f159152fe5de968f738e9c"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/codes.go",
+          "size": 5589,
+          "sha256": "de7dabba074dc7d10806b47218cd3a148a83c26deee2ae20e5825bb4880a2e3a"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/detach.go",
+          "size": 15141,
+          "sha256": "3704de04f929731f70f9054fb85d018826cf0f0b81a9fcc6bc6c796b22a23868"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/detach_test.go",
+          "size": 8477,
+          "sha256": "068263c03fa7f35944b92ed4c7c52220cd6ad9178beddd37c01706ee374fd615"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/device_pending.go",
+          "size": 6335,
+          "sha256": "1fa274bd87ceed80c09a2032d21c402b95b731b2ed27b85ec39257c96a902ec4"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/device_pending_test.go",
+          "size": 16252,
+          "sha256": "7389ab95d06c4066c90f56fe6bf8143c3840b9242c6c32afd90ddde5a5716931"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/device_push.go",
+          "size": 1964,
+          "sha256": "969d71f18a4883939c52fbcda3efb28f0bd9adb7c376c661e9a89f2a98802d7c"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/device_push_test.go",
+          "size": 2559,
+          "sha256": "999c4ee69e98eb9d0f5662d85c9e515a80a49858452d3556668b849992d0c9bf"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/device_transport.go",
+          "size": 4529,
+          "sha256": "5f5956e6d10c6cd218f897eb3d4c341ec24c56c680c954e00502845ae41c063a"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/device_transport_test.go",
+          "size": 9466,
+          "sha256": "1081d0f63fea852f54fd9f23e7946c5a1cc2013f526895c20381fe6ac1ab9286"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/devices.go",
+          "size": 19163,
+          "sha256": "4acbe8306c48f39319d36459a4cbf44811ce6ea3dad00f5cae3dc254407275be"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/devices_test.go",
+          "size": 15008,
+          "sha256": "1c861c26e09e8cab89820aa467f5e46bb1eea766f2752e5de60f0fa0f2597a37"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/direct.go",
+          "size": 13606,
+          "sha256": "61e2a317aa77014b79ed580338188c6ca18480fdc2bba3ec11c366fd759ca666"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/direct_bench_test.go",
+          "size": 1046,
+          "sha256": "f44db8a79e4a9511a52ac451e4a2e08cbd4edcfddffe99c412d112bc125d9242"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/direct_candidates_test.go",
+          "size": 2506,
+          "sha256": "b0f2cd2f9f8a84be5af09f048f883dabb3c8b83581bc651afcf3381368575047"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/direct_gather_test.go",
+          "size": 1752,
+          "sha256": "6068931e182f3db8af8bafcf839096768142dbd965b34470a0239021c3f97979"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/failure.go",
+          "size": 3118,
+          "sha256": "879c3e052999bb08f2c1a96ba3c8f07339c7c89587f5f3d9f58b9e3621a236e5"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/failure_test.go",
+          "size": 3707,
+          "sha256": "fe133105cacc4a3472a13b9abd6737e3b03b7c341c22e7f01250c4fd063e1088"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/join_code_test.go",
+          "size": 4649,
+          "sha256": "d3e2fa3fb813f3336889094362258f025f93305429350fca5710badfe03907dd"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/lan.go",
+          "size": 14527,
+          "sha256": "50d46258a44369e57ea7ea76398f75903b5a5a46acb5440438704ce96b3c03d6"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/lan_test.go",
+          "size": 14112,
+          "sha256": "75397b3899dd7b0b830b88b5e98aa4a9172a74836c2de97be64809d87dd04434"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/large_chunks_test.go",
+          "size": 5722,
+          "sha256": "89a8b31512305b4fc7acc60eab4d1a0e401d918869f104021493b8058b4a4643"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/legacy_fixture_test.go",
+          "size": 1171,
+          "sha256": "ad70aaa8f69485641963b4e5ff966958de6b3c8faffd26a271ab41af82fc91b2"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/link.go",
+          "size": 16084,
+          "sha256": "e4ea3db818c8d4f886327d1d31751c8efd837224c591b4def22ad6bd8bcc3994"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/link_next_bench_test.go",
+          "size": 2550,
+          "sha256": "7d10e8f570426afb3cd28c9fbdad7f3cdbf11705062937b262b0dbed334c49dd"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/link_test.go",
+          "size": 14254,
+          "sha256": "e433aeae382c7a752ccb0ac04941f448e089c94a5ed129c2657f2d340966b935"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/main.go",
+          "size": 24260,
+          "sha256": "677b9af2fddc050f1e6ed0ad8fbaf4a79dfaffde09e2c08f4896859cbd650bfb"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/main_test.go",
+          "size": 5953,
+          "sha256": "ac153911bd3c18e15e9eacf943b2448f81a20e813029a2b8dd205164496d61a9"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/process_unix.go",
+          "size": 443,
+          "sha256": "19894a6a446a1c8cff9dfa34d8bd1077f0e947fff9918b61cdc31c43fd6a8d66"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/process_windows.go",
+          "size": 836,
+          "sha256": "abf60bcac0be56cf3127df6924187107ce6e684e331744e404e3aa45b76ada87"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/profile_goal_test.go",
+          "size": 566,
+          "sha256": "94050f3001721a8d884e9307c20f36d4c556dac3efb9ab8f8b1ddfa326148d45"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/progress.go",
+          "size": 4879,
+          "sha256": "ca1c9eac4bf1c231fbf7751df530d1d9c9219ef3897368279b64dc1a638cbf76"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/progress_test.go",
+          "size": 3232,
+          "sha256": "c5cf6bce5faf9d4e194c396a907fb434db349fe49932e7d1e5d97767563a4e73"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/protocol.go",
+          "size": 6933,
+          "sha256": "da730ac8744fd251a1cac6644b950a678e858c689bc44d19515933ba12e8710e"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/protocol_consume_test.go",
+          "size": 4483,
+          "sha256": "74ee945108583256c870e9ff262b2d482b5be455f7749f3744571666243a384a"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/protocol_reuse_test.go",
+          "size": 2164,
+          "sha256": "59be7c10c8278cfc05f3412e1a6b3fee816f256a5da22245a27e2e68102ddbca"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/protocol_test.go",
+          "size": 2840,
+          "sha256": "4cdfc4d4cbbb3120ca51dc998d9ad0173625b10bb675aecee9c8266f0f151ee5"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/qr.go",
+          "size": 1709,
+          "sha256": "591af6166458e8b2862bed7040ca7b135c5127e0474c33c5ad14f527778fa7d0"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/qr_test.go",
+          "size": 2984,
+          "sha256": "7247f1a8cf9cf3c30027dcd1ad045408998f266a83ce83356161c47a0402c4e4"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/receive.go",
+          "size": 19743,
+          "sha256": "fc2f1cfc6bb7fcad62af0ffd8eb5c4e16bf6989987c16788c1b6296043403539"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/receive_root_test.go",
+          "size": 7426,
+          "sha256": "f3458b8227787c3016215cfa3de7c1433a7b50a5e4c3d7e7e93717667db1fa99"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/receive_safety_test.go",
+          "size": 3979,
+          "sha256": "b05376cb3860a76727de53e45ffcb0e099eb57272e4b438ded1a2c7fdb7a7da0"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/receive_test.go",
+          "size": 6875,
+          "sha256": "8c7d42bd33d952d97ae788a28f5a7af5b547413505c7193aaf68f7f8ef082e2a"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/relay_read_test.go",
+          "size": 5138,
+          "sha256": "a52b7bfbf09811b4f317e694c59256cd65c9f90954b04bdca15f5bc6d458b465"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/relay_send_reuse_test.go",
+          "size": 2714,
+          "sha256": "61b0f9d03f0bb5cf8d740010615204119288031f246618e0aaa3f62de4be70c6"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/request.go",
+          "size": 9742,
+          "sha256": "f2d5726dfd7893c4d8d5487cca0546febddd0f873ca4002ae59171e606db2e04"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/request_test.go",
+          "size": 5399,
+          "sha256": "750c6f248adb54ceb98f8f541ac895dae10d2e0c37acbcb470aba71c44c8f98e"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/requestlock_unix.go",
+          "size": 657,
+          "sha256": "dd2ac987f3ef93243a4b4cffc70df551e1c4e8b65195b820b7a2fa47050b551b"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/requestlock_windows.go",
+          "size": 792,
+          "sha256": "f3414a8e0c69e6313c5fb7f7520145431a0cac2b0e5ffe6289aedc710cb5508e"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/resume.go",
+          "size": 26490,
+          "sha256": "3e7451d883b42d5fb3e8b98f350286d2fa06cedacc3dd15a90f48d37a6334eaa"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/resume_direct.go",
+          "size": 3306,
+          "sha256": "9b9442e1e46f61c1376a85984ff2c7481964f0e8776cc2dad7835d41488450a3"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/resume_direct_test.go",
+          "size": 12310,
+          "sha256": "479383ec848fdbf5d2da3a6fa965ac61f7da8c58895a8cb06d24d775463a3a54"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/resume_limits_test.go",
+          "size": 2156,
+          "sha256": "170fae69fb2b973c50e1e8566204ed8dce4347e2d080b2f6eef445ad561ef607"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/resume_protocol.go",
+          "size": 9948,
+          "sha256": "0790aa3d2a73bbc13fa59f241a5c6348a86fb93ee4efb377a1efb3872fe4f2ad"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/resume_protocol_test.go",
+          "size": 3398,
+          "sha256": "5c888cf210a512a9a935eb97277558c3fb075323f16c277da568e8291342211c"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/resume_storage.go",
+          "size": 7977,
+          "sha256": "4a3b005a5a0abe221085863aa45cb76afc27932cf6852173c0f29cd7e1f157cc"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/resume_storage_test.go",
+          "size": 4805,
+          "sha256": "e10ba8322141d75776c1370781a5ca0a26921eae8ba986aa7ee4cd65e72044da"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/resume_test.go",
+          "size": 1108,
+          "sha256": "821fea46398fea5a28f45a26c069e9334d1995050255fc108d23527405818a5b"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/retry.go",
+          "size": 3210,
+          "sha256": "68a6303940cfb737be7df8389c0c29577d23448fda62e7e48047a2594385b6f4"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/retry_integration_test.go",
+          "size": 4606,
+          "sha256": "6b09530d805aece1c140a7e63922f8b545ae4925b96b2e3847fb9b19752d0860"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/retry_test.go",
+          "size": 3746,
+          "sha256": "1ab54d4c47f1ccc03fce370d396df34ad2f574d46a80ee3b7439caf5e79d0525"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/reverse_lan_fallback_test.go",
+          "size": 3686,
+          "sha256": "f19693b1f21a3bb41d23996e8e7742c69addb5e862f4475195e8f5c2e6da5d59"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/reverse_lan_grace_test.go",
+          "size": 3570,
+          "sha256": "448cbf91f369142cb91f8498ea3c4c65ae5e0d79b073772a5d06755901bf7aa3"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/reverse_lan_test.go",
+          "size": 8738,
+          "sha256": "e0a31391c61c48d00bd0c841fa3fb83e1b70b9248b288ba531b8d24d9443d15f"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/review_transfer_reliability_test.go",
+          "size": 7867,
+          "sha256": "06ca0f961eb4930a3dd0e1ecf27c3eaabb3d43f2cb734b7153f2bedb85030b6b"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/review_transfer_security_test.go",
+          "size": 5785,
+          "sha256": "ea9f50fe837923906fb14e5654a814454be8dd5ebfb61f9668dcc4ffad63b1ad"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/sender.go",
+          "size": 28322,
+          "sha256": "eca064acd4f3aa7cdde12ca81303eb1978e9593420be98ca0773dd67e7201d3f"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/sender_progress_test.go",
+          "size": 1817,
+          "sha256": "34fcef68442d2e019ce31afbcd7897e0dc55500bdd41976a1eaaa7d6ee0cd5e8"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/sender_test.go",
+          "size": 5169,
+          "sha256": "a8b75b45679a30aedb6bb04d8f020258a3b8fbdacf6ae0d27459c76b9b5effc9"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/sender_unix_test.go",
+          "size": 640,
+          "sha256": "c19fc7b3beb5b0611050ae8f736ee592e9db961a7dc83d53cf011f5f2b2ea679"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/signals_unix.go",
+          "size": 153,
+          "sha256": "684769cbc784fa98357e98e80efa240f70fc6eac78ffdfb8459e40bff5b50282"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/signals_windows.go",
+          "size": 119,
+          "sha256": "846c4046dfa46976600b5d4a0729a0926119fcea4620ee9e52c2f6a2298a509f"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/state.go",
+          "size": 9686,
+          "sha256": "e61441c54f3c95102c0eda150f56d7352cec2e80d16513b00ca8a7fd21e8a4ad"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/state_test.go",
+          "size": 7651,
+          "sha256": "9e414c921b3821b4f3caa3f6d0c64b6fe01f3242d36cd7e1aefe3caf64fef25c"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/stripe.go",
+          "size": 8578,
+          "sha256": "adadac6365aba42da96bfeb619f53798ab3c36c6b37ca49bde01fcd93e6c9e7b"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/stripe_test.go",
+          "size": 8243,
+          "sha256": "6010334171e3ca6900047cbf9890859d97fd8b6247490a77b8115f121aae15fb"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/style.go",
+          "size": 4181,
+          "sha256": "637550c886a8e0c7b91e98f78de9893845516fc4aa79ec6464fc0da6fe72ccad"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/unbundle.go",
+          "size": 6464,
+          "sha256": "e7facf7b265173cc3bd0f7907f3e8f07655e83d025907914ce406eb4a5b8cd37"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/unbundle_test.go",
+          "size": 2908,
+          "sha256": "67bdd70adda139dfb203ff8c02a33ad0e85217ac31e660e42a26ea06d48da6b2"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/update.go",
+          "size": 6000,
+          "sha256": "aee61d6733559c960d98f16a9885a14deed388e0c9c50ac7c66810f569c6c38e"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/update_notice.go",
+          "size": 2934,
+          "sha256": "fefcc241ff334a0a34bf006a3b39b2f9433877890bc69a02c775edacaf1a3114"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/update_notice_test.go",
+          "size": 5484,
+          "sha256": "d6f7c231e943cbee9818814975e84aade41ac70a2e40fddf014c69f4822c190d"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/update_test.go",
+          "size": 1774,
+          "sha256": "99dd4de55763506f6efd37a44c341d9c3c040fbac0e4553da67d0d469e0a4b64"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/welcome.go",
+          "size": 9547,
+          "sha256": "0838708f0ef52540878381c9ebd2d5764c5039fabf1bcc40784285cf7ffaad0e"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/window.go",
+          "size": 2073,
+          "sha256": "99660196689f1139492d8b1a8413548c807a8a3006a3bdfaa899036bbc839415"
+        },
+        {
+          "name": "mixed/project/cmd/cdx/window_test.go",
+          "size": 2476,
+          "sha256": "7f7474259e20aa6f3a2c5593053f4aeb241251c47b7d043055c03c200193ffba"
+        },
+        {
+          "name": "mixed/project/docs",
+          "directory": true
+        },
+        {
+          "name": "mixed/project/docs/guides",
+          "directory": true
+        },
+        {
+          "name": "mixed/project/docs/guides/cli-performance.md",
+          "size": 3667,
+          "sha256": "891f1722a723f4a4111173528da79cc3e979023a2fcc51264e11b2c04fd54e9a"
+        },
+        {
+          "name": "mixed/project/docs/guides/firebase-setup.md",
+          "size": 6147,
+          "sha256": "b729487e6b269c7997d5e30d43068f31bfef6734fe951714e7d8f35438de88ce"
+        },
+        {
+          "name": "mixed/project/docs/guides/wl-worker.js",
+          "size": 1527,
+          "sha256": "06874dfc6b4e448c17e406ab7f1b24015b25aecc2ee7b0866853160f142ea4aa"
+        },
+        {
+          "name": "mixed/project/docs/guides/wl.html",
+          "size": 7763,
+          "sha256": "eb26afc9f68a93e4a8489f9e115786ed6657691b02f24c3085127f3d3e278b2d"
+        },
+        {
+          "name": "mixed/project/src",
+          "directory": true
+        },
+        {
+          "name": "mixed/project/src/agent-code.js",
+          "size": 2407,
+          "sha256": "197426c7492424bbb67f7f7b0a119ea13a0f9b11440bf3e158142493600422ab"
+        },
+        {
+          "name": "mixed/project/src/agent-code.test.js",
+          "size": 2991,
+          "sha256": "2659568a290dbe5cb41f8ab3a6dc960802b46033412098e99189d05beb708bed"
+        },
+        {
+          "name": "mixed/project/src/agent-protocol.js",
+          "size": 6054,
+          "sha256": "d6044d9c6998e009807ecb7aab68cb07262e085679b1ac1027746be601fa344e"
+        },
+        {
+          "name": "mixed/project/src/agent-protocol.test.js",
+          "size": 1969,
+          "sha256": "0596d28cdb45e4e00d7a197679bf43f470a9ec65b78491740b5a22dcd56e772e"
+        },
+        {
+          "name": "mixed/project/src/agent-send.js",
+          "size": 3973,
+          "sha256": "d35e1aea7b3c0f20c53a1e2f24836ca9d67c1a44ae5318f569064e77f8c4fa8d"
+        },
+        {
+          "name": "mixed/project/src/ambient-dots.js",
+          "size": 3261,
+          "sha256": "adcef05231997f3fd96162c899074179b0d71fc4da3f1540c41f060e05e1ab87"
+        },
+        {
+          "name": "mixed/project/src/direct-link.js",
+          "size": 10783,
+          "sha256": "78fc0760d390ef46aecbaf3342464fde167d3be9ee34d239b582a5195af6af2d"
+        },
+        {
+          "name": "mixed/project/src/direct-link.test.js",
+          "size": 6955,
+          "sha256": "8cb88ef9031302615d44669e058e350838b70e246d7f3b56a71574c9253b8f78"
+        },
+        {
+          "name": "mixed/project/src/entry.js",
+          "size": 4280,
+          "sha256": "0ca1dab334d4cfff29e1b45626ac3e044160a8d5ae9ac9b8973e043968cb6d3d"
+        },
+        {
+          "name": "mixed/project/src/incremental-sha256.js",
+          "size": 3185,
+          "sha256": "6b7f2d282be3af2039766f32e57899ac77f51d2fdd2417cbdaf4eeb3f9f6ef67"
+        },
+        {
+          "name": "mixed/project/src/incremental-sha256.test.js",
+          "size": 1651,
+          "sha256": "723b5c6cfe6355be9264aba98f3e2db3e9ef7a0b0efd81652415ff5a2c306d68"
+        },
+        {
+          "name": "mixed/project/src/main.js",
+          "size": 58727,
+          "sha256": "b29e20bd54935103a8f3f26b50c58008bce340a5b4caf585eadc372018c7119e"
+        },
+        {
+          "name": "mixed/project/src/p2p-code.js",
+          "size": 4858,
+          "sha256": "925472e3b9c3b54cb0fb9b2518d0415a13e62fb837be7091327254c954c0729b"
+        },
+        {
+          "name": "mixed/project/src/p2p-code.test.js",
+          "size": 2596,
+          "sha256": "bf10e09e464233a9b9f77fbd739b835f058fda3a9638b7353f33f1c0868c19b6"
+        },
+        {
+          "name": "mixed/project/src/p2p-manifest.js",
+          "size": 1895,
+          "sha256": "c4853ecf22e47a34429fa02f3686496031393fd736d8fdc03d638ec79d950f75"
+        },
+        {
+          "name": "mixed/project/src/p2p-manifest.test.js",
+          "size": 877,
+          "sha256": "3a6aaa9d803a1e2bd16a2cf4e99ebdb0799e77ac433198c56a92008a1e7bc4be"
+        },
+        {
+          "name": "mixed/project/src/qr-scanner.js",
+          "size": 2948,
+          "sha256": "c5b280eeec3289b06ebe5980ab0e0b57f2a41f786c9116dc527bf81127312192"
+        },
+        {
+          "name": "mixed/project/src/raw-channel.js",
+          "size": 3916,
+          "sha256": "7bcc8d4c8e9773f408630c5a7c296a1d985807e901f661921b92f732e4193f15"
+        },
+        {
+          "name": "mixed/project/src/raw-channel.test.js",
+          "size": 1418,
+          "sha256": "3d0bafe43c847059c6af7aec285c9943cff3441d4c1550e4289e17e3f0ee5460"
+        },
+        {
+          "name": "mixed/project/src/relay-sender.js",
+          "size": 23146,
+          "sha256": "d147a29f25f63f91da853ef86943b0423de776a36c26890c5f98dba169e4648b"
+        },
+        {
+          "name": "mixed/project/src/relay-sender.test.js",
+          "size": 8788,
+          "sha256": "f396db99104906abac5a76b5e6f4c373f0a2515be42ad4586314a41bc1d5882e"
+        },
+        {
+          "name": "mixed/project/src/relay-tunnel.js",
+          "size": 7827,
+          "sha256": "6c9d78af6d416984c23701598f5a4e570b834c96d826723e33962da3200ad556"
+        },
+        {
+          "name": "mixed/project/src/relay-tunnel.test.js",
+          "size": 5581,
+          "sha256": "c947336e069d5d457ab3a8c15afd648ce2331b2a855051ba8aef72bcf588f899"
+        },
+        {
+          "name": "mixed/project/src/resume-browser.js",
+          "size": 40375,
+          "sha256": "053c0c161c81828fc2b53d86a92233a8071e60dedd02b00657dd6328064c9dd4"
+        },
+        {
+          "name": "mixed/project/src/resume-browser.test.js",
+          "size": 6626,
+          "sha256": "3779d2fdee7dc417307397212bc2bad184118340f87615ff65f09432d023c920"
+        },
+        {
+          "name": "mixed/project/src/resume-cancel.test.js",
+          "size": 7478,
+          "sha256": "1952ffc787d9d251e74c0f3fc8ce01d9cfce36020deac9973405ec10727b2e17"
+        },
+        {
+          "name": "mixed/project/src/resume-inbox.test.js",
+          "size": 1806,
+          "sha256": "80cb18447ec3b21ea56e5b79d592d7b7d58003c52f4c267fe7a6e8022b7cca6f"
+        },
+        {
+          "name": "mixed/project/src/resume-opfs-worker.js",
+          "size": 1231,
+          "sha256": "b671cd59638f6989b98cc250f74a1b8e3fcf4eac23766a0dba5a86461315f9fd"
+        },
+        {
+          "name": "mixed/project/src/resume-opfs.js",
+          "size": 2572,
+          "sha256": "62841ebac2fc34316c28b724b731a22ad542dc409aaefc4c0c33645dc5d27136"
+        },
+        {
+          "name": "mixed/project/src/resume-opfs.test.js",
+          "size": 4061,
+          "sha256": "3760d284bcac88119c7f9d0a4e14e8bac0c2836296726ad0fc3c2c8f636ce311"
+        },
+        {
+          "name": "mixed/project/src/resume-protocol.js",
+          "size": 6894,
+          "sha256": "03fc1169f48f870ac76e16c9d69809205d8b4562eb38f81067985428d529576b"
+        },
+        {
+          "name": "mixed/project/src/resume-protocol.test.js",
+          "size": 3670,
+          "sha256": "f9994f117158c39f9aec643f2c83632f86208cccd576f656042c0319be6faa3e"
+        },
+        {
+          "name": "mixed/project/src/resume-retention.js",
+          "size": 3108,
+          "sha256": "b0c4b7c04a9a71eb7452f86b66be197fd8af8577da6250c363db54bf5cd68698"
+        },
+        {
+          "name": "mixed/project/src/resume-retention.test.js",
+          "size": 4102,
+          "sha256": "dda39fa0fe9a1dc77774f96ce7b3e3a727ff82abfc7362185f2cf71181a63c37"
+        },
+        {
+          "name": "mixed/project/src/resume-sender.test.js",
+          "size": 10408,
+          "sha256": "05097b5a988aa0c14ab68809d632bd1efc6f3dbec530526b12304b5256f02017"
+        },
+        {
+          "name": "mixed/project/src/resume-window.test.js",
+          "size": 2256,
+          "sha256": "7704c4c2926654dcb35a2ce1926d6534eb1f651cb0d258ba5c2bb4788e9787de"
+        },
+        {
+          "name": "mixed/project/src/send-window.js",
+          "size": 3638,
+          "sha256": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473"
+        },
+        {
+          "name": "mixed/project/src/send-window.test.js",
+          "size": 6004,
+          "sha256": "61f1320c4f120017dee6c26c54aea750f2471968c1b78259baaf1112837b3315"
+        },
+        {
+          "name": "mixed/project/src/share-link.js",
+          "size": 1279,
+          "sha256": "c90c89d9de743f807b68799c2ecc02c97f6434ad6ea1108a5ee65f9726797f5d"
+        },
+        {
+          "name": "mixed/project/src/share-link.test.js",
+          "size": 1043,
+          "sha256": "219340af4443fccb8ebb7fc016bd5483f258e97bd499e02fc490c355491d9246"
+        },
+        {
+          "name": "mixed/project/src/share-page.js",
+          "size": 1197,
+          "sha256": "47198c0a46a35ee541e6433b2c4852e3d0329f128d97403954c1ee6aaf6aa9c4"
+        },
+        {
+          "name": "mixed/project/src/share.js",
+          "size": 23037,
+          "sha256": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c"
+        },
+        {
+          "name": "mixed/project/src/sink.js",
+          "size": 10521,
+          "sha256": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470"
+        },
+        {
+          "name": "mixed/project/src/sink.test.js",
+          "size": 13736,
+          "sha256": "fd7d7c89d447aefa3cfdf19c689727e5233a00ff48ad98591340bd422fc79c22"
+        },
+        {
+          "name": "mixed/project/src/style.css",
+          "size": 29890,
+          "sha256": "2f3ec31938e9c5b4ed9ac3ec8548029c5f68a33289ca8724dbc12538d8b9cb3b"
+        },
+        {
+          "name": "mixed/project/src/transfer-limits.js",
+          "size": 1332,
+          "sha256": "f94d60ffda36f7bf13451f867eab9d39cd092436fa9d83b6941a46a9c08a2dab"
+        },
+        {
+          "name": "mixed/project/src/transfer-limits.test.js",
+          "size": 1275,
+          "sha256": "6462d7991c1ff3191499d03d0d056ebad2508289b3b6055535eb0781ef20ad77"
+        },
+        {
+          "name": "mixed/project/src/zip-bundle.js",
+          "size": 7213,
+          "sha256": "e77460ade3fb1bb292d85865a633873e3aa349981f6c7d994c8425284b8d2339"
+        },
+        {
+          "name": "mixed/project/src/zip-bundle.test.js",
+          "size": 3764,
+          "sha256": "26655ca6dbb748d74e05995b5844f3cae70270481a17fb496696de922018e254"
+        },
+        {
+          "name": "mixed/project/src/zip-unbundle.js",
+          "size": 6936,
+          "sha256": "fe1f8c8a94668c2168802e937e8dbc8364b3de5d6b9b6f36d57f1b5b71d65804"
+        },
+        {
+          "name": "mixed/project/src/zip-unbundle.test.js",
+          "size": 4774,
+          "sha256": "97bda9379b91ce831234f357a3954ba181ba61adcbe7dc3d123c49669fd9538a"
+        },
+        {
+          "name": "mixed/project-backup.tar.gz",
+          "size": 260569,
+          "sha256": "e722f269e844a7ae5f7889ea1d9f418fc9046f920ef0d17110f7039e2bfbf800"
+        }
+      ],
+      "strictPass2": false
+    },
+    {
+      "task": "MP4 video",
+      "binary": {
+        "cdx": "/tmp/cdx-prf-compression",
+        "sha256": "6288e2c46cea1856d18530e8090f00ce449b18d651538acc3f9b601910598d7a",
+        "croc": "croc version 11.6.3"
+      },
+      "crocFolderMode": "default per-file transfer",
+      "summary": [
+        {
+          "case": "disk/auto/input",
+          "tools": {
+            "cd": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 31.27136500000006,
+              "receiverMs": 64.62850499999968,
+              "durableMs": 74.86026700000002,
+              "totalMs": 115.74498199999971,
+              "spread": {
+                "readyMs": {
+                  "min": 23.491856999999982,
+                  "max": 70.9381970000004
+                },
+                "receiverMs": {
+                  "min": 45.07265600000028,
+                  "max": 79.00702299999966
+                },
+                "durableMs": {
+                  "min": 49.517799000000196,
+                  "max": 84.47361699999965
+                },
+                "totalMs": {
+                  "min": 73.00965600000018,
+                  "max": 145.79846400000042
+                }
+              }
+            },
+            "croc": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 8.846357999999782,
+              "receiverMs": 761.997558,
+              "durableMs": 772.5353009999999,
+              "totalMs": 779.7605490000001,
+              "spread": {
+                "readyMs": {
+                  "min": 7.225248000000192,
+                  "max": 14.470339999999851
+                },
+                "receiverMs": {
+                  "min": 600.2668290000001,
+                  "max": 895.3353260000004
+                },
+                "durableMs": {
+                  "min": 607.1922119999999,
+                  "max": 903.4562340000002
+                },
+                "totalMs": {
+                  "min": 621.6625519999998,
+                  "max": 912.302592
+                }
+              }
+            },
+            "croc-no-compress": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 20.10448499999984,
+              "receiverMs": 547.192442,
+              "durableMs": 551.363965,
+              "totalMs": 585.5503500000004,
+              "spread": {
+                "readyMs": {
+                  "min": 10.125011000000086,
+                  "max": 47.61861600000066
+                },
+                "receiverMs": {
+                  "min": 533.8760729999995,
+                  "max": 677.1011440000002
+                },
+                "durableMs": {
+                  "min": 537.9317339999998,
+                  "max": 684.3920310000003
+                },
+                "totalMs": {
+                  "min": 571.4684499999998,
+                  "max": 694.5170420000004
+                }
+              }
+            }
+          },
+          "speedup": {
+            "croc": {
+              "readyMs": 0.2828900497307925,
+              "receiverMs": 11.79042526204194,
+              "durableMs": 10.319697376981031,
+              "totalMs": 6.736884273738986
+            },
+            "croc-no-compress": {
+              "readyMs": 0.6429039794073524,
+              "receiverMs": 8.466735258691235,
+              "durableMs": 7.365241764366133,
+              "totalMs": 5.058969640688198
+            }
+          },
+          "pass1_5": false,
+          "pass2": false
+        },
+        {
+          "case": "disk/relay/input",
+          "tools": {
+            "cd": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 32.61866200000077,
+              "receiverMs": 55.898778999999195,
+              "durableMs": 60.70869700000003,
+              "totalMs": 93.3273590000008,
+              "spread": {
+                "readyMs": {
+                  "min": 28.96819299999879,
+                  "max": 37.476644999999735
+                },
+                "receiverMs": {
+                  "min": 51.1024610000004,
+                  "max": 74.9674159999995
+                },
+                "durableMs": {
+                  "min": 55.74302500000158,
+                  "max": 83.78197199999977
+                },
+                "totalMs": {
+                  "min": 84.71121800000037,
+                  "max": 121.2586169999995
+                }
+              }
+            },
+            "croc": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 14.953357000000324,
+              "receiverMs": 151.5031770000005,
+              "durableMs": 162.0556260000003,
+              "totalMs": 169.80482700000084,
+              "spread": {
+                "readyMs": {
+                  "min": 7.749201000000539,
+                  "max": 17.806054000000586
+                },
+                "receiverMs": {
+                  "min": 109.73360700000012,
+                  "max": 152.04765299999963
+                },
+                "durableMs": {
+                  "min": 115.4902689999999,
+                  "max": 171.53129400000034
+                },
+                "totalMs": {
+                  "min": 133.29632300000048,
+                  "max": 186.48465100000067
+                }
+              }
+            },
+            "croc-no-compress": {
+              "complete": true,
+              "runs": 3,
+              "successful": 3,
+              "readyMs": 17.203097999999954,
+              "receiverMs": 118.60343599999942,
+              "durableMs": 131.298886999999,
+              "totalMs": 148.50198499999897,
+              "spread": {
+                "readyMs": {
+                  "min": 10.105360000000474,
+                  "max": 22.262696000000687
+                },
+                "receiverMs": {
+                  "min": 107.92748399999891,
+                  "max": 158.71987199999967
+                },
+                "durableMs": {
+                  "min": 112.11290999999892,
+                  "max": 166.24817799999983
+                },
+                "totalMs": {
+                  "min": 122.21826999999939,
+                  "max": 188.5108740000005
+                }
+              }
+            }
+          },
+          "speedup": {
+            "croc": {
+              "readyMs": 0.4584295027184123,
+              "receiverMs": 2.710312813809452,
+              "durableMs": 2.669397203501176,
+              "totalMs": 1.8194538966863874
+            },
+            "croc-no-compress": {
+              "readyMs": 0.5274004801300418,
+              "receiverMs": 2.1217536075340955,
+              "durableMs": 2.1627689851422596,
+              "totalMs": 1.5911945499282552
+            }
+          },
+          "pass1_5": false,
+          "pass2": false
+        }
+      ],
+      "rows": [
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 0,
+          "ok": true,
+          "readyMs": 31.27136500000006,
+          "receiverMs": 79.00702299999966,
+          "durableMs": 84.47361699999965,
+          "totalMs": 115.74498199999971,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 0,
+          "ok": true,
+          "readyMs": 14.470339999999851,
+          "receiverMs": 600.2668290000001,
+          "durableMs": 607.1922119999999,
+          "totalMs": 621.6625519999998,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 0,
+          "ok": true,
+          "readyMs": 20.10448499999984,
+          "receiverMs": 547.192442,
+          "durableMs": 551.363965,
+          "totalMs": 571.4684499999998,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 1,
+          "ok": true,
+          "readyMs": 7.225248000000192,
+          "receiverMs": 761.997558,
+          "durableMs": 772.5353009999999,
+          "totalMs": 779.7605490000001,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 1,
+          "ok": true,
+          "readyMs": 10.125011000000086,
+          "receiverMs": 677.1011440000002,
+          "durableMs": 684.3920310000003,
+          "totalMs": 694.5170420000004,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 1,
+          "ok": true,
+          "readyMs": 70.9381970000004,
+          "receiverMs": 64.62850499999968,
+          "durableMs": 74.86026700000002,
+          "totalMs": 145.79846400000042,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 2,
+          "ok": true,
+          "readyMs": 47.61861600000066,
+          "receiverMs": 533.8760729999995,
+          "durableMs": 537.9317339999998,
+          "totalMs": 585.5503500000004,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "cd",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 2,
+          "ok": true,
+          "readyMs": 23.491856999999982,
+          "receiverMs": 45.07265600000028,
+          "durableMs": 49.517799000000196,
+          "totalMs": 73.00965600000018,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc",
+          "route": "auto",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 2,
+          "ok": true,
+          "readyMs": 8.846357999999782,
+          "receiverMs": 895.3353260000004,
+          "durableMs": 903.4562340000002,
+          "totalMs": 912.302592,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 0,
+          "ok": true,
+          "readyMs": 37.476644999999735,
+          "receiverMs": 74.9674159999995,
+          "durableMs": 83.78197199999977,
+          "totalMs": 121.2586169999995,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 0,
+          "ok": true,
+          "readyMs": 14.953357000000324,
+          "receiverMs": 151.5031770000005,
+          "durableMs": 171.53129400000034,
+          "totalMs": 186.48465100000067,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 0,
+          "ok": true,
+          "readyMs": 22.262696000000687,
+          "receiverMs": 158.71987199999967,
+          "durableMs": 166.24817799999983,
+          "totalMs": 188.5108740000005,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 1,
+          "ok": true,
+          "readyMs": 7.749201000000539,
+          "receiverMs": 152.04765299999963,
+          "durableMs": 162.0556260000003,
+          "totalMs": 169.80482700000084,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 1,
+          "ok": true,
+          "readyMs": 10.105360000000474,
+          "receiverMs": 107.92748399999891,
+          "durableMs": 112.11290999999892,
+          "totalMs": 122.21826999999939,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 1,
+          "ok": true,
+          "readyMs": 28.96819299999879,
+          "receiverMs": 51.1024610000004,
+          "durableMs": 55.74302500000158,
+          "totalMs": 84.71121800000037,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc-no-compress",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 2,
+          "ok": true,
+          "readyMs": 17.203097999999954,
+          "receiverMs": 118.60343599999942,
+          "durableMs": 131.298886999999,
+          "totalMs": 148.50198499999897,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "cd",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 2,
+          "ok": true,
+          "readyMs": 32.61866200000077,
+          "receiverMs": 55.898778999999195,
+          "durableMs": 60.70869700000003,
+          "totalMs": 93.3273590000008,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        },
+        {
+          "tool": "croc",
+          "route": "relay",
+          "storage": "disk",
+          "case": "input",
+          "bytes": 797710,
+          "run": 2,
+          "ok": true,
+          "readyMs": 17.806054000000586,
+          "receiverMs": 109.73360700000012,
+          "durableMs": 115.4902689999999,
+          "totalMs": 133.29632300000048,
+          "crocZip": false,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        }
+      ],
+      "manifest": [
+        {
+          "name": "cd-intro-v2.mp4",
+          "size": 797710,
+          "sha256": "36b2c0d9c74049cc9e4c967c80aaa245c46b96d960a14441798d7394181def23"
+        }
+      ],
+      "strictPass2": false
+    }
+  ]
+}

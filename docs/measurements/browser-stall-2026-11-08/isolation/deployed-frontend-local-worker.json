@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T09:03:00.628Z",
+  "commit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    2.11,
+    1.68,
+    2.15
+  ],
+  "mib": 16,
+  "runs": 1,
+  "topology": "two Chromium processes and local Worker on one Linux host",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": true,
+      "readyMs": 57.23744300000021,
+      "assets": [
+        "/assets/index-CAq_iO25.js"
+      ],
+      "downloadEventMs": 581.4720709999999,
+      "receiveMs": 607.9056720000001,
+      "senderCompleteMs": 612.1686200000001,
+      "received": {
+        "bytes": 16777216,
+        "sha256": "f18a186a7a851f299e8c57212c2c9eef36b799a533f82ea5264bc48122c345b0"
+      },
+      "transport": {
+        "relay": 16777216,
+        "direct": 0,
+        "firstAt": 404.6000000014901,
+        "lastAt": 746.9000000059605,
+        "maxGapMs": 82.80000000447035,
+        "records": 64,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 708,
+            "maxGapMs": 92.60000000149012,
+            "lastAt": 928.1000000014901,
+            "closeCode": 4404
+          }
+        ]
+      },
+      "mibPerSecond": 26.31987286343332
+    }
+  ],
+  "input": {
+    "bytes": 16777216,
+    "sha256": "f18a186a7a851f299e8c57212c2c9eef36b799a533f82ea5264bc48122c345b0"
+  },
+  "localSource": {
+    "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+    "src/relay-sender.js": "d147a29f25f63f91da853ef86943b0423de776a36c26890c5f98dba169e4648b",
+    "src/share.js": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c",
+    "src/sink.js": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470",
+    "src/send-window.js": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473",
+    "dist/index.html": "6c10c1b73a6e3126c0183ad1a915145219247a738c29f2821f23847aa94ed723"
+  },
+  "dirty": [],
+  "runtimeOverride": "workerd 2026-11-04",
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T09:03:02.943Z"
+}

@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T09:04:10.765Z",
+  "commit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    0.94,
+    1.43,
+    2.03
+  ],
+  "mib": 16,
+  "runs": 1,
+  "topology": "two Chromium processes on one Linux host, hosted relay",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "auto",
+      "ok": true,
+      "readyMs": 2297.0199139999995,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 2239.1476089999996,
+      "receiveMs": 2280.4322709999997,
+      "senderCompleteMs": 2284.107908,
+      "received": {
+        "bytes": 16777216,
+        "sha256": "c5887d513ab11ba0d809f590e4e45c959c7479acc0f3d45264790aca15cba7eb"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 16777216,
+        "firstAt": 4377.5,
+        "lastAt": 4684.4000000059605,
+        "maxGapMs": 65.60000000149012,
+        "records": 24,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host",
+              "srflx"
+            ]
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 828,
+            "maxGapMs": 1954.3999999985099,
+            "lastAt": 4371.30000000447
+          }
+        ],
+        "window": {
+          "size": 7397935,
+          "inFlight": 0,
+          "minRTT": 62.899999998509884,
+          "acknowledged": "16777216"
+        }
+      },
+      "mibPerSecond": 7.01621363785726
+    },
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": false,
+      "readyMs": 1796.4111760000005,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "error": "page.waitForEvent: Timeout 90000ms exceeded while waiting for event \"download\"\n=========================== logs ===========================\nwaiting for event \"download\"\n============================================================",
+      "receiverTransport": {
+        "relay": 0,
+        "direct": 0,
+        "firstAt": null,
+        "lastAt": null,
+        "maxGapMs": 0,
+        "records": 0,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 2884040,
+            "maxGapMs": 13959.5,
+            "lastAt": 46412.39999999851
+          }
+        ]
+      },
+      "senderState": "transferring",
+      "senderStatus": "Sending...",
+      "transport": {
+        "relay": 5242880,
+        "direct": 0,
+        "firstAt": 3724.10000000149,
+        "lastAt": 11190.89999999851,
+        "maxGapMs": 7441.70000000298,
+        "records": 20,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 128,
+            "maxGapMs": 9395,
+            "lastAt": 20580.20000000298
+          }
+        ],
+        "window": {
+          "size": 4194304,
+          "inFlight": 4194304,
+          "minRTT": 7460.10000000149,
+          "acknowledged": "1048576"
+        }
+      }
+    }
+  ],
+  "input": {
+    "bytes": 16777216,
+    "sha256": "c5887d513ab11ba0d809f590e4e45c959c7479acc0f3d45264790aca15cba7eb",
+    "generated": true
+  },
+  "localSource": {
+    "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+    "src/relay-sender.js": "d147a29f25f63f91da853ef86943b0423de776a36c26890c5f98dba169e4648b",
+    "src/share.js": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c",
+    "src/sink.js": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470",
+    "src/send-window.js": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473",
+    "dist/index.html": "6c10c1b73a6e3126c0183ad1a915145219247a738c29f2821f23847aa94ed723"
+  },
+  "hostedAssets": {
+    "/assets/index-CAq_iO25.js": "d29a551f464a274bf26eedfdf8e660bedfa27549e430edf2eb84f300b11d86ea"
+  },
+  "dirty": [
+    "M scripts/bench-transfer-fresh.mjs"
+  ],
+  "runtimeOverride": null,
+  "assetOverride": "/tmp/cd-speed-pr75/dist",
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T09:05:48.891Z"
+}

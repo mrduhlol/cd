@@ -1,0 +1,549 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T09:09:33.686Z",
+  "commit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+  "host": "omarchy",
+  "load": [
+    0.99,
+    1.39,
+    1.85
+  ],
+  "mib": 600,
+  "runs": 3,
+  "rows": [
+    {
+      "run": 0,
+      "route": "auto",
+      "ok": true,
+      "readyMs": 56.091543999999885,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 14424.068158000002,
+      "receiveMs": 15883.444561,
+      "senderCompleteMs": 15886.798639,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 629145600,
+        "firstAt": 582.1000000014901,
+        "lastAt": 14720.70000000298,
+        "maxGapMs": 453.5,
+        "records": 900,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host"
+            ]
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 828,
+            "maxGapMs": 204.79999999701977,
+            "lastAt": 575.3000000044703,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1576922,
+          "inFlight": 0,
+          "minRTT": 15.899999998509884,
+          "acknowledged": "629145600"
+        }
+      },
+      "mibPerSecond": 37.77518142841837,
+      "tool": "cd-browser",
+      "browserCommit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+      "input": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67",
+        "generated": false
+      },
+      "load": [
+        0.99,
+        1.38,
+        1.85
+      ]
+    },
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": true,
+      "readyMs": 47.32226499999888,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 23497.725366999995,
+      "receiveMs": 24201.969270999998,
+      "senderCompleteMs": 24205.56455,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "transport": {
+        "relay": 629145600,
+        "direct": 0,
+        "firstAt": 396.19999999552965,
+        "lastAt": 23783.29999999702,
+        "maxGapMs": 141.60000000149012,
+        "records": 2400,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 24088,
+            "maxGapMs": 115.80000000447035,
+            "lastAt": 23815.89999999851,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1572864,
+          "inFlight": 0,
+          "minRTT": 23.30000000447035,
+          "acknowledged": "629145600"
+        }
+      },
+      "mibPerSecond": 24.791371036031755,
+      "tool": "cd-browser",
+      "browserCommit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+      "input": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67",
+        "generated": false
+      },
+      "load": [
+        0.99,
+        1.38,
+        1.85
+      ]
+    },
+    {
+      "run": 0,
+      "tool": "cd-cli-relay",
+      "ok": true,
+      "readyMs": 33.08854699999938,
+      "receiveMs": 1462.0891540000011,
+      "transport": [
+        {
+          "transport": "relay",
+          "relayBytes": 629169016,
+          "directBytes": 0
+        },
+        {
+          "transport": "relay",
+          "relayBytes": 16115,
+          "directBytes": 0
+        }
+      ],
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "mibPerSecond": 410.37169201242807
+    },
+    {
+      "run": 0,
+      "tool": "croc-cli-relay",
+      "ok": true,
+      "readyMs": 13.881148000000394,
+      "receiveMs": 406.9366049999953,
+      "transport": {
+        "requested": "relay",
+        "noLocal": true,
+        "multiplexing": "default",
+        "compression": "default"
+      },
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "mibPerSecond": 1474.431134058355
+    },
+    {
+      "run": 0,
+      "tool": "http-ceiling",
+      "ok": true,
+      "readyMs": 0,
+      "receiveMs": 545.0523250000042,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "mibPerSecond": 1100.8117431661178
+    },
+    {
+      "run": 1,
+      "tool": "cd-cli-relay",
+      "ok": true,
+      "readyMs": 24.100243000000773,
+      "receiveMs": 1505.5124230000001,
+      "transport": [
+        {
+          "transport": "relay",
+          "relayBytes": 629169016,
+          "directBytes": 0
+        },
+        {
+          "transport": "relay",
+          "relayBytes": 16115,
+          "directBytes": 0
+        }
+      ],
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "mibPerSecond": 398.5354028526671
+    },
+    {
+      "run": 1,
+      "tool": "croc-cli-relay",
+      "ok": true,
+      "readyMs": 14.022733999998309,
+      "receiveMs": 410.6649300000063,
+      "transport": {
+        "requested": "relay",
+        "noLocal": true,
+        "multiplexing": "default",
+        "compression": "default"
+      },
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "mibPerSecond": 1461.0451396470376
+    },
+    {
+      "run": 1,
+      "tool": "http-ceiling",
+      "ok": true,
+      "readyMs": 0,
+      "receiveMs": 520.5168219999978,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "mibPerSecond": 1152.7004981214661
+    },
+    {
+      "run": 1,
+      "route": "auto",
+      "ok": true,
+      "readyMs": 97.64985000000024,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 16758.073536,
+      "receiveMs": 17469.905405999998,
+      "senderCompleteMs": 17473.860569,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 629145600,
+        "firstAt": 588.5,
+        "lastAt": 17096.10000000149,
+        "maxGapMs": 642.0999999940395,
+        "records": 900,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host"
+            ]
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 828,
+            "maxGapMs": 159.39999999850988,
+            "lastAt": 583.8999999985099,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1572864,
+          "inFlight": 0,
+          "minRTT": 16.399999998509884,
+          "acknowledged": "629145600"
+        }
+      },
+      "mibPerSecond": 34.344776692032426,
+      "tool": "cd-browser",
+      "browserCommit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+      "input": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67",
+        "generated": false
+      },
+      "load": [
+        2.68,
+        1.84,
+        1.98
+      ]
+    },
+    {
+      "run": 1,
+      "route": "relay",
+      "ok": true,
+      "readyMs": 56.26592299999902,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 23924.107185,
+      "receiveMs": 24974.713363999996,
+      "senderCompleteMs": 24978.528632,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "transport": {
+        "relay": 629145600,
+        "direct": 0,
+        "firstAt": 389.3999999985099,
+        "lastAt": 24213,
+        "maxGapMs": 88.60000000149012,
+        "records": 2400,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 24088,
+            "maxGapMs": 97.09999999403954,
+            "lastAt": 24248.5,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1572864,
+          "inFlight": 0,
+          "minRTT": 24.19999999552965,
+          "acknowledged": "629145600"
+        }
+      },
+      "mibPerSecond": 24.024299748916235,
+      "tool": "cd-browser",
+      "browserCommit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+      "input": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67",
+        "generated": false
+      },
+      "load": [
+        2.68,
+        1.84,
+        1.98
+      ]
+    },
+    {
+      "run": 2,
+      "tool": "croc-cli-relay",
+      "ok": true,
+      "readyMs": 14.31800800000201,
+      "receiveMs": 416.05694200001017,
+      "transport": {
+        "requested": "relay",
+        "noLocal": true,
+        "multiplexing": "default",
+        "compression": "default"
+      },
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "mibPerSecond": 1442.1102965275973
+    },
+    {
+      "run": 2,
+      "tool": "http-ceiling",
+      "ok": true,
+      "readyMs": 0,
+      "receiveMs": 535.0728419999941,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "mibPerSecond": 1121.3426526327169
+    },
+    {
+      "run": 2,
+      "route": "auto",
+      "ok": true,
+      "readyMs": 63.95428400000037,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 17918.092525,
+      "receiveMs": 18946.69928,
+      "senderCompleteMs": 18949.374192,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 629145600,
+        "firstAt": 601.6000000014901,
+        "lastAt": 18240,
+        "maxGapMs": 3005.10000000149,
+        "records": 900,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host",
+              "srflx"
+            ]
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 828,
+            "maxGapMs": 186.29999999701977,
+            "lastAt": 587.1000000014901,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1795893,
+          "inFlight": 0,
+          "minRTT": 16.80000000447035,
+          "acknowledged": "629145600"
+        }
+      },
+      "mibPerSecond": 31.66778503912582,
+      "tool": "cd-browser",
+      "browserCommit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+      "input": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67",
+        "generated": false
+      },
+      "load": [
+        3.71,
+        2.28,
+        2.13
+      ]
+    },
+    {
+      "run": 2,
+      "route": "relay",
+      "ok": true,
+      "readyMs": 51.259680999999546,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 24478.177985000002,
+      "receiveMs": 25435.69405,
+      "senderCompleteMs": 25438.570273999998,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "transport": {
+        "relay": 629145600,
+        "direct": 0,
+        "firstAt": 373.69999999552965,
+        "lastAt": 24744,
+        "maxGapMs": 100.39999999850988,
+        "records": 2400,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 24088,
+            "maxGapMs": 110.80000000447035,
+            "lastAt": 24785.39999999851,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1572864,
+          "inFlight": 0,
+          "minRTT": 19.600000001490116,
+          "acknowledged": "629145600"
+        }
+      },
+      "mibPerSecond": 23.588898294678145,
+      "tool": "cd-browser",
+      "browserCommit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+      "input": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67",
+        "generated": false
+      },
+      "load": [
+        3.71,
+        2.28,
+        2.13
+      ]
+    },
+    {
+      "run": 2,
+      "tool": "cd-cli-relay",
+      "ok": true,
+      "readyMs": 23.28369000001112,
+      "receiveMs": 1421.5322619999934,
+      "transport": [
+        {
+          "transport": "relay",
+          "relayBytes": 629169016,
+          "directBytes": 0
+        },
+        {
+          "transport": "relay",
+          "relayBytes": 16115,
+          "directBytes": 0
+        }
+      ],
+      "received": {
+        "bytes": 629145600,
+        "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+      },
+      "mibPerSecond": 422.0797628298941
+    }
+  ],
+  "method": "All tools receive the same independently generated random file on one Linux host. Browser pages preload; readiness is separate. Receive timing includes receiver startup or code entry through full saved output, without fsync. Full SHA-256 and byte count checked outside timing. OS cache allowed. croc CLI forced to TCP relay; CD CLI forced to WebSocket relay. CD browser auto may use WebRTC. HTTP is an unencrypted ceiling diagnostic, not a secure file-transfer competitor. No WAN or physical-phone claim.",
+  "input": {
+    "bytes": 629145600,
+    "sha256": "a82b51f35d605b2d32d1348e90dd344036ddca982052a66f8e4e58aa550bfe67"
+  },
+  "benchmarkSHA256": "87775b1b68a5625a468976b2d7c688458cbdea0e850136b7607e058a30df5055",
+  "runtimeOverride": "workerd 2026-11-04",
+  "cdx": {
+    "bytes": 18525794,
+    "sha256": "39fcd0c69cb6bf735cf84b916bd13e5aa487bef1f32313fb913fb5ef9b0c892b"
+  },
+  "croc": {
+    "bytes": 23990396,
+    "sha256": "d6cde9a91bb16007e96355ef68b64da1b5cc714a8999c16e10d050f6407c5d5c",
+    "version": "croc version 11.6.5"
+  },
+  "finishedAt": "2026-11-08T09:12:13.650Z"
+}

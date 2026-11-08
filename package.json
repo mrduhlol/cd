@@ -8,7 +8,7 @@
     "build": "npm run skill:check && node scripts/build-design.mjs && node scripts/sync-install.mjs && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "audit": "npm audit --audit-level=moderate",
-    "test": "npm run skill:check && node --test src/*.test.js scripts/bench-metrics.test.mjs scripts/firebase-config.test.mjs scripts/prof-gates.test.mjs scripts/bench-croc-matrix.test.mjs scripts/bench-browser-croc-gates.test.mjs scripts/resume-admission.test.mjs scripts/websocket-echo.test.mjs scripts/bench-direct-runtime.test.mjs",
+    "test": "npm run skill:check && node --test src/*.test.js scripts/bench-metrics.test.mjs scripts/firebase-config.test.mjs scripts/prof-gates.test.mjs scripts/bench-croc-matrix.test.mjs scripts/bench-browser-croc-gates.test.mjs scripts/resume-admission.test.mjs scripts/websocket-echo.test.mjs scripts/bench-direct-runtime.test.mjs scripts/fresh-transfer-gates.test.mjs scripts/fresh-browser-child.test.mjs",
     "verify:security": "node scripts/verify-code-security.mjs",
     "test:cli": "go test ./...",
     "typecheck": "tsc",
@@ -30,7 +30,8 @@
     "verify:device-push": "node scripts/verify-device-push.mjs",
     "verify:resume-limits": "node scripts/verify-resume-limits.mjs",
     "verify:v2": "npm run build && node scripts/verify-v2-relay.mjs",
-    "verify:v2:browser": "npm run build && node scripts/verify-v2-browser.mjs"
+    "verify:v2:browser": "npm run build && node scripts/verify-v2-browser.mjs",
+    "verify:performance": "npm run build && CD_FRESH_MIB=64 CD_FRESH_RUNS=3 CD_FRESH_OUTPUT=/tmp/cd-fresh-performance.json node scripts/bench-transfer-fresh.mjs && node scripts/fresh-transfer-gates.mjs /tmp/cd-fresh-performance.json"
   },
   "dependencies": {
     "jsqr": "1.4.0",

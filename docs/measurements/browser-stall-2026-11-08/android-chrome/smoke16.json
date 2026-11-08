@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "commit": "414c5772c909ca40142c981fca54903730c3f9e2",
+  "mib": 16,
+  "serial": "emulator-5554",
+  "filename": "fresh-browser-android-1794135207501.bin",
+  "ok": true,
+  "method": "Actual Chrome Android UI receiver; automatic route observed at host sender. Local Worker through Wrangler and adb reverse. Staging completion is sender UI observation, not OS download completion. Full-size public Downloads observation is separate; pulled full SHA256 verifies output outside timing. Polling adds up to one second and does not claim fsync durability. Emulator, not physical phone or WAN.",
+  "benchmarkSHA256": "eb0f25634d7c47ea736c12137b0691e45548cfb973e29587ffa7263d9f97530e",
+  "expected": {
+    "bytes": 16777216,
+    "sha256": "9f6751da0eaa7e16135222ddeafb53b69c3c3911308103da7e3392ea0ca06dc5"
+  },
+  "chromium": "155.0.8059.84",
+  "stagingCompleteObservedEpochMs": 1794135217775,
+  "transport": {
+    "relay": 16777216,
+    "direct": 0,
+    "firstAt": 8076.5999999940395,
+    "lastAt": 8616.29999999702,
+    "maxGapMs": 63.20000000298023,
+    "records": 64,
+    "peers": [
+      {
+        "states": [
+          "connecting",
+          "connected"
+        ],
+        "candidateTypes": [
+          "host",
+          "srflx"
+        ]
+      }
+    ],
+    "sockets": [
+      {
+        "path": "/ws/v1/<id>",
+        "received": 1921,
+        "maxGapMs": 7828.4000000059605,
+        "lastAt": 8743.70000000298,
+        "extensions": "permessage-deflate; client_max_window_bits=15",
+        "closeCode": 4404
+      }
+    ],
+    "window": {
+      "size": 5300859,
+      "inFlight": 0,
+      "minRTT": 80,
+      "acknowledged": "16777216"
+    },
+    "timeOrigin": 1794135208778.7,
+    "observedCompleteAt": 9000.59999999404
+  },
+  "stagingMs": 924,
+  "stagingMiBPerSecond": 17.316017316017316,
+  "publicationSizeObservedEpochMs": 1794135217798,
+  "publicationAfterStagingObservedMs": 23,
+  "receiveThroughPublicationMs": 942.699951171875,
+  "received": {
+    "bytes": 16777216,
+    "sha256": "9f6751da0eaa7e16135222ddeafb53b69c3c3911308103da7e3392ea0ca06dc5"
+  },
+  "verificationMs": 215
+}

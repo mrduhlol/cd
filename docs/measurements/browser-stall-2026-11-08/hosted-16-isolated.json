@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T08:55:47.329Z",
+  "commit": "db6934ba54380f8cd8a0b58157c0a3dcecbcf66c",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    1.21,
+    1.25,
+    2.35
+  ],
+  "mib": 16,
+  "runs": 1,
+  "topology": "two Chromium processes on one Linux host, hosted relay",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "auto",
+      "ok": false,
+      "readyMs": 1803.601544,
+      "assets": [
+        "/assets/index-CAq_iO25.js",
+        "/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092"
+      ],
+      "error": "page.waitForEvent: Timeout 90000ms exceeded while waiting for event \"download\"\n=========================== logs ===========================\nwaiting for event \"download\"\n============================================================",
+      "senderState": "transferring",
+      "senderStatus": "Sending...",
+      "transport": {
+        "relay": 13631488,
+        "direct": 0,
+        "firstAt": 8619.60000000149,
+        "lastAt": 95305.80000000447,
+        "maxGapMs": 30325.5,
+        "records": 52,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 228,
+            "maxGapMs": 30329.5,
+            "lastAt": 95294
+          }
+        ]
+      }
+    },
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": false,
+      "readyMs": 1793.735256999993,
+      "assets": [
+        "/assets/index-CAq_iO25.js",
+        "/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092"
+      ],
+      "error": "page.waitForEvent: Timeout 90000ms exceeded while waiting for event \"download\"\n=========================== logs ===========================\nwaiting for event \"download\"\n============================================================",
+      "senderState": "transferring",
+      "senderStatus": "Sending...",
+      "transport": {
+        "relay": 13631488,
+        "direct": 0,
+        "firstAt": 5740.80000000447,
+        "lastAt": 86970.70000000298,
+        "maxGapMs": 25716.60000000149,
+        "records": 52,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 228,
+            "maxGapMs": 25720.90000000596,
+            "lastAt": 86961.30000000447
+          }
+        ]
+      }
+    }
+  ],
+  "input": {
+    "bytes": 16777216,
+    "sha256": "d553fab1d9600092cb21f74d65af8fb2e20cccc58d976716a3cd6d0d5e1ae638"
+  },
+  "localSource": {
+    "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+    "src/relay-sender.js": "d147a29f25f63f91da853ef86943b0423de776a36c26890c5f98dba169e4648b",
+    "src/share.js": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c",
+    "src/sink.js": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470",
+    "src/send-window.js": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473",
+    "dist/index.html": "6c10c1b73a6e3126c0183ad1a915145219247a738c29f2821f23847aa94ed723"
+  },
+  "dirty": [
+    "?? scripts/bench-transfer-fresh.mjs"
+  ],
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T08:58:57.794Z"
+}

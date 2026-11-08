@@ -133,6 +133,7 @@ func unpackBundleFile(file *os.File, root *os.Root, dir string, force bool) ([]r
 	}
 	absolute, _ := filepath.Abs(dir)
 	received := make([]receivedFile, 0, len(files))
+	buffer := make([]byte, min(expanded+1, 32*1024))
 	for _, item := range files {
 		local := filepath.FromSlash(item.name)
 		if parent := filepath.Dir(local); parent != "." {
@@ -140,7 +141,7 @@ func unpackBundleFile(file *os.File, root *os.Root, dir string, force bool) ([]r
 				return received, failuref(failureLocal, retryNever, "cannot create %q: %s", parent, underlyingReason(err))
 			}
 		}
-		if err := extractEntry(root, item.file, local, force); err != nil {
+		if err := extractEntry(root, item.file, local, force, buffer); err != nil {
 			return received, err
 		}
 		received = append(received, receivedFile{Filename: item.name, Size: item.file.UncompressedSize64, Path: filepath.Join(absolute, local)})
@@ -148,7 +149,7 @@ func unpackBundleFile(file *os.File, root *os.Root, dir string, force bool) ([]r
 	return received, nil
 }
 
-func extractEntry(root *os.Root, entry *zip.File, local string, force bool) error {
+func extractEntry(root *os.Root, entry *zip.File, local string, force bool, buffer []byte) error {
 	source, err := entry.Open()
 	if err != nil {
 		return NewFailure(failureProtocol, "the sender's files could not be unpacked", retryNever)
@@ -163,8 +164,9 @@ func extractEntry(root *os.Root, entry *zip.File, local string, force bool) erro
 	if err != nil {
 		return failuref(failureLocal, retryNever, "cannot write %q: %s", local, underlyingReason(err))
 	}
+	// Hide File.ReadFrom so every ZIP entry reuses the caller's copy buffer.
 	// zip's reader checks each entry's size and CRC as it reaches EOF.
-	written, copyErr := io.Copy(output, io.LimitReader(source, int64(entry.UncompressedSize64)+1))
+	written, copyErr := io.CopyBuffer(struct{ io.Writer }{output}, io.LimitReader(source, int64(entry.UncompressedSize64)+1), buffer)
 	if copyErr == nil && uint64(written) != entry.UncompressedSize64 {
 		copyErr = zip.ErrFormat
 	}

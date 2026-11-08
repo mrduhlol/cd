@@ -1,0 +1,196 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T11:53:41.859Z",
+  "commit": "59118101621b34c812e4d54da2b6e050b73073f5",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    0.78,
+    0.8,
+    3.99
+  ],
+  "mib": 16,
+  "runs": 1,
+  "topology": "two Chromium processes on one Linux host, hosted relay",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "auto",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 1801.853039,
+      "assets": [
+        "/assets/index-DVEv5I1o.js"
+      ],
+      "downloadEventMs": 2274.3197229999996,
+      "receiveMs": 2322.73524,
+      "senderCompleteMs": 2325.996491,
+      "received": {
+        "bytes": 16777216,
+        "sha256": "959de812cca889ba1545d1394131849992d457627254125f8fffaafa1262a203"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 16777216,
+        "firstAt": 4000.2999999970198,
+        "lastAt": 4237.5,
+        "maxGapMs": 27.700000002980232,
+        "records": 24,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host",
+              "host",
+              "srflx",
+              "srflx"
+            ],
+            "iceStates": [
+              {
+                "state": "checking",
+                "at": 3896.7000000029802
+              },
+              {
+                "state": "connected",
+                "at": 3988
+              }
+            ],
+            "candidatesAdded": [
+              {
+                "at": 3987.5,
+                "type": "host"
+              },
+              {
+                "at": 3988.1000000089407,
+                "type": "host"
+              }
+            ],
+            "channels": [
+              {
+                "label": "cd-direct",
+                "events": [
+                  {
+                    "event": "open",
+                    "at": 3993.4000000059605,
+                    "bufferedAmount": 0
+                  },
+                  {
+                    "event": "close",
+                    "at": 4310,
+                    "bufferedAmount": 0
+                  }
+                ]
+              }
+            ],
+            "sctpState": "closed",
+            "selectedPairs": [
+              {
+                "state": "succeeded",
+                "bytesSent": 2095,
+                "bytesReceived": 3692,
+                "currentRoundTripTime": 0,
+                "requestsSent": 1,
+                "responsesReceived": 1,
+                "localType": "host",
+                "remoteType": "host",
+                "protocol": "udp"
+              }
+            ],
+            "pairsObservedAt": 3996.7999999970198,
+            "closeCalledAt": 4308.600000008941
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 1079,
+            "maxGapMs": 2055.9000000059605,
+            "lastAt": 3986.9000000059605,
+            "extensions": "permessage-deflate; client_max_window_bits=15"
+          }
+        ],
+        "window": {
+          "size": 5255217,
+          "inFlight": 0,
+          "minRTT": 42.6000000089407,
+          "acknowledged": "16777216"
+        }
+      },
+      "mibPerSecond": 6.888430383481847
+    },
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 1287.3961740000004,
+      "assets": [
+        "/assets/index-DVEv5I1o.js"
+      ],
+      "downloadEventMs": 4569.964359,
+      "receiveMs": 4630.147209999999,
+      "senderCompleteMs": 4655.78947,
+      "received": {
+        "bytes": 16777216,
+        "sha256": "959de812cca889ba1545d1394131849992d457627254125f8fffaafa1262a203"
+      },
+      "transport": {
+        "relay": 16777216,
+        "direct": 0,
+        "firstAt": 3228.7999999970198,
+        "lastAt": 4796.899999991059,
+        "maxGapMs": 464.20000000298023,
+        "records": 64,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 728,
+            "maxGapMs": 1684.2999999970198,
+            "lastAt": 6144.5999999940395,
+            "extensions": "permessage-deflate; client_max_window_bits=15"
+          }
+        ],
+        "window": {
+          "size": 5426119,
+          "inFlight": 0,
+          "minRTT": 465.90000000596046,
+          "acknowledged": "16777216"
+        }
+      },
+      "mibPerSecond": 3.455613671514346
+    }
+  ],
+  "input": {
+    "bytes": 16777216,
+    "sha256": "959de812cca889ba1545d1394131849992d457627254125f8fffaafa1262a203",
+    "generated": false
+  },
+  "benchmarkSHA256": "5fb58315f491f8734434bbe320c8e1d8d306cdcb7473174f95f1da63712ea9d4",
+  "probeSHA256": "01ed2c4f01b1e94e3eadbd1bef492cf78f301ac346938e4d574fdc45c622daa4",
+  "localSource": {
+    "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+    "src/relay-sender.js": "5b954d213044b90c048a377d4cb237d5af7c858d3607d90892225495f53c4b5a",
+    "src/share.js": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c",
+    "src/sink.js": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470",
+    "src/send-window.js": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473",
+    "dist/index.html": "05c9d1a2bafe2715f7b7b78138aa749b40c3c6bb1bfa990ad8b622007a0f461e"
+  },
+  "hostedAssets": {
+    "/assets/index-CAq_iO25.js": "d29a551f464a274bf26eedfdf8e660bedfa27549e430edf2eb84f300b11d86ea"
+  },
+  "dirty": [],
+  "runtimeOverride": null,
+  "serviceOrigin": "https://cd.yash0.in",
+  "runtime": "configured service",
+  "assetOverride": "/tmp/cd-speed-pr75/dist",
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T11:53:53.088Z"
+}

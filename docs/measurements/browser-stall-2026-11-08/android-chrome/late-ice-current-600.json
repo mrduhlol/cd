@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "commit": "0280b24056241ef94f75419451347f6d9298f256",
+  "mib": 600,
+  "serial": "emulator-5554",
+  "filename": "fresh-browser-android-1794136780176.bin",
+  "ok": true,
+  "method": "Actual Chrome Android UI receiver; automatic route observed at host sender. Local Worker through Wrangler and adb reverse. Staging completion is sender UI observation, not OS download completion. Full-size public Downloads observation is separate; pulled full SHA256 verifies output outside timing. Polling adds up to one second and does not claim fsync durability. Emulator, not physical phone or WAN.",
+  "benchmarkSHA256": "2b3a40887f5aa91c9e61b464c2afd022f1f294113c39d54a78f0a4369c4747ac",
+  "probeSHA256": "5cb6d504c38fcff27a686d6a193f6b668ca794bbb44c904084d12649001ce983",
+  "runtime": "Wrangler development proxy",
+  "distIndexSHA256": "05c9d1a2bafe2715f7b7b78138aa749b40c3c6bb1bfa990ad8b622007a0f461e",
+  "dirty": [
+    "M scripts/bench-browser-android-fresh.mjs",
+    " M scripts/bench-transfer-compare-fresh.mjs",
+    " M scripts/bench-transfer-fresh.mjs",
+    " M src/relay-sender.js",
+    " M src/relay-sender.test.js",
+    "?? docs/measurements/browser-stall-2026-11-08/android-chrome/",
+    "?? scripts/bench-browser-chrome-fresh.mjs",
+    "?? scripts/fresh-browser-probe.mjs"
+  ],
+  "androidChrome": "124.0.6367.219",
+  "expected": {
+    "bytes": 629145600,
+    "sha256": "17d107fbc92849958aae4d04f3804e859ff1bbe4035bd248f076d2d2085cb0c2"
+  },
+  "chromium": "155.0.8059.84",
+  "stagingCompleteObservedEpochMs": 1794136831332,
+  "transport": {
+    "relay": 629145600,
+    "direct": 0,
+    "firstAt": 1858.2999999970198,
+    "lastAt": 46566.59999999404,
+    "maxGapMs": 398,
+    "records": 2400,
+    "peers": [
+      {
+        "states": [
+          "connecting",
+          "failed"
+        ],
+        "candidateTypes": [
+          "host",
+          "host",
+          "srflx",
+          "srflx"
+        ],
+        "iceStates": [
+          {
+            "state": "checking",
+            "at": 1829.7000000029802
+          },
+          {
+            "state": "disconnected",
+            "at": 17384
+          }
+        ],
+        "candidatesAdded": [
+          {
+            "at": 1826.0999999940395,
+            "type": "host"
+          },
+          {
+            "at": 1828.5999999940395,
+            "type": "host"
+          },
+          {
+            "at": 2262.7999999970198,
+            "type": "srflx"
+          },
+          {
+            "at": 2263.7999999970198,
+            "type": "srflx"
+          }
+        ],
+        "channels": [
+          {
+            "label": "cd-direct",
+            "events": [
+              {
+                "event": "close",
+                "at": 17388.5,
+                "bufferedAmount": 0
+              }
+            ]
+          }
+        ],
+        "closeCalledAt": 17384.20000000298,
+        "sctpState": "closed"
+      }
+    ],
+    "sockets": [
+      {
+        "path": "/ws/v1/<id>",
+        "received": 25565,
+        "maxGapMs": 1394.5999999940395,
+        "lastAt": 46692.20000000298,
+        "extensions": "permessage-deflate; client_max_window_bits=15",
+        "closeCode": 4404
+      }
+    ],
+    "window": {
+      "size": 1572864,
+      "inFlight": 0,
+      "minRTT": 43.599999994039536,
+      "acknowledged": "629145600"
+    },
+    "timeOrigin": 1794136784388.7,
+    "observedCompleteAt": 46948.89999999106
+  },
+  "stagingMs": 45090.59999999404,
+  "stagingMiBPerSecond": 13.306542827109848,
+  "publicationSizeObservedEpochMs": 1794136844078,
+  "publicationAfterStagingObservedMs": 12746,
+  "receiveThroughPublicationMs": 57831,
+  "received": {
+    "bytes": 629145600,
+    "sha256": "17d107fbc92849958aae4d04f3804e859ff1bbe4035bd248f076d2d2085cb0c2"
+  },
+  "verificationMs": 8174,
+  "finalTransport": {
+    "relay": 629145600,
+    "direct": 0,
+    "firstAt": 1858.2999999970198,
+    "lastAt": 46566.59999999404,
+    "maxGapMs": 398,
+    "records": 2400,
+    "peers": [
+      {
+        "states": [
+          "connecting",
+          "failed"
+        ],
+        "candidateTypes": [
+          "host",
+          "host",
+          "srflx",
+          "srflx"
+        ],
+        "iceStates": [
+          {
+            "state": "checking",
+            "at": 1829.7000000029802
+          },
+          {
+            "state": "disconnected",
+            "at": 17384
+          }
+        ],
+        "candidatesAdded": [
+          {
+            "at": 1826.0999999940395,
+            "type": "host"
+          },
+          {
+            "at": 1828.5999999940395,
+            "type": "host"
+          },
+          {
+            "at": 2262.7999999970198,
+            "type": "srflx"
+          },
+          {
+            "at": 2263.7999999970198,
+            "type": "srflx"
+          }
+        ],
+        "channels": [
+          {
+            "label": "cd-direct",
+            "events": [
+              {
+                "event": "close",
+                "at": 17388.5,
+                "bufferedAmount": 0
+              }
+            ]
+          }
+        ],
+        "closeCalledAt": 17384.20000000298,
+        "sctpState": "closed"
+      }
+    ],
+    "sockets": [
+      {
+        "path": "/ws/v1/<id>",
+        "received": 25565,
+        "maxGapMs": 1394.5999999940395,
+        "lastAt": 46692.20000000298,
+        "extensions": "permessage-deflate; client_max_window_bits=15",
+        "closeCode": 4404
+      }
+    ],
+    "window": {
+      "size": 1572864,
+      "inFlight": 0,
+      "minRTT": 43.599999994039536,
+      "acknowledged": "629145600"
+    }
+  },
+  "senderStatus": "The receiver has every byte."
+}

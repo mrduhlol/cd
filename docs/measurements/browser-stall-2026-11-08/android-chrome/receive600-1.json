@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "commit": "414c5772c909ca40142c981fca54903730c3f9e2",
+  "mib": 600,
+  "serial": "emulator-5554",
+  "filename": "fresh-browser-android-1794135235187.bin",
+  "ok": false,
+  "method": "Actual Chrome Android UI receiver; automatic route observed at host sender. Local Worker through Wrangler and adb reverse. Staging completion is sender UI observation, not OS download completion. Full-size public Downloads observation is separate; pulled full SHA256 verifies output outside timing. Polling adds up to one second and does not claim fsync durability. Emulator, not physical phone or WAN.",
+  "benchmarkSHA256": "d2684569fcb88cef55d38e02a6e9b43b7ae778381d11209c6ede266fc7946554",
+  "androidChrome": "124.0.6367.219",
+  "expected": {
+    "bytes": 629145600,
+    "sha256": "1e2167662eb0df528e075201fd01b100f04111110a764e18781ecc7040073b6e"
+  },
+  "chromium": "155.0.8059.84",
+  "error": "locator.waitFor: Timeout 300000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sender-complete:not(.hidden)') to be visible\u001b[22m\n"
+}

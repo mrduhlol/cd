@@ -70,8 +70,9 @@ func directEnabled() bool {
 }
 
 type directPath struct {
-	connection *webrtc.PeerConnection
-	channel    *webrtc.DataChannel
+	connection      *webrtc.PeerConnection
+	publicCandidate chan struct{}
+	channel         *webrtc.DataChannel
 	// stream, when set, is an authenticated same-network TCP connection
 	// (see lan.go) that carries the records instead of a data channel.
 	stream   net.Conn
@@ -114,6 +115,13 @@ func newDirectPath(onRecord func([]byte), onLost func(error)) (*directPath, erro
 		return nil, err
 	}
 	path := &directPath{connection: connection, channel: channel, opened: make(chan struct{}), lost: make(chan struct{}), drained: make(chan struct{}, 1), onLost: onLost}
+	path.publicCandidate = make(chan struct{})
+	var publicOnce sync.Once
+	connection.OnICECandidate(func(candidate *webrtc.ICECandidate) {
+		if candidate != nil && (candidate.Typ == webrtc.ICECandidateTypeSrflx || candidate.Typ == webrtc.ICECandidateTypeRelay) {
+			publicOnce.Do(func() { close(path.publicCandidate) })
+		}
+	})
 	lose := path.lose
 	channel.OnOpen(func() { path.openOnce.Do(func() { close(path.opened) }) })
 	channel.OnClose(func() { lose(NewFailure(failureDisconnected, "direct connection closed", retryNewTransfer)) })
@@ -198,10 +206,12 @@ func (path *directPath) retire() {
 	path.close()
 }
 
-// localDescription waits for ICE gathering (bounded) and returns the SDP.
+// localDescription returns once a public candidate is usable; gathering
+// continues so a stalled STUN server cannot delay a usable offer.
 func (path *directPath) localDescription() string {
 	select {
 	case <-webrtc.GatheringCompletePromise(path.connection):
+	case <-path.publicCandidate:
 	case <-time.After(directGatherWait):
 	}
 	return path.connection.LocalDescription().SDP

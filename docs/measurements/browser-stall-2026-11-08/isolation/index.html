@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Send files directly between browsers with a private code or QR link. No upload queue, no cloud detour."
+    />
+    <meta name="theme-color" content="#0d0503" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="cd" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta property="og:title" content="cd | direct browser transfer" />
+    <meta
+      property="og:description"
+      content="Send files directly between browsers with a private code or QR link."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cd.yash0.in/" />
+    <link rel="canonical" href="https://cd.yash0.in/" />
+    <title>cd | direct browser transfer</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <script type="module" crossorigin src="/assets/index-CAq_iO25.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BQNCGYPm.css">
+  </head>
+  <body>
+    <canvas id="ambient-dots" class="ambient-dots" aria-hidden="true"></canvas>
+    <main class="shell">
+      <section class="brand-rail" aria-label="cd status board">
+        <div class="brand-lockup">
+          <div class="brand-name">
+            <h1>cd</h1>
+            <p class="tagline">/di·rect/</p>
+          </div>
+          <p class="brand-intro">
+            Direct <span class="route"><span class="swap">browser</span>-to-<span class="swap">browser</span></span><br />file transfer.
+          </p>
+          <div class="install">
+            <button id="install-toggle" class="install-toggle" type="button" aria-expanded="false" aria-controls="install-panel">
+              <span class="install-dot" aria-hidden="true"></span>Get the <code>cdx</code> CLI<span class="install-chevron" aria-hidden="true"></span>
+            </button>
+            <div id="install-panel" class="install-panel" inert>
+            <div class="install-body">
+            <button id="install-copy" class="install-cmd" type="button" aria-label="Copy install command">
+              <span class="install-prompt" aria-hidden="true">$</span>
+              <code>curl -fsSL https://cd.yash0.in/install.sh | sh</code>
+              <span class="install-hint">copy</span>
+            </button>
+            <span class="install-alt"><span class="install-alt-os">Windows</span> <code>irm https://cd.yash0.in/install.ps1 | iex</code></span>
+            </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="state-board" aria-live="polite" hidden>
+          <span class="state-label">state</span>
+          <strong id="app-state" data-state="loading">loading</strong>
+        </div>
+      </section>
+
+      <section class="workbench" aria-label="file transfer app" inert aria-busy="true">
+        <div class="mode-selector" role="tablist" aria-label="Choose transfer mode">
+          <button id="send-mode-btn" class="mode-btn active" type="button" role="tab" aria-selected="true" aria-controls="sender-view" tabindex="0">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Send
+          </button>
+          <button id="receive-mode-btn" class="mode-btn" type="button" role="tab" aria-selected="false" aria-controls="receiver-view" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Receive
+          </button>
+        </div>
+
+        <section id="sender-view" class="view active" role="tabpanel" aria-labelledby="send-mode-btn">
+          <div id="drop-zone" class="drop-zone">
+            <input id="file-input" type="file" multiple hidden />
+            <span class="drop-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M6.5 9.5L12 4l5.5 5.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span>
+            <div class="drop-copy">
+              <h2>Send files</h2>
+              <p>Drop them here, or pick from your device.</p>
+            </div>
+            <button id="select-file-btn" class="primary-btn" type="button">Choose files</button>
+          </div>
+
+          <div id="sender-file-info" class="file-info hidden">
+            <span class="panel-kicker">sending</span>
+            <div class="file-header">
+              <span class="file-name"></span>
+              <span class="file-size"></span>
+            </div>
+            <span class="file-subtext"></span>
+          </div>
+
+          <div id="sender-code-section" class="share-panel hidden">
+            <div class="share-grid">
+              <div class="code-block">
+                <span class="panel-kicker">share this code</span>
+                <strong id="share-code"></strong>
+                <p class="code-help">On the other device, open <strong>cd.yash0.in</strong> → Receive and type it. In a terminal:</p>
+                <code id="receive-command" class="receive-command"></code>
+              </div>
+              <div class="qr-block">
+                <span class="panel-kicker">or scan it</span>
+                <canvas id="share-qr" width="220" height="220" aria-label="QR code that opens this transfer"></canvas>
+              </div>
+            </div>
+
+            <div class="share-actions">
+              <button id="copy-code-btn" class="secondary-btn" type="button">Copy code</button>
+              <button id="copy-cmd-btn" class="secondary-btn" type="button">Copy command</button>
+              <button id="copy-link-btn" class="secondary-btn" type="button">Copy private link</button>
+            </div>
+
+            <p class="status" role="status" id="sender-status"></p>
+          </div>
+
+          <div id="sender-progress" class="progress-section hidden">
+            <div class="progress-topline">
+              <span class="progress-mode">sending</span>
+              <strong class="progress-percent">0%</strong>
+              <button id="sender-cancel-btn" class="cancel-btn" type="button">Cancel</button>
+            </div>
+            <div class="progress-bar" role="progressbar" aria-label="Upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="progress-fill"></div>
+            </div>
+            <div class="progress-stats">
+              <span><b>speed</b><em class="progress-speed">–</em></span>
+              <span><b>moved</b><em class="progress-transferred">–</em></span>
+              <span><b>left</b><em class="progress-eta">–</em></span>
+            </div>
+          </div>
+
+          <div id="sender-error" class="result-section error hidden" role="alert">
+            <span class="result-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></span>
+            <div class="result-copy">
+              <p class="result-title">That didn’t work</p>
+              <p class="error-message result-detail"></p>
+              <div class="result-actions">
+                <button id="sender-retry-btn" class="primary-btn" type="button">Try again</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="sender-complete" class="result-section complete-section hidden">
+            <span class="result-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+            <div class="result-copy">
+              <p id="sender-complete-message" class="result-title">Sent</p>
+              <p id="sender-complete-detail" class="result-detail"></p>
+              <div class="result-actions">
+                <button id="send-another-btn" class="primary-btn" type="button">Send more files</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="receiver-view" class="view hidden" role="tabpanel" aria-labelledby="receive-mode-btn">
+          <div id="receiver-input-section" class="input-section">
+            <h2 class="section-title">Receive files</h2>
+            <p class="section-subtitle">Enter the code to start downloading, or scan the QR.</p>
+            <label for="code-input" class="visually-hidden">Share code</label>
+            <div class="code-input-wrapper">
+              <input
+                id="code-input"
+                type="text"
+                maxlength="512"
+                placeholder="Enter code" aria-describedby="scanner-status"
+                autocomplete="off"
+                autocapitalize="none"
+                autocorrect="off"
+                enterkeyhint="go"
+                spellcheck="false"
+                inputmode="numeric"
+              />
+              <button id="connect-btn" class="primary-btn" type="button">Connect</button>
+            </div>
+
+            <div class="scanner-panel">
+              <button id="scan-qr-btn" class="secondary-btn" type="button">Scan QR</button>
+              <p id="scanner-status" class="scanner-status" role="status"></p>
+            </div>
+          </div>
+
+          <div id="receiver-connecting" class="connecting-section hidden">
+            <span class="result-mark" aria-hidden="true"><span class="spinner"></span></span>
+            <div class="result-copy">
+              <p class="result-title">Finding the sender…</p>
+              <p class="result-detail">This usually takes a second or two.</p>
+              <div class="result-actions">
+                <button id="receiver-connecting-cancel-btn" class="secondary-btn" type="button">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="receiver-relay" class="hidden">
+            <div id="receiver-relay-panel"></div>
+            <div class="result-actions">
+              <button id="relay-done-btn" class="secondary-btn" type="button">Receive another</button>
+            </div>
+          </div>
+
+          <div id="receiver-file-info" class="file-info hidden">
+            <span class="panel-kicker">incoming</span>
+            <div class="file-header">
+              <span class="file-name"></span>
+              <span class="file-size"></span>
+            </div>
+            <span class="file-subtext"></span>
+          </div>
+
+          <div id="receiver-progress" class="progress-section hidden">
+            <div class="progress-topline">
+              <span class="progress-mode">receiving</span>
+              <strong class="progress-percent">0%</strong>
+              <button id="receiver-cancel-btn" class="cancel-btn" type="button">Cancel</button>
+            </div>
+            <div class="progress-bar" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="progress-fill"></div>
+            </div>
+            <div class="progress-stats">
+              <span><b>speed</b><em class="progress-speed">–</em></span>
+              <span><b>moved</b><em class="progress-transferred">–</em></span>
+              <span><b>left</b><em class="progress-eta">–</em></span>
+            </div>
+          </div>
+
+          <div id="receiver-complete" class="result-section complete-section hidden">
+            <span class="result-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+            <div class="result-copy">
+              <p id="receiver-complete-message" class="result-title">Saved</p>
+              <p id="receiver-complete-detail" class="result-detail"></p>
+              <div class="result-actions">
+                <button id="receive-another-btn" class="primary-btn" type="button">Receive another</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="receiver-error" class="result-section error hidden" role="alert">
+            <span class="result-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></span>
+            <div class="result-copy">
+              <p class="result-title">That didn’t work</p>
+              <p class="error-message result-detail"></p>
+              <div class="result-actions">
+                <button id="retry-btn" class="primary-btn" type="button">Try again</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div id="qr-reader" class="scanner-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="scanner-title">
+      <video id="qr-video" class="scanner-video" muted playsinline></video>
+      <div class="scanner-frame" aria-hidden="true"></div>
+      <div class="scanner-bar">
+        <div>
+          <p id="scanner-title" class="scanner-title">Scan the sender’s QR code</p>
+          <p id="scanner-live" class="scanner-live" role="status">Starting the camera…</p>
+        </div>
+        <button id="stop-scan-btn" class="secondary-btn" type="button">Close</button>
+      </div>
+    </div>
+
+    <footer class="watermark">
+      Made by <a href="https://yash0.in" target="_blank" rel="noreferrer">yashas</a>
+    </footer>
+
+    <noscript><p class="noscript-message">Enable JavaScript to send and receive files.</p></noscript>
+  <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5736681dde8fe87',t:'MTc5NDEyODU2Mw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a5736681dde8fe87',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

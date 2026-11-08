@@ -3,9 +3,10 @@ import { test } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 import { startRelaySend } from './relay-sender.js';
 import { createZipBundle } from './zip-bundle.js';
-import { createOpener, createSealer, decodeBase64Url, KIND_ACCEPT, KIND_ACK, KIND_COMPLETE, KIND_OFFER, KIND_CHUNK, KIND_END, SENDER_DIRECTION, RECEIVER_DIRECTION } from './agent-protocol.js';
+import { createRecordAssembler, createRecordMerger } from './direct-link.js';
+import { createOpener, createSealer, decodeBase64Url, KIND_ACCEPT, KIND_ACK, KIND_COMPLETE, KIND_OFFER, KIND_CHUNK, KIND_END, KIND_SIGNAL, SENDER_DIRECTION, RECEIVER_DIRECTION } from './agent-protocol.js';
 
-function setup(t, payload, { largeChunks = false } = {}) {
+function setup(t, payload, { largeChunks = false, directCandidate = null } = {}) {
   let instance;
   const installed = ['window', 'WebSocket', 'RTCPeerConnection'].map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]);
   const events = new EventTarget();
@@ -17,6 +18,8 @@ function setup(t, payload, { largeChunks = false } = {}) {
     received = [];
     acknowledged = 0;
     chain = Promise.resolve();
+    merger = createRecordMerger();
+    directChunks = 0;
     constructor(url) { super(); instance = this; this.id = new URL(url).pathname.split('/').at(-1); queueMicrotask(() => this.dispatchEvent(new Event('open'))); }
     message(data) { const event = new Event('message'); event.data = data; this.dispatchEvent(event); }
     send(data) {
@@ -31,14 +34,20 @@ function setup(t, payload, { largeChunks = false } = {}) {
           this.message(JSON.stringify({ protocol: 'cd-transfer-v1', type: 'peer-joined' }));
           return;
         }
+        if (!this.merger.push(data).length) return;
         const { kind, plaintext } = await this.opener.open(data);
         if (kind === KIND_OFFER) {
           const offer = JSON.parse(new TextDecoder().decode(plaintext));
           const selection = largeChunks ? new TextEncoder().encode(JSON.stringify({ chunkSize: offer.maxChunkSize })) : new Uint8Array();
+          if (directCandidate) this.message(await this.sealer.seal(KIND_SIGNAL, new TextEncoder().encode(JSON.stringify({ sdp: 'answer' }))));
           this.message(await this.sealer.seal(KIND_ACCEPT, selection)); return;
         }
         if (kind === KIND_CHUNK) {
           this.received.push(plaintext);
+          if (directCandidate && this.directChunks && !this.candidateSent) {
+            this.candidateSent = true;
+            this.message(await this.sealer.seal(KIND_SIGNAL, new TextEncoder().encode(JSON.stringify({ candidate: directCandidate }))));
+          }
           const size = this.received.reduce((sum, chunk) => sum + chunk.byteLength, 0);
           if (size - this.acknowledged >= 1024 * 1024 || size === payload.length) {
             this.acknowledged = size;
@@ -56,6 +65,31 @@ function setup(t, payload, { largeChunks = false } = {}) {
     close() { this.readyState = 3; const event = new Event('close'); event.code = 1000; this.dispatchEvent(event); }
   }
   globalThis.WebSocket = FakeSocket;
+  if (directCandidate) {
+    class FakeChannel extends EventTarget {
+      readyState = 'connecting';
+      bufferedAmount = 0;
+      assembler = createRecordAssembler();
+      send(piece) {
+        for (const record of this.assembler.push(piece)) {
+          if (record[3] === KIND_CHUNK) instance.directChunks++;
+          instance.send(record);
+        }
+      }
+    }
+    globalThis.RTCPeerConnection = class extends EventTarget {
+      iceGatheringState = 'complete';
+      channel = new FakeChannel();
+      candidates = [];
+      constructor() { super(); instance.peer = this; }
+      createDataChannel() { return this.channel; }
+      async createOffer() { return { type: 'offer', sdp: 'offer' }; }
+      async setLocalDescription(value) { this.localDescription = value; }
+      async setRemoteDescription() { this.channel.readyState = 'open'; this.channel.dispatchEvent(new Event('open')); }
+      async addIceCandidate(value) { this.candidates.push(value); }
+      close() { this.channel.readyState = 'closed'; }
+    };
+  }
   t.after(() => { for (const [name, descriptor] of installed) { if (descriptor) Object.defineProperty(globalThis, name, descriptor); else delete globalThis[name]; } });
   return () => instance;
 }
@@ -76,6 +110,16 @@ test('relay fallback preserves exact encrypted bytes and drains queued admission
   assert.equal(stats.at(-1).directBytes, 0);
   assert.ok(stats.at(-1).relayBytes > payload.length);
   assert.ok(stats.every((value) => value.retainedBytes === 0 && value.incomingBytes <= 4 * 1024 * 1024));
+});
+
+test('direct transfer accepts an encrypted ICE candidate after switching', { timeout: 5000 }, async (t) => {
+  const payload = new Uint8Array(2 * 1024 * 1024).map((_, index) => index % 251);
+  const candidate = { candidate: 'candidate:late 1 UDP 123 192.0.2.1 12345 typ host', sdpMid: '0', sdpMLineIndex: 0 };
+  const socket = setup(t, payload, { directCandidate: candidate });
+  await startRelaySend(source(payload)).done;
+  assert.ok(socket().directChunks > 0);
+  assert.deepEqual(socket().peer.candidates, [candidate]);
+  assert.deepEqual(Buffer.concat(socket().received.map(chunk => Buffer.from(chunk))), Buffer.from(payload));
 });
 
 test('bundled source fragments retain exact archive bytes through negotiated relay records', async (t) => {

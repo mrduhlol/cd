@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T09:07:13.120Z",
+  "commit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    1.47,
+    1.58,
+    1.98
+  ],
+  "mib": 16,
+  "runs": 1,
+  "topology": "two Chromium processes on one Linux host, hosted relay",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": false,
+      "readyMs": 2805.5731389999996,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "error": "page.waitForEvent: Timeout 90000ms exceeded while waiting for event \"download\"\n=========================== logs ===========================\nwaiting for event \"download\"\n============================================================",
+      "receiverTransport": {
+        "relay": 0,
+        "direct": 0,
+        "firstAt": null,
+        "lastAt": null,
+        "maxGapMs": 0,
+        "records": 0,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 3146212,
+            "maxGapMs": 11643.39999999851,
+            "lastAt": 87842.70000000298,
+            "extensions": "permessage-deflate; client_max_window_bits=15"
+          }
+        ]
+      },
+      "senderState": "transferring",
+      "senderStatus": "Sending...",
+      "transport": {
+        "relay": 5242880,
+        "direct": 0,
+        "firstAt": 10071.20000000298,
+        "lastAt": 30966.70000000298,
+        "maxGapMs": 20871.10000000149,
+        "records": 20,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 168,
+            "maxGapMs": 35835.29999999702,
+            "lastAt": 88053.20000000298,
+            "extensions": "permessage-deflate; client_max_window_bits=15"
+          }
+        ],
+        "window": {
+          "size": 1572864,
+          "inFlight": 3145728,
+          "minRTT": 20889,
+          "acknowledged": "2097152"
+        }
+      }
+    }
+  ],
+  "input": {
+    "bytes": 16777216,
+    "sha256": "c50416a9eecf1360dbf323a0455ab81e7457a34f8040a75d5fbe6ed47306dad9",
+    "generated": true
+  },
+  "localSource": {
+    "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+    "src/relay-sender.js": "d147a29f25f63f91da853ef86943b0423de776a36c26890c5f98dba169e4648b",
+    "src/share.js": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c",
+    "src/sink.js": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470",
+    "src/send-window.js": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473",
+    "dist/index.html": "6c10c1b73a6e3126c0183ad1a915145219247a738c29f2821f23847aa94ed723"
+  },
+  "hostedAssets": {
+    "/assets/index-DAutV4Ln.js": "4fb71c7a6369067e6934288eff17982b9b0de92d99bb2fd70bb555ba7ae22694"
+  },
+  "dirty": [
+    "M scripts/bench-transfer-fresh.mjs",
+    "?? scripts/bench-transfer-compare-fresh.mjs"
+  ],
+  "runtimeOverride": null,
+  "assetOverride": "/tmp/cd-speed-pr75/dist",
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T09:08:47.662Z"
+}

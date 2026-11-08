@@ -1,0 +1,77 @@
+[
+  {
+    "path": "/",
+    "sha256": "ab153dab3bb183c38906de4a8989fa7f78d1c86e1b619f9de27ab456ce0ca1c0",
+    "bytes": 15376
+  },
+  {
+    "path": "/assets/index-CAq_iO25.js",
+    "sha256": "d29a551f464a274bf26eedfdf8e660bedfa27549e430edf2eb84f300b11d86ea",
+    "bytes": 6600
+  },
+  {
+    "path": "/assets/index-BQNCGYPm.css",
+    "sha256": "30cd7aa905d0c424e17f636f6b30c0f9c0fa05fdc88ca064cf4f0d75bec263e4",
+    "bytes": 24211
+  },
+  {
+    "path": "/assets/share-page-CaeO2MbM.js",
+    "sha256": "1f86735b2a32d43b0a289ff16732bc21620084cdcd7ceeff03632aef2a3d7877",
+    "bytes": 925
+  },
+  {
+    "path": "/assets/agent-send-Cf9WpmMx.js",
+    "sha256": "2671abcc0fbdc35382ff4b9d61e99c61a942f13d6b69cd042ffc97b531f298ae",
+    "bytes": 3498
+  },
+  {
+    "path": "/assets/main--mo2Tdbz.js",
+    "sha256": "28c0cfc910971411e7ea2435f20a832d23e60e6876f7caae6097acf568f6d28d",
+    "bytes": 35241
+  },
+  {
+    "path": "/assets/agent-protocol-LskAY8uV.js",
+    "sha256": "16dc644d797ed3da7618ef44fe09580db0ba0a974642e8fa501031d3213c71db",
+    "bytes": 2945
+  },
+  {
+    "path": "/assets/relay-sender-C3wOnsgK.js",
+    "sha256": "5c30267f2d25e9b1ea105030981f805692c23899347c5b22edbfcc4f2f574e44",
+    "bytes": 11454
+  },
+  {
+    "path": "/assets/sink-CJGX-iL8.js",
+    "sha256": "3632d58719534ca9d009d80a51e00a961b584f7e74c6079ce0ce9825271b8791",
+    "bytes": 3161
+  },
+  {
+    "path": "/assets/share-BPP7r8ye.js",
+    "sha256": "010a651c81d73b60e3801bbaddadfa4029f7562420809d14bdac86f87af90fb3",
+    "bytes": 16172
+  },
+  {
+    "path": "/assets/jsQR-CMYsELCw.js",
+    "sha256": "220460e4f3803e36fc86d30843d551c23bb86aa598c96370ed364dd658c9861d",
+    "bytes": 129974
+  },
+  {
+    "path": "/assets/browser-C-hRyvGF.js",
+    "sha256": "ccd9154cd44c639bd80669825c30011e26ef1adc0d722bdb6bd34bd67b0ee21c",
+    "bytes": 23463
+  },
+  {
+    "path": "/assets/bundler-CDUSa9hL.js",
+    "sha256": "756a6b2f281ffd6906e0af19399b56ac2b1b706feec896978379082d2a22fb1e",
+    "bytes": 86459
+  },
+  {
+    "path": "/assets/resume-browser-BUoQOf8q.js",
+    "sha256": "0723df02a9588a3ac6eceab456f1044d0fd98ae422e6accf739cf225aa52437a",
+    "bytes": 24995
+  },
+  {
+    "path": "/assets/adapter.js",
+    "sha256": "4b6677ec9b69450bd1339e3f7c371ef9ade61008278de28f20419d36c79aad22",
+    "bytes": 14262
+  }
+]

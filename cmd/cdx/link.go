@@ -323,6 +323,9 @@ func (link *recordLink) sendReleasable(kind messageKind, payload []byte, release
 		return err
 	}
 	link.relayBytes.Add(uint64(len(record)))
+	if len(link.retained) == 0 {
+		link.sendBuffer = record
+	}
 	return nil
 }
 

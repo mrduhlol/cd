@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T09:02:48.538Z",
+  "commit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    0.5,
+    1.37,
+    2.06
+  ],
+  "mib": 16,
+  "runs": 1,
+  "topology": "two Chromium processes and local Worker on one Linux host",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": true,
+      "readyMs": 62.58273400000007,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 601.9012499999999,
+      "receiveMs": 631.889557,
+      "senderCompleteMs": 635.235314,
+      "received": {
+        "bytes": 16777216,
+        "sha256": "304705e24d27815b93268b518d6e78ec8b69d4895f79a21a215cc52c0a712bf7"
+      },
+      "transport": {
+        "relay": 16777216,
+        "direct": 0,
+        "firstAt": 393.20000000298023,
+        "lastAt": 829.6000000014901,
+        "maxGapMs": 115.39999999850988,
+        "records": 64,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 728,
+            "maxGapMs": 142.69999999552965,
+            "lastAt": 936,
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 5119355,
+          "inFlight": 0,
+          "minRTT": 68.89999999850988,
+          "acknowledged": "16777216"
+        }
+      },
+      "mibPerSecond": 25.320880560145103
+    }
+  ],
+  "input": {
+    "bytes": 16777216,
+    "sha256": "304705e24d27815b93268b518d6e78ec8b69d4895f79a21a215cc52c0a712bf7"
+  },
+  "localSource": {
+    "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+    "src/relay-sender.js": "d147a29f25f63f91da853ef86943b0423de776a36c26890c5f98dba169e4648b",
+    "src/share.js": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c",
+    "src/sink.js": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470",
+    "src/send-window.js": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473",
+    "dist/index.html": "6c10c1b73a6e3126c0183ad1a915145219247a738c29f2821f23847aa94ed723"
+  },
+  "dirty": [],
+  "runtimeOverride": "workerd 2026-11-04",
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T09:02:50.862Z"
+}
