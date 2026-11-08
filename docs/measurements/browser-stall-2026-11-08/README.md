@@ -220,3 +220,7 @@ done
 ```
 
 Retain failed rows as well as successful ones. These hosted controls do not use the local 8 MiB/s regression floor and do not prove physical-phone speeds.
+
+At `cf154ff`, PR security run `42478294410` failed before the scanner started. The GitHub gitleaks download stalled for 120 seconds and returned HTTP 504, exhausting the entire 120-second retry budget on its first attempt. The download now uses a 15-second connection deadline, a 60-second attempt deadline, and three retries within a 300-second retry budget. The attempt deadline leaves time for recovery after a stalled request. Scanner version 8.30.1, mandatory redacted scanning, and test assertions remain unchanged.
+
+A local HTTP fixture checked the same curl options with 100-millisecond attempt/connection deadlines and a five-second retry budget. A delayed first response followed by a valid response recovered on request two with exact output and exit zero. Persistent delays exhausted four requests and returned exit 28. `validation-current.json` records both outcomes. This checks retry behavior without rerunning benchmarks or device tests; fresh cloud CI must validate the upstream download.

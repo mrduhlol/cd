@@ -45,5 +45,17 @@
     "validation": "Gradle8.13 command with60s connect and120s socket timeout, offline --rerun-tasks;85tests,0failures,0errors,0skips",
     "coldDownloadFailure": "https://github.com/YashasVM/cd/actions/runs/42476764259/job/128719745769",
     "sameHeadPassingJob": "https://github.com/YashasVM/cd/actions/runs/42476760030/job/128719734624"
+  },
+  "securityDownloadRetrySelfcheck": {
+    "recovery": {
+      "exitCode": 0,
+      "requests": 2,
+      "outputMatches": true
+    },
+    "exhaustion": {
+      "exitCode": 28,
+      "requests": 4,
+      "outputMatches": false
+    }
   }
 }
