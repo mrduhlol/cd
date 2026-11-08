@@ -8,6 +8,7 @@ import { join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { chromium } from 'playwright-core';
 import { findChromium, startWorker } from './harness.mjs';
+import { probe } from './fresh-browser-probe.mjs';
 
 const mib = Number(process.env.CD_FRESH_MIB ?? 600);
 const runs = Number(process.env.CD_FRESH_RUNS ?? 3);
@@ -33,78 +34,6 @@ async function digest(path) {
   for await (const chunk of createReadStream(path)) { bytes += chunk.length; hash.update(chunk); }
   return { bytes, sha256: hash.digest('hex') };
 }
-// This probe only observes actual sends. It never adds delays or changes payloads.
-function probe({ relayOnly }) {
-  window.__fresh = { relay: 0, direct: 0, firstAt: null, lastAt: null, maxGapMs: 0, records: 0, peers: [], sockets: [] };
-  const stat = window.__fresh;
-  window.__CD_TRANSFER_TEST_OBSERVER__ = snapshot => {
-    if (snapshot.window) stat.window = { size: snapshot.window.size, inFlight: snapshot.window.inFlight, minRTT: snapshot.window.minRTT, acknowledged: String(snapshot.window.acknowledged) };
-  };
-  function sent(bytes, route) {
-    if (!bytes) return;
-    const now = performance.now();
-    if (stat.lastAt !== null) stat.maxGapMs = Math.max(stat.maxGapMs, now - stat.lastAt);
-    stat.firstAt ??= now; stat.lastAt = now;
-    stat[route] += bytes; stat.records++;
-  }
-  const NativeSocket = WebSocket;
-  window.WebSocket = class extends NativeSocket {
-    constructor(...args) {
-      super(...args);
-      const socket = { path: new URL(this.url).pathname.replace(/\/[A-Za-z0-9_-]{22}$/, '/<id>'), received: 0, maxGapMs: 0, lastAt: null };
-      stat.sockets.push(socket);
-      this.addEventListener('message', event => {
-        const now = performance.now();
-        if (socket.lastAt !== null) socket.maxGapMs = Math.max(socket.maxGapMs, now - socket.lastAt);
-        socket.lastAt = now;
-        if (typeof event.data !== 'string') socket.received += event.data.byteLength ?? event.data.size ?? 0;
-      });
-      this.addEventListener('open', () => { socket.extensions = this.extensions; });
-      this.addEventListener('close', event => { socket.closeCode = event.code; });
-    }
-  };
-  const NativePeer = RTCPeerConnection;
-  window.RTCPeerConnection = class extends NativePeer {
-    constructor(...args) {
-      super(...args); const peer = { states: [], candidateTypes: [] }; stat.peers.push(peer);
-      this.addEventListener('connectionstatechange', () => peer.states.push(this.connectionState));
-      this.addEventListener('icecandidate', event => { if (event.candidate) peer.candidateTypes.push(event.candidate.type); });
-    }
-  };
-  const socketSend = WebSocket.prototype.send;
-  WebSocket.prototype.send = function(data) {
-    const result = socketSend.call(this, data);
-    const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : ArrayBuffer.isView(data) ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength) : null;
-    if (bytes && bytes.length >= 12 && bytes[0] === 0x43 && bytes[1] === 0x44 && bytes[3] === 2) sent(new DataView(bytes.buffer, bytes.byteOffset).getUint32(8), 'relay');
-    return result;
-  };
-  const channelSend = RTCDataChannel.prototype.send;
-  const states = new WeakMap();
-  RTCDataChannel.prototype.send = function(data) {
-    const result = channelSend.call(this, data);
-    if (this.label !== 'cd-direct') return result;
-    const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : ArrayBuffer.isView(data) ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength) : null;
-    if (!bytes) return result;
-    let state = states.get(this);
-    if (!state) { state = { header: [], remaining: 0, payload: 0 }; states.set(this, state); }
-    let cursor = 0;
-    while (cursor < bytes.length) {
-      if (!state.remaining) {
-        while (state.header.length < 12 && cursor < bytes.length) state.header.push(bytes[cursor++]);
-        if (state.header.length < 12) break;
-        assertHeader(state.header);
-        const length = new DataView(Uint8Array.from(state.header).buffer).getUint32(8);
-        state.remaining = length + 16; state.payload = state.header[3] === 2 ? length : 0; state.header = [];
-      }
-      const take = Math.min(state.remaining, bytes.length - cursor);
-      cursor += take; state.remaining -= take;
-      if (!state.remaining) sent(state.payload, 'direct');
-    }
-    return result;
-  };
-  function assertHeader(header) { if (header[0] !== 0x43 || header[1] !== 0x44 || header[2] !== 1) throw new Error('unexpected direct record'); }
-  if (relayOnly) window.RTCPeerConnection = class { constructor() { throw new Error('fresh benchmark forced relay'); } };
-}
 function workerOrigin() { return new URL(process.env.CD_VERIFY_URL).origin; }
 let worker;
 const browsers = [];
@@ -123,6 +52,7 @@ try {
   assert.equal(expected.bytes, mib * 1048576, 'input size must match CD_FRESH_MIB');
   report.input = { ...expected, generated: !process.env.CD_FRESH_INPUT };
   report.benchmarkSHA256 = (await digest('scripts/bench-transfer-fresh.mjs')).sha256;
+  report.probeSHA256 = (await digest('scripts/fresh-browser-probe.mjs')).sha256;
   report.localSource = {};
   for (const path of ['worker/index.ts', 'src/relay-sender.js', 'src/share.js', 'src/sink.js', 'src/send-window.js', 'dist/index.html']) {
     report.localSource[path] = createHash('sha256').update(await readFile(path)).digest('hex');
@@ -185,17 +115,17 @@ try {
       await sender.locator('#sender-complete:not(.hidden)').waitFor();
       row.senderCompleteMs = performance.now() - start;
       row.received = await digest(target); assert.deepEqual(row.received, expected);
-      row.transport = await sender.evaluate(() => window.__fresh);
+      row.transport = await sender.evaluate(() => window.__freshSnapshot());
       assert.ok(row.transport.relay + row.transport.direct >= expected.bytes, 'missing payload transport evidence');
       if (route === 'relay') { assert.equal(row.transport.direct, 0); assert.equal(row.transport.relay, expected.bytes); }
       row.mibPerSecond = mib / (row.receiveMs / 1000);
       row.ok = true; await rm(target);
     } catch (error) {
       row.error = error.message;
-      row.receiverTransport = await receiver?.evaluate(() => window.__fresh).catch(() => null);
+      row.receiverTransport = await receiver?.evaluate(() => window.__freshSnapshot()).catch(() => null);
       row.senderState = await sender?.locator('#app-state').textContent().catch(() => null);
       row.senderStatus = await sender?.locator('#sender-status').textContent().catch(() => null);
-      row.transport = await sender?.evaluate(() => window.__fresh).catch(() => null);
+      row.transport = await sender?.evaluate(() => window.__freshSnapshot()).catch(() => null);
     } finally { for (const context of contexts) await context.close(); }
     report.rows.push(row); await writeFile(output, JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify(row));

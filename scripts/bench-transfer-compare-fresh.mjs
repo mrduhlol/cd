@@ -7,7 +7,7 @@ import { mkdtemp, mkdir, open, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { connect } from 'node:net';
 import { tmpdir, hostname, loadavg } from 'node:os';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { availablePort, buildCLI, cliEnv, startWorker, stopChild } from './harness.mjs';
@@ -16,6 +16,7 @@ import { collectBrowserTrial } from './fresh-browser-child.mjs';
 const mib = Number(process.env.CD_FRESH_MIB ?? 600), runs = Number(process.env.CD_FRESH_RUNS ?? 3);
 const timeout = Number(process.env.CD_FRESH_TIMEOUT_MS ?? 180000);
 const croc = resolve(process.env.CD_FRESH_CROC ?? '/tmp/cd-croc-11.6.5/croc');
+const wormhole = resolve(process.env.CD_FRESH_WORMHOLE ?? '/tmp/cd-wormhole-fresh/bin/wormhole');
 const output = resolve(process.env.CD_FRESH_OUTPUT ?? '/tmp/cd-compare-fresh.json');
 assert.ok(Number.isSafeInteger(mib) && mib > 0 && Number.isSafeInteger(runs) && runs > 0);
 assert.ok(Number.isSafeInteger(timeout) && timeout > 0);
@@ -24,7 +25,7 @@ const work = await mkdtemp(join(tmpdir(), 'cd-compare-fresh-'));
 const children = new Set();
 const report = { schema: 1, startedAt: new Date().toISOString(), commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(), host: hostname(), load: loadavg(), mib, runs, rows: [],
   method: 'All tools receive the same independently generated random file on one Linux host. Browser pages preload; readiness is separate. Receive timing includes receiver startup or code entry through full saved output, without fsync. Full SHA-256 and byte count checked outside timing. OS cache allowed. croc CLI forced to TCP relay; CD CLI forced to WebSocket relay. CD browser auto may use WebRTC. HTTP is an unencrypted ceiling diagnostic, not a secure file-transfer competitor. No WAN or physical-phone claim.' };
-let worker, relay, http;
+let worker, relay, transit, http;
 function launch(command, args, env = process.env) {
   const child = spawn(command, args, { env, stdio: ['ignore', 'pipe', 'pipe'] }); children.add(child);
   const proc = { child, text: '' };
@@ -75,17 +76,22 @@ try {
   report.runtimeOverride = process.env.MINIFLARE_WORKERD_PATH ? execFileSync(process.env.MINIFLARE_WORKERD_PATH, ['--version'], { encoding: 'utf8' }).trim() : null;
   const executable = await buildCLI(work);
   report.cdx = await digest(executable); report.croc = { ...await digest(croc), version: execFileSync(croc, ['--version'], { encoding: 'utf8' }).trim() };
+  report.wormhole = { version: execFileSync(wormhole, ['--version'], { encoding: 'utf8' }).trim(), packages: execFileSync(join(dirname(wormhole), 'python'), ['-m', 'pip', 'freeze'], { encoding: 'utf8' }).trim().split('\n') };
   worker = await startWorker(join(work, 'worker'));
-  const ports = []; while (ports.length < 5) { const port = await availablePort(); if (!ports.includes(port)) ports.push(port); }
-  relay = launch(croc, ['relay', '--host', '127.0.0.1', '--ports', ports.join(',')]);
+  const ports = []; while (ports.length < 7) { const port = await availablePort(); if (!ports.includes(port)) ports.push(port); }
+  relay = launch(croc, ['relay', '--host', '127.0.0.1', '--ports', ports.slice(0, 5).join(',')]);
   for (let index = 0; !await portOpen(ports[0]); index++) { assert.ok(index < 100, 'croc relay failed to start'); await delay(50); }
+  const twist = join(dirname(wormhole), 'twist');
+  launch(twist, ['wormhole-mailbox', `--port=tcp:${ports[5]}:interface=127.0.0.1`, `--channel-db=${join(work, 'mailbox.sqlite')}`]);
+  transit = launch(twist, ['transitrelay', `--port=tcp:${ports[6]}:interface=127.0.0.1`, '--log-fd=1']);
+  for (const port of ports.slice(5)) for (let index = 0; !await portOpen(port); index++) { assert.ok(index < 100, 'Magic Wormhole relay failed to start'); await delay(50); }
   http = createServer((request, response) => {
     if (request.url !== '/payload') { response.writeHead(404).end(); return; }
     response.writeHead(200, { 'Content-Length': expected.bytes });
     void pipeline(createReadStream(input), response).catch(() => response.destroy());
   });
   await new Promise(resolve => http.listen(0, '127.0.0.1', resolve));
-  const tools = ['cd-browser', 'cd-cli-relay', 'croc-cli-relay', 'http-ceiling'];
+  const tools = ['cd-browser', 'cd-cli-relay', 'croc-cli-relay', 'wormhole-cli-relay', 'http-ceiling'];
   for (let run = 0; run < runs; run++) for (const tool of tools.slice(run % tools.length).concat(tools.slice(0, run % tools.length))) {
     if (report.interrupted) throw new Error('benchmark interrupted');
     const row = { run, tool, ok: false }, active = [];
@@ -97,7 +103,7 @@ try {
         const browser = launch(process.execPath, ['scripts/bench-transfer-fresh.mjs'], { ...process.env, CD_FRESH_INPUT: input, CD_FRESH_OUTPUT: browserOutput, CD_FRESH_RUNS: '1', CD_FRESH_ROUTES: 'auto,relay', CD_FRESH_TIMEOUT_MS: String(timeout) }); active.push(browser.child);
         const { code, error, results } = await collectBrowserTrial(browser, browserOutput, timeout * 2 + 60000);
         if (results) {
-          report.rows.push(...results.rows.map(result => ({ ...result, run, tool, browserCommit: results.commit, input: results.input, load: results.load })));
+          report.rows.push(...results.rows.map(result => ({ ...result, run, tool, browserCommit: results.commit, browserRunnerSHA256: results.benchmarkSHA256, browserProbeSHA256: results.probeSHA256, browserSource: results.localSource, input: results.input, load: results.load })));
           await writeFile(output, JSON.stringify(report, null, 2) + '\n');
         }
         if (error) throw error;
@@ -112,6 +118,23 @@ try {
         const response = await fetch(`http://127.0.0.1:${http.address().port}/payload`, { signal: AbortSignal.timeout(timeout) });
         assert.equal(response.status, 200); await pipeline(response.body, createWriteStream(target));
         row.receiveMs = performance.now() - start;
+      } else if (tool === 'wormhole-cli-relay') {
+        const flags = ['--relay-url', `ws://127.0.0.1:${ports[5]}/v1`, '--transit-helper', `tcp:127.0.0.1:${ports[6]}`];
+        const sender = launch(wormhole, [...flags, 'send', '--no-listen', '--hide-progress', '--no-qr', input]); active.push(sender.child);
+        const marker = await ready(sender, /wormhole receive ([0-9]+-[a-z]+-[a-z]+)/);
+        row.readyMs = performance.now() - start;
+        const usageStart = transit.text.length;
+        const receive = performance.now();
+        const receiver = launch(wormhole, [...flags, 'receive', '--no-listen', '--hide-progress', '--accept-file', '--output-file', target, marker[1]]); active.push(receiver.child);
+        assert.equal(await bounded(receiver.done), 0, 'Magic Wormhole receiver failed'); row.receiveMs = performance.now() - receive;
+        assert.equal(await bounded(sender.done), 0, 'Magic Wormhole sender failed');
+        for (let attempt = 0; attempt < 100; attempt++) {
+          row.relayUsage = transit.text.slice(usageStart).split('\n').flatMap(line => { try { const value = JSON.parse(line); return Number.isFinite(value.total_bytes) ? [value] : []; } catch { return []; } });
+          if (row.relayUsage.some(value => value.total_bytes >= expected.bytes)) break;
+          await delay(10);
+        }
+        assert.ok(row.relayUsage.some(value => value.total_bytes >= expected.bytes), 'missing full transit-relay byte accounting');
+        row.transport = { requested: 'relay', noListen: true, relayPayloadObserved: true };
       } else {
         const native = tool === 'cd-cli-relay';
         const env = native ? cliEnv(worker, { CD_STATE_DIR: join(directory, 'state'), CD_DIRECT: '0', CD_TRANSPORT_REPORT: '1' }) : { ...process.env, CROC_SECRET: randomBytes(16).toString('hex'), CROC_NO_UPDATE_CHECK: '1' };
@@ -141,5 +164,5 @@ finally {
   await worker?.stop(); await rm(work, { recursive: true, force: true });
   report.finishedAt = new Date().toISOString(); await writeFile(output, JSON.stringify(report, null, 2) + '\n');
 }
-if (report.error || report.rows.length !== runs * 5 || report.rows.some(row => !row.ok)) process.exitCode = 1;
+if (report.error || report.rows.length !== runs * 6 || report.rows.some(row => !row.ok)) process.exitCode = 1;
 console.log(JSON.stringify({ output, error: report.error, rows: report.rows.length }));

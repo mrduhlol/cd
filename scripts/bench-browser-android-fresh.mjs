@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright-core';
-import { startWorker, findChromium } from './harness.mjs';
+import { startWorker, findChromium, childExit, stopChild } from './harness.mjs';
 const mib = Number(process.env.CD_FRESH_MIB ?? 600);
 const serial = process.env.CD_ANDROID_SERIAL;
 assert.equal(process.env.CD_VERIFY_URL, undefined, 'this emulator benchmark requires a local Worker');
@@ -27,7 +27,8 @@ async function android(args) {
   const child = spawn(adb, ['-s', serial, ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
   let stdout = ''; child.stdout.on('data', data => { stdout = (stdout + data).slice(-8192); });
   let error = ''; child.stderr.on('data', data => { error = (error + data).slice(-2048); });
-  await new Promise((resolve, reject) => { child.once('error', reject); child.once('exit', code => code === 0 ? resolve() : reject(new Error(error || 'adb file operation failed'))); });
+  try { assert.equal(await childExit(child, args[0] === 'pull' ? 120000 : 30000), 0, error || 'adb file operation failed'); }
+  finally { await stopChild(child); }
   return stdout;
 }
 let worker, browser, forwarded;
@@ -111,14 +112,14 @@ try {
   assert.ok(report.transport.completedAt > report.transport.firstAt, 'missing final publication confirmation');
   report.receiveMs = report.transport.completedAt - report.transport.firstAt;
   report.mibPerSecond = mib / (report.receiveMs / 1000);
-  if (mib >= 64) assert.ok(report.mibPerSecond >= 4, 'emulator transfer fell below the 4 MiB/s regression floor');
   const target = join(work, 'received.bin');
   await android(['pull', `/sdcard/Download/CD/${filename}`, target]);
   report.received = await digest(target); assert.deepEqual(report.received, report.expected);
-  await android(['shell', 'rm', `/sdcard/Download/CD/${filename}`]);
+  if (mib >= 64) assert.ok(report.mibPerSecond >= 4, 'emulator transfer fell below the 4 MiB/s regression floor');
   report.ok = true;
 } catch (error) { report.error = error.message; process.exitCode = 1; }
 finally {
+  await android(['shell', 'rm', '-f', `/sdcard/Download/CD/${filename}`]).catch(error => { report.cleanupError = error.message; report.ok = false; process.exitCode = 1; });
   await browser?.close(); await worker?.stop();
   if (forwarded) await android(['reverse', '--remove', `tcp:${forwarded}`]).catch(() => {});
   await rm(work, { recursive: true, force: true });

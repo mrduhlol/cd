@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "commit": "7db4b4b1dc5b1009f9aee152c97fd6a1f150e135",
+  "mib": 600,
+  "serial": "emulator-5554",
+  "filename": "fresh-browser-android-1794135974591.bin",
+  "ok": true,
+  "method": "Actual Chrome Android UI receiver; automatic route observed at host sender. Local Worker through Wrangler and adb reverse. Staging completion is sender UI observation, not OS download completion. Full-size public Downloads observation is separate; pulled full SHA256 verifies output outside timing. Polling adds up to one second and does not claim fsync durability. Emulator, not physical phone or WAN.",
+  "benchmarkSHA256": "7e585bfa9beb12e8373c584e05125a47ed8f6026ea18f8ff6e1a8cbe32d39a1d",
+  "androidChrome": "124.0.6367.219",
+  "expected": {
+    "bytes": 629145600,
+    "sha256": "0da042adf1b89d6c8ad0d9869c4ef54fa19a406c80b92f1e87504340e5b19eee"
+  },
+  "chromium": "155.0.8059.84",
+  "stagingCompleteObservedEpochMs": 1794136018904,
+  "transport": {
+    "relay": 629145600,
+    "direct": 0,
+    "firstAt": 5613.600000008941,
+    "lastAt": 39464.29999999702,
+    "maxGapMs": 220.40000000596046,
+    "records": 2400,
+    "peers": [
+      {
+        "states": [
+          "connecting",
+          "failed"
+        ],
+        "candidateTypes": [
+          "host",
+          "host",
+          "srflx",
+          "srflx"
+        ]
+      }
+    ],
+    "sockets": [
+      {
+        "path": "/ws/v1/<id>",
+        "received": 25566,
+        "maxGapMs": 4966.399999991059,
+        "lastAt": 39672.70000000298,
+        "extensions": "permessage-deflate; client_max_window_bits=15",
+        "closeCode": 1000
+      }
+    ],
+    "window": {
+      "size": 2110118,
+      "inFlight": 0,
+      "minRTT": 65.09999999403954,
+      "acknowledged": "629145600"
+    },
+    "timeOrigin": 1794135979043.7,
+    "observedCompleteAt": 39866.10000000894
+  },
+  "stagingMs": 34252.5,
+  "stagingMiBPerSecond": 17.516969564265384,
+  "publicationSizeObservedEpochMs": 1794136031676,
+  "publicationAfterStagingObservedMs": 12772,
+  "receiveThroughPublicationMs": 47018.699951171875,
+  "received": {
+    "bytes": 629145600,
+    "sha256": "0da042adf1b89d6c8ad0d9869c4ef54fa19a406c80b92f1e87504340e5b19eee"
+  },
+  "verificationMs": 7625,
+  "finalTransport": {
+    "relay": 629145600,
+    "direct": 0,
+    "firstAt": 5613.600000008941,
+    "lastAt": 39464.29999999702,
+    "maxGapMs": 220.40000000596046,
+    "records": 2400,
+    "peers": [
+      {
+        "states": [
+          "connecting",
+          "failed"
+        ],
+        "candidateTypes": [
+          "host",
+          "host",
+          "srflx",
+          "srflx"
+        ]
+      }
+    ],
+    "sockets": [
+      {
+        "path": "/ws/v1/<id>",
+        "received": 25566,
+        "maxGapMs": 4966.399999991059,
+        "lastAt": 39672.70000000298,
+        "extensions": "permessage-deflate; client_max_window_bits=15",
+        "closeCode": 1000
+      }
+    ],
+    "window": {
+      "size": 2110118,
+      "inFlight": 0,
+      "minRTT": 65.09999999403954,
+      "acknowledged": "629145600"
+    }
+  }
+}

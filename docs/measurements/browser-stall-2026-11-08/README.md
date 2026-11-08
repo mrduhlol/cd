@@ -126,3 +126,54 @@ The existing paired Android verifier addressed the retired `in.yash0.cd` identit
 A read-only review of `db6934b..414c577` checked raw output hashes, recomputed comparison medians, route configuration, timing boundaries, and the regression gate. It found no skipped-transfer shortcut in the retained Croc results. Croc relay-side byte accounting remains an additional independent check; its requested relay configuration is recorded, not an observed byte counter.
 
 The review found that the comparison parent could time out before its two browser route deadlines and then discard the child report. The parent now shares its per-route timeout with the child, allows both routes plus startup time, stops the child before reading its final report, and preserves earlier rows on failure. A subprocess test forces a deadline after one successful row and verifies that both the earlier row and the signal-handler failure row survive.
+
+## Android Chrome coverage
+
+Chrome `124.0.6367.219` on the dedicated Android 15 x86_64 emulator received real main-page sends with default automatic routing. A 16 MiB smoke and three of four 600 MiB attempts produced full public Downloads files whose sizes and SHA-256 matched the independently generated sources. The failed attempt timed out and displayed a direct-connection failure. Its report lacks partial transport counters, so the UI progress observations are not verified throughput.
+
+The three successful large attempts used relay for every payload byte. Public-file full-size observations were 65.907, 61.705, and 47.019 seconds after the first payload; staging observations were 47.993, 47.752, and 34.252 seconds. Public-file observation polls once per second, includes the browser download stage, and is an upper bound rather than a precise publication or fsync event. Full output pull and hashing are outside those times. Success-only timings do not establish reliable automatic routing. Raw outcomes, including the failure, are retained in `android-chrome/`.
+
+The portable `scripts/bench-browser-chrome-fresh.mjs` drives Chrome with the command returned by `device_open`, verifies the public download, captures sender RTC state and route counters even on failure, checks host space before creating payloads, and removes only its own generated files. It shares the transport probe with the desktop runner. Completed transfers below its conservative 4 MiB/s emulator floor retain their verified hashes but fail the benchmark. No physical phone or WAN claim follows from these emulator tests.
+
+A source review found a distinct signaling defect: the browser sender ignored encrypted ICE candidates after switching to direct transport. A fixture that switches to direct, sends a chunk, then supplies a literal late candidate failed before the guard fix and passes afterward, including exact output verification. The sender now continues passing candidates to the existing bounded validator, matching the native sender. This fixes a reproduced signaling defect; it does not establish the cause of the earlier emulator connection failure or a throughput gain.
+
+## Verification against current main
+
+PR75 now includes main's merged Android publication/recovery and security fixes. The two merge conflicts preserved the benchmark checks and current beta package while retaining main's required build before v2 verification and foreground `--wait` sending. The combined Android source passes all 85 JVM tests, with no failures, errors, or skips. Historical 69-test/native-APK results above remain tied to their original source and artifact; they are not silently relabeled as this newer app.
+
+A new Chrome baseline completed publication but failed its host output pull with `Disk quota exceeded`; it remains an unverified failure in `android-chrome/baseline-quota-failure.json`. Generated random payload copies from this investigation were removed, preserving reports and logs. A clean rerun verified all 600 MiB, and the post-late-ICE-fix trial also verified 600 MiB. Both used relay; they do not demonstrate improved direct-route throughput.
+
+`compare-current-main-emulator-contended.json` retains an intentionally interrupted comparison while the active emulator consumed about seven host CPU cores. Its initial direct browser trial verified the file but was slower than the earlier batch. The host load average at that browser trial was about 17.7 versus about 1.0 in the earlier comparison. These runs are excluded from an idle desktop performance claim. Previously written route rows and subsequent tool results remain retained, including the interrupted wrapper failure.
+
+The newly built current-main CD Beta APK also received a fresh 600 MiB browser send through its real Receive UI. The installed APK equality guard passed. Full published bytes and SHA-256 matched in 46.59 seconds through native publication, about 12.88 MiB/s, with a largest payload-send gap of 145 ms. This is a local emulator result with the timing boundaries described above; see `android/receive-current-main-600.json`. The dedicated emulator was shut down before restarting the desktop comparison.
+
+## Idle rerun with Magic Wormhole
+
+After shutting down the dedicated emulator, the current branch completed all 18 transfers in `compare-current-idle-600.json`: three repetitions of each of six cases, all receiving the same fresh 629,145,600-byte random file with matching full SHA-256 `2b37692638c999a56528cd5b0cc127bcca33d267a8764aa4ba8517b2d961408b`. Tool order rotates. The six browser outcomes also pass the existing regression gate when selected from this report without changing their rows. This later batch uses main's updated dependencies; it is a new measurement, not a causal before/after estimate for the ICE fix.
+
+| Current case | Median MiB/s |
+| --- | ---: |
+| Browser CD · automatic WebRTC | 40.10 |
+| Browser CD · forced relay | 23.92 |
+| CD CLI · forced relay | 439.76 |
+| Croc 11.6.5 · forced relay | 1463.47 |
+| Magic Wormhole 0.24.0 · forced relay | 402.40 |
+| HTTP diagnostic · unencrypted | 1180.71 |
+
+[Comparison chart](comparison.html) shows browser and native-tool groups with separate labeled scales. Croc is substantially faster than CD in this native loopback relay comparison; these results do not support a fastest-platform claim. Browser and native tools also have different runtime and startup costs, so do not present their rates as equivalent implementations.
+
+Magic Wormhole uses the upstream Python CLI `0.24.0`, mailbox server `0.8.0`, and transit relay `0.5.0` in an isolated virtual environment. Both clients set the same local mailbox/transit endpoints and `--no-listen`, so direct TCP is disabled. Each trial retains the transit relay's own byte-accounting record, exceeding the full payload size, as well as output size/hash verification. This is a secure file-transfer competitor, distinct from the HTTP diagnostic. Package artifact URLs and SHA-256 values are retained in `wormhole-packages.json`; the runner also records installed dependency versions. Setup follows the upstream [CLI](https://magic-wormhole.readthedocs.io/en/latest/using-the-cli.html), [mailbox server](https://github.com/magic-wormhole/magic-wormhole-mailbox-server), and [transit relay](https://github.com/magic-wormhole/magic-wormhole-transit-relay/blob/master/docs/running.md) documentation.
+
+```sh
+python -m venv /tmp/cd-wormhole-fresh
+/tmp/cd-wormhole-fresh/bin/pip install magic-wormhole==0.24.0 magic-wormhole-mailbox-server==0.8.0 magic-wormhole-transit-relay==0.5.0
+CD_FRESH_CROC=/absolute/path/to/checksum-verified/croc \
+  CD_FRESH_WORMHOLE=/tmp/cd-wormhole-fresh/bin/wormhole \
+  CD_FRESH_MIB=600 CD_FRESH_RUNS=3 \
+  CD_FRESH_OUTPUT=/tmp/cd-compare-fresh.json \
+  node scripts/bench-transfer-compare-fresh.mjs
+```
+
+The final review found stale desktop RTC snapshots and unbounded adb file operations. Desktop results now call the rich snapshot collector at success/failure; cached candidate-pair samples retain their observation timestamp. Both Android helpers now use the project's process deadline and kill/reap utility, with thirty seconds for metadata/cleanup and two minutes for a full pull. Earlier rows are retained with their original diagnostic sample times.
+
+Final local checks: all 170 JavaScript tests, full Go tests, type checking, the 85 Android JVM tests, real browser/CLI/agent flows, v2 relay checks, code-directory security checks, the Worker dry-run bundle, and the six-trial 64 MiB performance command passed. The six 600 MiB browser rows also passed the same regression gate. A simulated adb process that hangs for ninety seconds was terminated at the thirty-second metadata deadline by each Android helper; both wrote the expected failure report and completed cleanup. These are harness checks, not device-transfer results. `validation-current.json` and `ci-gate-current-64.json` retain the summaries. No production deployment occurred.

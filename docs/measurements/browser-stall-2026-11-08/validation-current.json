@@ -1,0 +1,44 @@
+{
+  "javascript": {
+    "tests": 170,
+    "failures": 0
+  },
+  "androidJVM": {
+    "tests": 85,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "go": "go test ./... passed",
+  "types": "npm run typecheck passed",
+  "browser": "node scripts/verify-browser.mjs passed",
+  "v2": "node scripts/verify-v2-relay.mjs passed",
+  "agent": "node scripts/verify-agent.mjs passed",
+  "codeDirectorySecurity": "npm run verify:security passed",
+  "workerBundle": "wrangler deploy --dry-run passed",
+  "browserPerformance64": "npm run verify:performance passed",
+  "browserPerformance600": "fresh-transfer-gates passed six selected original browser rows from eighteen-case comparison",
+  "adbDeadlineSelfchecks": {
+    "method": "fake adb getprop sleeps90s; both helpers terminate/reap at30s and preserve expected failure reports; no device driven",
+    "nativeExpectedFailureReport": {
+      "schema": 1,
+      "commit": "0280b24056241ef94f75419451347f6d9298f256",
+      "mib": 1,
+      "serial": "emulator-0",
+      "filename": "fresh-browser-android-1794137615544.bin",
+      "ok": false,
+      "method": "Real main-page browser sender, explicit relay, real CD Beta receive UI and publication. Transport timing spans first payload send through encrypted COMPLETE after Android publication. UI automation latency is excluded. Full published file is pulled and size/SHA256 verified outside timing. Local Worker through Wrangler development proxy and adb reverse. Emulator result, not physical hardware or WAN.",
+      "error": "child process did not exit"
+    },
+    "chromeExpectedFailureReport": {
+      "schema": 1,
+      "commit": "0280b24056241ef94f75419451347f6d9298f256",
+      "mib": 1,
+      "serial": "emulator-0",
+      "filename": "fresh-browser-android-1794137615534.bin",
+      "ok": false,
+      "method": "Actual Chrome Android UI receiver; automatic route observed at host sender. Local Worker through Wrangler and adb reverse. Staging completion is sender UI observation, not OS download completion. Full-size public Downloads observation is separate; pulled full SHA256 verifies output outside timing. Polling adds up to one second and does not claim fsync durability. Emulator, not physical phone or WAN.",
+      "error": "child process did not exit"
+    }
+  }
+}
