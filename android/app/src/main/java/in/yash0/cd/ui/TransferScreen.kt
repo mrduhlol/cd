@@ -133,7 +133,7 @@ private fun Preparing(view: TransferView) {
     Column(Modifier.fillMaxWidth().padding(top = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Spinner(size = 40.dp)
         Spacer(Modifier.height(24.dp))
-        Text(if (view.direction != Direction.SEND) "Finding the sender…" else if (view.isPrivate) "Creating private link…" else "Getting a code…", style = CdType.title)
+        Text(if (view.direction != Direction.SEND) "Finding the sender…" else "Getting a code…", style = CdType.title)
         Spacer(Modifier.height(8.dp))
         Text(view.message ?: "This usually takes a second or two.", style = CdType.bodyMuted, textAlign = TextAlign.Center)
         Spacer(Modifier.height(40.dp))
@@ -189,7 +189,7 @@ private fun SharePanel(view: TransferView, share: ShareState, code: String?, dev
             style = CdType.bodyMuted, textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(6.dp))
-        Text(privacyNote(view.isPrivate, code), style = CdType.small.copy(color = Cd.faint), textAlign = TextAlign.Center)
+        Text(privacyNote(false, code), style = CdType.small.copy(color = Cd.faint), textAlign = TextAlign.Center)
         if (devices.isNotEmpty()) {
             Spacer(Modifier.height(28.dp))
             SectionHeader("Send to your computer", Modifier.fillMaxWidth())
@@ -262,17 +262,6 @@ private fun Progress(view: TransferView, link: String?, actions: CdActions) {
         Spacer(Modifier.height(20.dp))
         FileLine(view)
         view.message?.takeIf { it.isNotBlank() }?.let { Spacer(Modifier.height(14.dp)); Text(it, Modifier.fillMaxWidth(), style = CdType.small) }
-        if (view.direction == Direction.SEND && link != null && view.isPrivate) {
-            Spacer(Modifier.height(20.dp))
-            Row(
-                Modifier.fillMaxWidth().panel(14.dp, Cd.ink).clickable(role = Role.Button) { actions.copy(linkLabel(view.isPrivate), link) }.heightIn(min = 56.dp).padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(CdIcons.Link, null, Modifier.size(20.dp), tint = Cd.accent)
-                Text(if (view.isPrivate) "Private transfer link" else "Transfer link", Modifier.weight(1f), style = CdType.body)
-                Icon(CdIcons.Copy, "Copy ${linkLabel(view.isPrivate).lowercase()}", Modifier.size(20.dp), tint = Cd.faint)
-            }
-        }
         if (view.direction == Direction.SEND && view.active) {
             Spacer(Modifier.height(16.dp))
             Text("Keep CD open while sending. If it closes, open it and tap Resume.", Modifier.fillMaxWidth(), style = CdType.small.copy(color = Cd.faint))

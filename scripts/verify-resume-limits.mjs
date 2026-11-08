@@ -17,7 +17,7 @@ const fixture = `
 import { DurableObject } from 'cloudflare:workers';
 import { ResumeRoomProtocol } from ${JSON.stringify(resolve('worker/resume-room.ts'))};
 export class TestResumeRoom extends DurableObject {
- constructor(ctx,env){super(ctx,env);this.protocol=new ResumeRoomProtocol(ctx,env);}
+ constructor(ctx,env){super(ctx,env);this.protocol=new ResumeRoomProtocol(ctx,env,async()=>{});}
  async fetch(request){
   const url=new URL(request.url),action=url.pathname.split('/')[3];
   if(url.pathname.startsWith('/__test/')){
@@ -25,7 +25,7 @@ export class TestResumeRoom extends DurableObject {
    if(action==='clock'){const value=await request.json();Date.now=()=>value.now;}
    if(action==='alarm')await this.protocol.alarm();
    if(action==='legacy')for(const socket of this.ctx.getWebSockets()){const a=socket.deserializeAttachment();if(a?.kind==='resume-peer'){delete a.lastActivityAt;socket.serializeAttachment(a);}}
-   if(action==='reconstruct')this.protocol=new ResumeRoomProtocol(this.ctx,this.env);
+   if(action==='reconstruct')this.protocol=new ResumeRoomProtocol(this.ctx,this.env,async()=>{});
    return Response.json({state:await this.ctx.storage.get('resume-room'),alarm:await this.ctx.storage.getAlarm(),attachments:this.ctx.getWebSockets().map(s=>({readyState:s.readyState,...s.deserializeAttachment()}))});
   }
   return this.protocol.fetch(request,url.pathname.split('/').at(-1));

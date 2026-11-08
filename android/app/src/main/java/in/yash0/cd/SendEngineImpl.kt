@@ -55,13 +55,13 @@ class SendEngineImpl(private val context: Context, private val publicBase: Strin
         }
     }
     override fun owns(id: String): Boolean = known[id]?.let { SendStatus.owns(it.phase, it.expiresAt, System.currentTimeMillis()) } ?: false
-    override fun start(context: Context, uris: List<Uri>, privateLink: Boolean): String {
+    override fun start(context: Context, uris: List<Uri>): String {
         require(uris.isNotEmpty()) { "Choose at least one file" }
         val id = Crypto.encode(Crypto.random(16))
         val state = JSONObject().put("id", id).put("key", Crypto.encode(Crypto.random(32))).put("senderToken", Crypto.encode(Crypto.random(32)))
             .put("publicBase", publicBase.trimEnd('/')).put("uris", JSONArray(uris.map(Uri::toString)))
             .put("name", if (uris.size == 1) name(uris.first()) else "files.zip").put("size", if (uris.size == 1) size(uris.first()) else -1L).put("done", 0L)
-            .put("phase", TransferPhase.PREPARING.name).put("expiresAt", 0L).put("private", privateLink)
+            .put("phase", TransferPhase.PREPARING.name).put("expiresAt", 0L).put("private", false)
         uris.forEach { uri -> runCatching { this.context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } }
         store.save(state)
         publish(state, TransferPhase.PREPARING)
@@ -217,15 +217,23 @@ class SendEngineImpl(private val context: Context, private val publicBase: Strin
         val expiry = state.optLong("expiresAt")
         val now = System.currentTimeMillis()
         known[id] = Known(phase, expiry, state.optLong("done"))
+        if (state.optBoolean("private", true)) {
+            state.put("private", false)
+            store.save(state)
+        }
         val accepted = SendStatus.accepted(state.optBoolean("accepted"), expiry)
-        val link = if (state.has("digest") && SendStatus.linkVisible(accepted, phase, expiry, now)) "${state.getString("publicBase")}/s/$id#v2.${state.getString("key")}" else null
         val code = state.optString("code").takeIf { it.isNotEmpty() && state.optLong("codeExpiresAt") > now && phase in listOf(TransferPhase.WAITING, TransferPhase.PAUSED, TransferPhase.CONNECTING) && !state.optBoolean("codeSpent") }
-        val shareLink = code?.let { "${state.getString("publicBase")}/#$it" } ?: link.takeIf { state.optBoolean("private", true) }
-        TransferBus.publish(TransferView(id, Direction.SEND, state.getString("name"), state.getLong("size"), state.optLong("done"), rate, phase, route, link = shareLink, code = code, privateLink = link, isPrivate = state.optBoolean("private", true), message = message, expiresAt = expiry, codeExpiresAt = state.optLong("codeExpiresAt"), codeSpent = state.optBoolean("codeSpent")))
+        val shareLink = code?.let { "${state.getString("publicBase")}/#$it" }
+        val trustedInvitation = if (state.has("digest") && SendStatus.linkVisible(accepted, phase, expiry, now)) "${state.getString("publicBase")}/s/$id#v2.${state.getString("key")}" else null
+        TransferBus.publish(TransferView(id, Direction.SEND, state.getString("name"), state.getLong("size"), state.optLong("done"), rate, phase, route, link = shareLink, code = code, privateLink = trustedInvitation, isPrivate = false, message = message, expiresAt = expiry, codeExpiresAt = state.optLong("codeExpiresAt"), codeSpent = state.optBoolean("codeSpent")))
         if (phase in listOf(TransferPhase.COMPLETE, TransferPhase.CANCELLED, TransferPhase.FAILED)) expiryWatch.remove(id)?.cancel()
         else if (accepted && expiry > now) watchExpiry(id, expiry)
     }
     private fun transfer(state: JSONObject, run: Running) {
+        if (state.optBoolean("private", true)) {
+            state.put("private", false)
+            store.save(state)
+        }
         run.active()
         val id = state.getString("id")
         val invitation = Invitation.parse("${state.getString("publicBase")}/s/$id#v2.${state.getString("key")}")

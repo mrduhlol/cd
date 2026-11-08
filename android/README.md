@@ -1,16 +1,22 @@
 # CD for Android
 
-Native Kotlin and Jetpack Compose receiver for trusted CLI transfers. Requires Android 10 or newer. The first physical-device target is the Samsung S24 Ultra.
+Native Kotlin and Jetpack Compose app for sending and receiving files. Requires Android 10 or newer. The first physical-device target is the Samsung S24 Ultra.
 
 ## CD Beta updates
 
-The beta package is `in.yash0.cd.beta`, separate from `in.yash0.cd`. All builds use this single package. The current update is `0.1.8-beta`, version code 9. Keep the original signing key when updating. This machine's beta key is in `$HOME/.config/.android/debug.keystore`; set `ANDROID_USER_HOME=$HOME/.config/.android` when building.
+The beta package is `in.yash0.cd.beta`, separate from `in.yash0.cd`. All builds use this single package. The current update is `0.1.9-beta`, version code 10. Keep the original signing key when updating. This machine's beta key is in `$HOME/.config/.android/debug.keystore`; set `ANDROID_USER_HOME=$HOME/.config/.android` when building.
 
 ```sh
 ANDROID_USER_HOME="$HOME/.config/.android" ./gradlew --max-workers=2 -PcdAbi=arm64-v8a testDebugUnitTest lintDebug assembleDebug
 ```
 
 Opening a CD file link shows Accept / Reject. Accept queues the transfer in the foreground receiver and returns to the previous app after any notification permission prompt. Reject performs no lookup and queues no download. Numeric codes and private v1/v2 links are supported. Browser word-code transfers still require the web receiver. Publish `public/.well-known/assetlinks.json` so Android can verify the beta as the website's link handler.
+
+## Numeric sharing
+
+The Send tab always creates a five-digit code. Copy, share and QR controls carry the number, with no private-link option. Previously saved private-mode sends use code mode when reopened. Resumable transfers and trusted-device credentials remain in use internally. Codes expire after 15 minutes or when a receiver joins. The directory holds the transfer key, so code sharing relies on TLS and the relay rather than end-to-end secrecy from the relay.
+
+For local interoperability checks, install the debug and androidTest APKs in a device-tool-managed emulator, then run `CD_VERIFY_ANDROID_SERIAL=emulator-5554 npm run verify:beta-send`. This sends a ZIP larger than the window from the real Beta engine to CDX and Chromium and checks both received hashes. Set `ANDROID_HOME` or `ADB` if needed.
 
 ## Build and install
 
@@ -29,13 +35,13 @@ For a smaller S24 Ultra APK, first preserve the verified universal APK, then bui
 cp app/build/outputs/apk/debug/app-debug.apk /tmp/cd-universal.apk
 ./gradlew :app:assembleDebug -PcdAbi=arm64-v8a
 mkdir -p ../bin
-cp app/build/outputs/apk/debug/app-debug.apk ../bin/cd-android-preview-arm64.apk
-adb install -r ../bin/cd-android-preview-arm64.apk
+cp app/build/outputs/apk/debug/app-debug.apk ../bin/cd-beta-arm64.apk
+adb install -r ../bin/cd-beta-arm64.apk
 ```
 
 Omitting `cdAbi` builds a universal APK for emulator development. Accepted values are `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64`; other values fail configuration.
 
-The S24 artifact is `bin/cd-android-preview-arm64.apk` from the repository root. The default build output changes with the ABI property, so keep the universal copy for emulator use.
+The S24 artifact is `bin/cd-beta-arm64.apk` from the repository root. The default build output changes with the ABI property, so keep the universal copy for emulator use.
 
 The checked-in Gradle wrapper downloads Gradle 8.13. Dependencies resolve from Google Maven and Maven Central. Debug APKs use the local Android debug signing key. A signed release and store distribution need a separately managed release key.
 

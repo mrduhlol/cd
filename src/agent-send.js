@@ -1,11 +1,7 @@
 import { mountRelaySender } from './relay-sender.js';
 import './style.css';
 
-// Standalone browser sender for the agent relay: picks one file, mints a
-// share link, and streams it with the same encrypted records `cdx send`
-// uses, so `cdx receive <link>` (or another browser on the share page) can
-// take it. The send engine lives in relay-sender.js, shared with the unified
-// CD hub.
+// Standalone numeric-code sender using the same engine as the main page.
 
 document.body.innerHTML = `
   <canvas id="ambient-dots" class="ambient-dots" aria-hidden="true"></canvas>
@@ -32,11 +28,6 @@ document.body.innerHTML = `
             <button id="copy-code-btn" class="secondary-btn" type="button">Copy code</button>
             <button id="copy-cmd-btn" class="secondary-btn" type="button">Copy receive command</button>
           </div>
-          <span class="panel-kicker">or share the link</span>
-          <strong id="share-link"></strong>
-          <div class="result-actions">
-            <button id="copy-link-btn" class="secondary-btn" type="button">Copy link</button>
-          </div>
         </div>
         <div id="send-progress" class="agent-progress" hidden>
           <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
@@ -60,10 +51,8 @@ const elements = {
   fileLine: document.getElementById('file-line'),
   shareBox: document.getElementById('share-box'),
   shareCode: document.getElementById('share-code'),
-  shareLink: document.getElementById('share-link'),
   receiveCommand: document.getElementById('receive-command'),
   copyCodeBtn: document.getElementById('copy-code-btn'),
-  copyLinkBtn: document.getElementById('copy-link-btn'),
   copyCmdBtn: document.getElementById('copy-cmd-btn'),
   progress: document.getElementById('send-progress'),
   progressBar: document.querySelector('#send-progress .progress-bar'),

@@ -37,7 +37,7 @@ fun SendTab(state: UiState, transfers: List<TransferView>, actions: CdActions, c
     val sends = transfers.filter { it.direction == Direction.SEND }
     ScreenFrame(
         "Send", navigation = chrome.brand, actions = chrome.actions, bottomBar = chrome.bottomBar,
-        pinned = { PrimaryButton(if (state.sendError != null) "Try again" else if (state.sendPrivate) "Choose files · private link" else "Choose files", { state.sendError = null; actions.pickFiles() }, Modifier.fillMaxWidth(), icon = CdIcons.Upload) },
+        pinned = { PrimaryButton(if (state.sendError != null) "Try again" else "Choose files", { state.sendError = null; actions.pickFiles() }, Modifier.fillMaxWidth(), icon = CdIcons.Upload) },
     ) {
         val error = state.sendError
         if (error != null) {
@@ -56,18 +56,9 @@ fun SendTab(state: UiState, transfers: List<TransferView>, actions: CdActions, c
         }
         Hero(
             CdIcons.Upload, "Share anything from your phone",
-            if (state.sendPrivate) "Pick files and CD makes a private, end-to-end encrypted link and QR."
-            else "Pick files and CD gives you a 5-digit code and QR. Type the code on cd.yash0.in or run cdx receive <code>.",
+            "Pick files and CD gives you a 5-digit code and QR. Type the code on cd.yash0.in or run cdx receive <code>.",
         )
         Spacer(Modifier.height(24.dp))
-        Group {
-            SwitchListRow(
-                "Private link instead of a code",
-                "End-to-end encrypted: the key never reaches CD’s server. There is no code to type.",
-                state.sendPrivate, { actions.setSendPrivate(it) }, CdIcons.Shield,
-            )
-        }
-        Spacer(Modifier.height(28.dp))
         SectionHeader("Send to your computer")
         if (state.pairs.isEmpty()) Group {
             ListRow(
@@ -79,7 +70,7 @@ fun SendTab(state: UiState, transfers: List<TransferView>, actions: CdActions, c
             state.pairs.forEachIndexed { i, pair ->
                 if (i > 0) RowDivider()
                 ListRow(
-                    pair.name, "Private link, straight to cdx on it", icon = CdIcons.Laptop,
+                    pair.name, "Send straight to cdx on it", icon = CdIcons.Laptop,
                     onClick = { state.sendError = null; actions.pickFiles(pair) },
                     trailing = { Icon(CdIcons.Upload, "Choose files for ${pair.name}", Modifier.size(20.dp), tint = Cd.accent) },
                 )

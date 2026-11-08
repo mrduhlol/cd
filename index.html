@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
-      content="Send files directly between browsers with a private code or QR link. No upload queue, no cloud detour."
+      content="Send files directly between browsers with a numeric code or QR code. No upload queue, no cloud detour."
     />
     <meta name="theme-color" content="#0d0503" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -15,7 +15,7 @@
     <meta property="og:title" content="cd | direct browser transfer" />
     <meta
       property="og:description"
-      content="Send files directly between browsers with a private code or QR link."
+      content="Send files directly between browsers with a numeric code or QR code."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://cd.yash0.in/" />
@@ -82,12 +82,6 @@
             <button id="select-file-btn" class="primary-btn" type="button">Choose files</button>
           </div>
 
-          <div class="resume-options">
-            <label><input id="resumable-check" type="checkbox" /> Keep progress on this device so an interrupted send can resume</label>
-            <label for="resume-link-input">Resume a previous send</label>
-            <input id="resume-link-input" type="url" placeholder="Paste its private v2 link, then choose the same file" autocomplete="off" />
-          </div>
-
           <div id="sender-file-info" class="file-info hidden">
             <span class="panel-kicker">sending</span>
             <div class="file-header">
@@ -102,20 +96,18 @@
               <div class="code-block">
                 <span class="panel-kicker" id="share-code-kicker">share this code</span>
                 <strong id="share-code"></strong>
-                <a id="share-private-link" hidden></a>
                 <p class="code-help">On the other device, open <strong>cd.yash0.in</strong> → Receive and type it. In a terminal:</p>
                 <code id="receive-command" class="receive-command"></code>
               </div>
               <div class="qr-block">
                 <span class="panel-kicker">or scan it</span>
-                <canvas id="share-qr" width="220" height="220" aria-label="QR code that opens this transfer"></canvas>
+                <canvas id="share-qr" width="220" height="220" aria-label="QR code containing this transfer’s numeric code"></canvas>
               </div>
             </div>
 
             <div class="share-actions">
               <button id="copy-code-btn" class="secondary-btn" type="button">Copy code</button>
               <button id="copy-cmd-btn" class="secondary-btn" type="button">Copy command</button>
-              <button id="copy-link-btn" class="secondary-btn" type="button">Copy private link</button>
             </div>
 
             <p class="status" role="status" id="sender-status"></p>

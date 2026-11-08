@@ -29,7 +29,7 @@ val cdApplicationId = "in.yash0.cd.beta"
 android {
     namespace = "in.yash0.cd"
     compileSdk = 35
-    defaultConfig { applicationId = cdApplicationId; manifestPlaceholders["cdTargetPackage"] = cdApplicationId; manifestPlaceholders["cdAppLabel"] = "CD Beta"; manifestPlaceholders["cdPairScheme"] = "cdpair-beta"; manifestPlaceholders["cdWebHost"] = "cd.yash0.in"; minSdk = 29; targetSdk = 35; versionCode = 9; versionName = "0.1.8-beta"; if (cdAbi != null) ndk { abiFilters += cdAbi } }
+    defaultConfig { applicationId = cdApplicationId; manifestPlaceholders["cdTargetPackage"] = cdApplicationId; manifestPlaceholders["cdAppLabel"] = "CD Beta"; manifestPlaceholders["cdPairScheme"] = "cdpair-beta"; manifestPlaceholders["cdWebHost"] = "cd.yash0.in"; minSdk = 29; targetSdk = 35; versionCode = 10; versionName = "0.1.9-beta"; if (cdAbi != null) ndk { abiFilters += cdAbi } }
     buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }

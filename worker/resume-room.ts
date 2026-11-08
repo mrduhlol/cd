@@ -1,8 +1,8 @@
 type RRole = 'sender' | 'receiver';
-type Pending = { kind: 'resume-pending'; expiresAt: number; rootId: string };
+type Pending = { kind: 'resume-pending'; expiresAt: number; rootId: string; prefix: string };
 type Peer = { kind: 'resume-peer'; role: RRole; rootId: string; sessionNonce: string; receiverNonce?: string; lastActivityAt?: number };
 type Attachment = Pending | Peer;
-type ResumeState = { status: 'empty'|'waiting'|'interrupted'|'paired'|'terminal'; expiresAt: number; senderTokenHash?: string; receiverTokenHash?: string; sessionNonce?: string; senderProof?: string; receiverNonce?: string; receiverProof?: string; receiverCompleteForwarded?: boolean; sessions: number; nonces: string[] };
+type ResumeState = { status: 'empty'|'waiting'|'interrupted'|'paired'|'terminal'; expiresAt: number; senderTokenHash?: string; receiverTokenHash?: string; sessionNonce?: string; senderProof?: string; receiverNonce?: string; receiverProof?: string; receiverCompleteForwarded?: boolean; sessions: number; nonces: string[]; prefix?: string; codeSpent?: boolean };
 const TTL = 24 * 60 * 60 * 1000;
 const JOIN_TIMEOUT = 10_000;
 // Existing v2 clients need no new heartbeat. ACKs also traverse the relay when
@@ -23,19 +23,19 @@ function event(type:string, extra:Record<string,unknown>={}) { return JSON.strin
 // persisted state uses a separate storage key and its sockets are dispatched
 // by attachment kind, keeping v1 room semantics untouched.
 export class ResumeRoomProtocol {
-  constructor(private ctx: DurableObjectState, private env: Env) {
+  constructor(private ctx: DurableObjectState, private env: Env, private releaseCode: () => Promise<void>) {
     // Persist one migration grace for sockets admitted before leases existed.
     // Reconstructing this protocol after hibernation must not restart the grace.
     if(ctx.getWebSockets().some(socket=>{const a=socket.deserializeAttachment() as Attachment;return a?.kind==='resume-peer'&&a.lastActivityAt===undefined;})){
       ctx.blockConcurrencyWhile(async()=>this.scheduleAlarm(await this.state()));
     }
   }
-  async fetch(request: Request, rootId: string): Promise<Response> {
+  async fetch(request: Request, rootId: string, prefix: string): Promise<Response> {
     const state=await this.state(); if(state.status==='terminal'&&state.expiresAt>Date.now())return new Response('transfer complete',{status:410});
     if(state.status!=='empty'&&state.expiresAt<=Date.now()){await this.ctx.storage.delete('resume-room');}
     if(request.headers.get('Upgrade')?.toLowerCase()!=='websocket')return new Response('websocket required',{status:426});
     if(this.ctx.getWebSockets().filter(s=>{const a=s.deserializeAttachment() as Attachment;return a?.kind?.startsWith('resume-')}).length>=4)return new Response('room connection limit reached',{status:429});
-    const pair=new WebSocketPair(), expiresAt=Date.now()+JOIN_TIMEOUT;pair[1].serializeAttachment({kind:'resume-pending',expiresAt,rootId} satisfies Pending);this.ctx.acceptWebSocket(pair[1]);
+    const pair=new WebSocketPair(), expiresAt=Date.now()+JOIN_TIMEOUT;pair[1].serializeAttachment({kind:'resume-pending',expiresAt,rootId,prefix} satisfies Pending);this.ctx.acceptWebSocket(pair[1]);
     const alarm=await this.ctx.storage.getAlarm();if(alarm===null||expiresAt<alarm)await this.ctx.storage.setAlarm(expiresAt);
     return new Response(null,{status:101,webSocket:pair[0]});
   }
@@ -71,6 +71,22 @@ export class ResumeRoomProtocol {
     if(this.peerDeadlines(state).some(deadline=>deadline<=now)){await this.interrupt(state);return;}
     await this.scheduleAlarm(state);
   }
+  async authorizeCode(rootId: string, key: string, senderToken: string): Promise<{ prefix: string; expiresAt: number } | null> {
+    if (!is32(key) || !is32(senderToken)) return null;
+    const state = await this.state();
+    const sender = this.peer('sender');
+    if (state.status !== 'waiting' || state.codeSpent || state.expiresAt <= Date.now() || !state.prefix || !sender
+      || sender.deserializeAttachment().rootId !== rootId || !state.senderTokenHash || !state.receiverTokenHash
+      || !equal(await hash(senderToken), state.senderTokenHash)) return null;
+    const material = await crypto.subtle.importKey('raw', decode(key), 'HKDF', false, ['deriveBits']);
+    const token = await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt: decode(rootId),
+      info: new TextEncoder().encode('cd-transfer-v2 receiver join') }, material, 256);
+    if (!equal(await hash(encode(new Uint8Array(token))), state.receiverTokenHash)) return null;
+    const current = await this.state();
+    if (current.status !== 'waiting' || current.codeSpent || current.expiresAt <= Date.now() || !current.prefix
+      || !this.peer('sender') || current.senderTokenHash !== state.senderTokenHash || current.receiverTokenHash !== state.receiverTokenHash) return null;
+    return { prefix: current.prefix, expiresAt: current.expiresAt };
+  }
   private async admit(socket:WebSocket,p:Pending,j:any,state:ResumeState){
     if(j?.type!=='join'||j.protocol!=='cd-transfer-v2'||!['sender','receiver'].includes(j.role)){this.reject(socket,4406,'invalid protocol join');return;}
     if(j.role==='sender'){
@@ -86,9 +102,9 @@ export class ResumeRoomProtocol {
       if(state.sessions>=128){this.exhausted(socket);return;}
       // The relay cannot validate master-key HMAC proofs. It binds the opaque
       // proof to this session and forwards it for end-to-end verification.
-      state.status='waiting';state.sessions++;state.nonces=[...state.nonces,j.sessionNonce];state.sessionNonce=j.sessionNonce;state.senderProof=j.nonceProof;state.receiverNonce=undefined;state.receiverProof=undefined;state.receiverCompleteForwarded=false;
+      state.prefix=p.prefix;state.status='waiting';state.sessions++;state.nonces=[...state.nonces,j.sessionNonce];state.sessionNonce=j.sessionNonce;state.senderProof=j.nonceProof;state.receiverNonce=undefined;state.receiverProof=undefined;state.receiverCompleteForwarded=false;
       socket.serializeAttachment({kind:'resume-peer',role:'sender',rootId:p.rootId,sessionNonce:j.sessionNonce,lastActivityAt:Date.now()} satisfies Peer);
-      await this.save(state);socket.send(event('accepted',{expiresAt:state.expiresAt,sessionNonce:j.sessionNonce,senderNonceProof:j.nonceProof}));
+      await this.save(state);socket.send(event('accepted',{expiresAt:state.expiresAt,sessionNonce:j.sessionNonce,senderNonceProof:j.nonceProof,codeSpent:!!state.codeSpent}));
       const receiver=this.peer('receiver');if(receiver){this.reject(receiver,4409,'session interrupted');}return;
     }
     if(!is32(j.receiverToken)||!is32(j.receiverNonce)||!is32(j.nonceProof)){this.reject(socket,4406,'invalid receiver join');return;}
@@ -96,7 +112,8 @@ export class ResumeRoomProtocol {
     if(state.nonces.includes(j.receiverNonce)){this.reject(socket,4409,'receiver nonce replay');return;}
     if(state.status==='interrupted'){if(state.sessions>=128)this.exhausted(socket);else this.reject(socket,4409,'sender must resume first');return;}
     const sender=this.peer('sender');if(!sender||!state.sessionNonce){this.reject(socket,4404,'sender unavailable');return;}
-    state.status='paired';state.receiverNonce=j.receiverNonce;state.receiverProof=j.nonceProof;state.nonces=[...state.nonces,j.receiverNonce];state.receiverCompleteForwarded=false;socket.serializeAttachment({kind:'resume-peer',role:'receiver',rootId:p.rootId,sessionNonce:state.sessionNonce,receiverNonce:j.receiverNonce,lastActivityAt:Date.now()} satisfies Peer);sender.serializeAttachment({...sender.deserializeAttachment() as Peer,receiverNonce:j.receiverNonce,lastActivityAt:Date.now()});await this.save(state);
+    state.codeSpent=true;state.status='paired';state.receiverNonce=j.receiverNonce;state.receiverProof=j.nonceProof;state.nonces=[...state.nonces,j.receiverNonce];state.receiverCompleteForwarded=false;socket.serializeAttachment({kind:'resume-peer',role:'receiver',rootId:p.rootId,sessionNonce:state.sessionNonce,receiverNonce:j.receiverNonce,lastActivityAt:Date.now()} satisfies Peer);sender.serializeAttachment({...sender.deserializeAttachment() as Peer,receiverNonce:j.receiverNonce,lastActivityAt:Date.now()});await this.save(state);
+    await this.releaseCode();
     const bound={sessionNonce:state.sessionNonce,receiverNonce:j.receiverNonce,senderNonceProof:state.senderProof,receiverNonceProof:j.nonceProof,expiresAt:state.expiresAt};
     socket.send(event('accepted',bound));socket.send(event('peer-joined',bound));sender.send(event('peer-joined',bound));
   }

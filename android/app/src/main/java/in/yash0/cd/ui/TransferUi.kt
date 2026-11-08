@@ -26,13 +26,9 @@ val ShareState.link: String? get() = when (this) { is ShareState.Ready -> link; 
 
 private fun TransferView.expired(now: Long) = expiresAt in 1..now
 
-/**
- * What the QR and Share button carry. A private send shares its private link. A code send shares
- * only its short code URL while the code is live, never the long transfer URL behind it: after the
- * code expires or a receiver has used it there is nothing to share.
- */
+/** Public invitations contain only a live numeric code, never an internal capability. */
 private fun TransferView.invitation(now: Long): String? =
-    if (isPrivate) link ?: privateLink else link?.takeIf { !codeSpent && codeLive(now) }
+    code?.takeIf { shareCodePattern.matches(it) && !codeSpent && codeLive(now) }
 
 /** Code expiry is separate from the 24h transfer expiry; fixtures without one fall back to [TransferView.expiresAt]. */
 private fun TransferView.codeDeadline(): Long = if (codeExpiresAt > 0) codeExpiresAt else expiresAt
@@ -42,18 +38,14 @@ private fun TransferView.codeLive(now: Long): Boolean = code != null && codeDead
 fun nextDeadline(view: TransferView, now: Long = System.currentTimeMillis()): Long =
     listOf(view.codeExpiresAt, view.expiresAt).filter { it > now }.minOrNull() ?: 0
 
-/**
- * The end-to-end private link of a private-mode send that a trusted computer can join right now.
- * Requires the explicit private flag (never inferred from a missing code) and WAITING on the relay:
- * a paused or reconnecting send cannot admit the computer until it is resumed.
- */
+/** Internal capability for a trusted computer while the sender can accept it. */
 fun privateOffer(view: TransferView, now: Long = System.currentTimeMillis()): String? =
-    (view.privateLink ?: view.link)?.takeIf { view.isPrivate && view.code == null && view.done == 0L && shareState(view, now) is ShareState.Ready }
+    (view.privateLink ?: view.link?.takeIf { view.isPrivate })?.takeIf { view.direction == Direction.SEND && !view.codeSpent && !view.finished && !view.expired(now) && view.done == 0L && view.phase == TransferPhase.WAITING }
 
 fun shareState(view: TransferView, now: Long = System.currentTimeMillis()): ShareState {
     if (view.direction != Direction.SEND || view.finished || view.expired(now)) return ShareState.Hidden
     // A used code is never shown again: only the receiver that used it can continue, so this is progress.
-    if (!view.isPrivate && view.codeSpent) return ShareState.Hidden
+    if (view.codeSpent) return ShareState.Hidden
     val link = view.invitation(now)
     return when (view.phase) {
         TransferPhase.WAITING -> if (link != null) ShareState.Ready(link) else ShareState.Preparing
@@ -77,10 +69,10 @@ private val shareCodePattern = Regex("[0-9]{5}")
  * same code across disconnects. Null for private-link sends and once a receiver has used it.
  */
 fun liveCode(view: TransferView, now: Long = System.currentTimeMillis()): String? =
-    view.code?.takeIf { !view.isPrivate && shareCodePattern.matches(it) && view.done == 0L && view.codeLive(now) && shareState(view, now) != ShareState.Hidden }
+    view.code?.takeIf { shareCodePattern.matches(it) && view.done == 0L && view.codeLive(now) && shareState(view, now) != ShareState.Hidden }
 
 /** Text for the share sheet: the code first when there is one, so it reads well in a chat message. */
-fun shareText(link: String, code: String?): String = if (code != null) "CD code $code — open $link or run: cdx receive $code" else link
+fun shareText(link: String, code: String?): String = if (code != null) "CD code $code — enter it at https://cd.yash0.in or run: cdx receive $code" else link
 
 /** Terminal command for the receiver. The code is preferred: it is short enough to type. */
 fun receiveCommand(link: String, code: String?): String = "cdx receive ${code ?: link}"
@@ -88,7 +80,7 @@ fun receiveCommand(link: String, code: String?): String = "cdx receive ${code ?:
 /** Truthful privacy line for the current invitation. Only an explicitly private send is called end-to-end encrypted. */
 fun privacyNote(private: Boolean, code: String?): String = when {
     private -> "Private link: end-to-end encrypted, the key never reaches CD’s server. Anyone with the link can receive the file."
-    code != null -> "Anyone with this code can receive the file until someone does. CD’s server holds the key for codes — turn on Private link for sensitive files."
+    code != null -> "Anyone with this code can receive the file until someone does. CD’s server holds the key for codes."
     else -> "Anyone with this link can receive the file. It came from a share code, so CD’s server holds the key — it isn’t end-to-end private."
 }
 
@@ -141,7 +133,7 @@ fun transferBody(view: TransferView, now: Long = System.currentTimeMillis()): Tr
 fun transferTitle(view: TransferView, now: Long = System.currentTimeMillis()): String {
     val send = view.direction == Direction.SEND
     if (codeExpired(view, now)) return if (view.code != null) "Code expired" else "No live code"
-    if (send && !view.isPrivate && view.codeSpent && view.phase == TransferPhase.WAITING) return "Waiting for receiver"
+    if (send && view.codeSpent && view.phase == TransferPhase.WAITING) return "Waiting for receiver"
     return when (view.phase) {
         TransferPhase.COMPLETE -> if (send) "Sent" else "Saved"
         TransferPhase.FAILED -> "Transfer stopped"

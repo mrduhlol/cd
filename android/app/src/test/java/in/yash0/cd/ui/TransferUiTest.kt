@@ -10,11 +10,11 @@ class TransferUiTest {
     private val now = 1000L
     private val link = "https://example.test/s/root#private-capability"
     private fun send(phase: TransferPhase = TransferPhase.WAITING) = TransferView(
-        "root", Direction.SEND, "file.txt", 100, 0, 0, phase, link = link, expiresAt = 2000,
+        "root", Direction.SEND, "file.txt", 100, 0, 0, phase, link = link, code = "48213", isPrivate = false, expiresAt = 2000,
     )
 
     @Test fun unacceptedSendHasNoInvitation() {
-        val view = send(TransferPhase.CONNECTING).copy(link = null, expiresAt = 0)
+        val view = send(TransferPhase.CONNECTING).copy(link = null, code = null, expiresAt = 0)
         assertEquals(ShareState.Preparing, shareState(view, now))
         assertEquals(TransferBody.PREPARING, transferBody(view, now))
         assertNull(liveLink(view, now))
@@ -24,10 +24,10 @@ class TransferUiTest {
         for (phase in listOf(TransferPhase.WAITING, TransferPhase.PAUSED, TransferPhase.RETRYING,
             TransferPhase.CONNECTING, TransferPhase.WAITING, TransferPhase.PAUSED)) {
             val view = send(phase).copy(message = "Connection interrupted")
-            assertEquals(link, shareState(view, now).link)
-            assertEquals(link, liveLink(view, now))
+            assertEquals("48213", shareState(view, now).link)
+            assertEquals("48213", liveLink(view, now))
             assertEquals(TransferBody.SHARE, transferBody(view, now))
-            if (phase == TransferPhase.WAITING) assertEquals(ShareState.Ready(link), shareState(view, now))
+            if (phase == TransferPhase.WAITING) assertEquals(ShareState.Ready("48213"), shareState(view, now))
             else assertTrue(shareState(view, now) is ShareState.Offline)
         }
         assertEquals("Not connected — resume to accept the receiver", offlineLabel(ShareState.Offline(link, true, null)))
@@ -50,7 +50,7 @@ class TransferUiTest {
     @Test fun progressedSendUsesProgressButStillAllowsValidLink() {
         val view = send(TransferPhase.PAUSED).copy(done = 25)
         assertEquals(TransferBody.PROGRESS, transferBody(view, now))
-        assertEquals(link, liveLink(view, now))
+        assertEquals("48213", liveLink(view, now))
     }
 
     @Test fun receiveNeverShowsSendCapabilityAndLookupUsesDirection() {
@@ -105,8 +105,8 @@ class TransferUiTest {
         val codeUrl = "https://cd.yash0.in/#48213"
         val view = send().copy(link = codeUrl, code = "48213", privateLink = link, isPrivate = false, codeExpiresAt = 1500, expiresAt = 90_000)
         assertEquals("48213", liveCode(view, now))
-        assertEquals(codeUrl, liveLink(view, now))
-        assertNull(privateOffer(view, now))
+        assertEquals("48213", liveLink(view, now))
+        assertEquals(link, privateOffer(view, now))
         assertEquals("cdx receive 48213", receiveCommand(codeUrl, "48213"))
         assertTrue(shareText(codeUrl, "48213").contains("48213"))
         assertFalse(privacyNote(false, "48213").contains("end-to-end"))
@@ -121,7 +121,7 @@ class TransferUiTest {
         // Code expired, backend not paused yet: no code, no URL, and not "Getting a code…".
         assertNull(liveCode(view, 1600))
         assertNull(liveLink(view, 1600))
-        assertNull(privateOffer(view, 1600))
+        assertEquals(link, privateOffer(view, 1600))
         assertTrue(codeExpired(view, 1600))
         assertEquals(TransferBody.CODE_EXPIRED, transferBody(view, 1600))
         assertEquals("Code expired", transferTitle(view, 1600))
@@ -173,9 +173,9 @@ class TransferUiTest {
     }
 
     @Test fun onlyWaitingPrivateSendsCanGoToATrustedComputer() {
-        val view = send().copy(link = null, privateLink = link)
+        val view = send().copy(link = null, code = null, privateLink = link)
         assertNull(liveCode(view, now))
-        assertEquals(link, liveLink(view, now))
+        assertNull(liveLink(view, now))
         assertEquals(link, privateOffer(view, now))
         assertEquals("cdx receive $link", receiveCommand(link, null))
         assertTrue(privacyNote(true, null).contains("end-to-end"))

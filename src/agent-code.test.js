@@ -72,3 +72,10 @@ describe('numeric share input', () => {
       'https://cd.yash0.in/#123456', '482a1']) assert.equal(shortCodeFromInput(value), '', value);
   });
 });
+
+it('keeps v2 numeric lookup capabilities on the resumable receiver', () => {
+  const id = 'A'.repeat(22), key = 'B'.repeat(43);
+  const capability = parseCapability({ transferId: id, key, version: 2 });
+  assert.equal(shareUrlFromCapability('https://cd.yash0.in', capability.transferId, capability.key, capability.version), `https://cd.yash0.in/s/${id}#v2.${key}`);
+  assert.throws(() => parseCapability({ transferId: id, key, version: 3 }), /invalid/);
+});
