@@ -27,7 +27,7 @@ The local runs used the already-installed `workerd 2026-11-04` via `MINIFLARE_WO
 
 The initial Android audit found storage-bound ACKs and a conditional prefix-rehash fallback if the digest provider cannot clone its state. Neither has been reproduced on a phone. No physical device was connected. These remain hypotheses.
 
-Croc 11.6.5 was downloaded from the upstream release and its Linux archive passed the upstream checksum file. The executable SHA-256 is `d6cde9a91bb16007e96355ef68b64da1b5cc714a8999c16e10d050f6407c5d5c`. The globally installed 10.7.0 is excluded. No fresh croc performance comparison has been run yet.
+Croc 11.6.5 was downloaded from the upstream release and its Linux archive passed the upstream checksum file. The executable SHA-256 is `d6cde9a91bb16007e96355ef68b64da1b5cc714a8999c16e10d050f6407c5d5c`. The globally installed 10.7.0 is excluded. Fresh comparison results appear below.
 
 ## Reproduce
 
@@ -46,4 +46,47 @@ CD_VERIFY_URL=https://cd.yash0.in \
   node scripts/bench-transfer-fresh.mjs
 ```
 
-A completed transfer is not yet a performance gate. Remaining work includes isolating deployed frontend versus hosted relay, repeated large-file runs, fair croc and baseline comparisons, Android execution, and regression thresholds calibrated from those measurements. No production deployment occurred.
+A completed transfer is not yet a performance gate. The continuing work below isolates the frontend and adds repeated comparisons and a local regression gate. WAN controls and physical Android execution remain necessary. No production deployment occurred.
+
+## Frontend isolation and hosted checks
+
+The deployed frontend snapshot completed and verified 16 MiB through the local PR75 Worker in 607.9 ms. PR75's frontend completed in 631.9 ms. These single trials do not establish a speed difference, but neither reproduced the hosted stall. Raw reports and the snapshot's hash manifest are in `isolation/`.
+
+Using PR75's frontend against the production service completed 16 MiB over WebRTC in 2.28 seconds. Forced relay failed its 90-second deadline: the sender had queued 5 MiB, while the receiver had received only about 2.75 MiB of wire records. The existing test service also failed its 90-second relay trial. Both used the candidate frontend via Playwright asset fulfillment, without a production deployment. `candidate-on-production-16.json` and `candidate-on-existing-test-16.json` retain these runs.
+
+The production Worker's latest deployment metadata dates to 2026-10-19 and has no compatibility flags. The PR's `no_web_socket_compression` flag is not part of that deployment. The existing `cd-test` update was rejected by Cloudflare with migration error 10074, so its Durable Objects were left intact. A separate temporary Worker, `cd-speed-perf-test-20261108`, was deployed with fresh SQLite namespaces and the PR configuration. It verified 16 MiB in 58.08 seconds, about 0.275 MiB/s. Its browser socket still negotiated `permessage-deflate` despite the opt-out in the source configuration.
+
+A second temporary candidate deleted `Sec-WebSocket-Extensions` from the request forwarded to the transfer Durable Object, in both v1 and v2 routes. It still negotiated compression and took 54.61 seconds, about 0.293 MiB/s. This did not establish a material improvement, so the source change was reverted. `isolated-worker-strip-extension-16.json` retains that failed optimization attempt. The flag alone and the forwarded-header change are not proven fixes. Cloudflare documents the opt-out in its [WebSocket compatibility flags](https://developers.cloudflare.com/workers/configuration/compatibility-flags/#websocket-compression).
+
+The relay slowdown remains unexplained. The next network control must distinguish WebSocket/relay behavior from basic upload and download capacity on the same hosted service. The temporary Worker is for that continuing investigation, not a production endpoint.
+
+## Fresh 600 MiB comparison
+
+`compare-600-wrangler-proxy.json` contains 15 verified transfers, three per case, on the same Linux host. Every tool received the exact same 629,145,600 random bytes and produced the same SHA-256. Tool order rotates between repetitions. Medians of receive-through-saved-output throughput were:
+
+| Case | Median MiB/s |
+| --- | ---: |
+| Browser CD, automatic WebRTC route | 34.34 |
+| Browser CD, forced relay | 24.02 |
+| CLI CD, forced relay | 410.37 |
+| Croc 11.6.5 CLI, forced relay | 1461.05 |
+| Unencrypted HTTP ceiling | 1121.34 |
+
+These are loopback results with OS caching and no fsync claim. Browser pages preload outside timing. CLI receiver process startup is inside receive timing. Croc retains its default compression and multiplexing, with `--transport relay --no-local`; CD CLI sets `CD_DIRECT=0`. Readiness is recorded separately for native tools. The HTTP ceiling has fewer guarantees and is not a secure file-transfer competitor. Croc's throughput exceeding this particular single-stream HTTP implementation does not imply it exceeds the machine's network capacity.
+
+The local CD service uses Wrangler's development proxy. The browser handshake negotiated compression even though the application's config opts out; native clients have different compression negotiation. These results measure the recorded runtime, not a maximum CD core-runtime speed. An attempted direct-runtime replacement failed to run the complete UI flow and was removed rather than used for favorable timings. No old benchmark timings or result files are inputs to the new comparison runner.
+
+```sh
+CD_FRESH_CROC=/absolute/path/to/checksum-verified/croc \
+  CD_FRESH_MIB=600 CD_FRESH_RUNS=3 \
+  CD_FRESH_OUTPUT=/tmp/cd-compare-fresh.json \
+  node scripts/bench-transfer-compare-fresh.mjs
+```
+
+## Regression check
+
+`npm run verify:performance` builds the frontend and runs three independent 64 MiB browser trials per route. The gate requires full hashes and sizes, at least 8 MiB/s in every trial, no payload-send gap above five seconds, actual direct payload in automatic mode, and only relay payload in forced-relay mode. It rejects missing, duplicate, failed, and misrouted trials. Throughput is recomputed from bytes and elapsed time rather than trusting a report's claimed rate.
+
+The 8 MiB/s floor is below every retained 600 MiB local trial. It is a conservative KB/s-stall detector, not a promise for every network or phone. `ci-gate-64.json` and `ci-gate.log` retain the six passing real transfers. Five gate tests include false high-rate claims, 30-second stalls, hash failures, missing repetitions, and routing failures. CI now runs this check after browser verification. All 168 JavaScript tests, full Go tests, and type checking pass on this checkout. Cloud CI has not yet verified this new step.
+
+The benchmark accepts `CD_FRESH_INPUT` to reuse an existing file of exactly the configured size, and `CD_FRESH_ASSET_DIR` to isolate an alternate frontend from the configured service. It records the runner hash, source hashes, actual served asset names, socket extensions, and failed-request paths. Asset overrides only fulfill the app root and asset requests; transfer traffic still reaches the configured service.

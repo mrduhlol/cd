@@ -14,6 +14,7 @@ const runs = Number(process.env.CD_FRESH_RUNS ?? 3);
 const timeout = Number(process.env.CD_FRESH_TIMEOUT_MS ?? 300_000);
 const routes = (process.env.CD_FRESH_ROUTES ?? 'auto,relay').split(',');
 const output = resolve(process.env.CD_FRESH_OUTPUT ?? '/tmp/cd-transfer-fresh.json');
+assert.equal(process.env.CD_BENCH_RUNTIME_BUNDLE, undefined, 'fresh runner does not accept historical runtime bundles');
 assert.ok(Number.isSafeInteger(mib) && mib > 0);
 assert.ok(Number.isSafeInteger(runs) && runs > 0);
 assert.ok(Number.isSafeInteger(timeout) && timeout > 0);
@@ -58,6 +59,7 @@ function probe({ relayOnly }) {
         socket.lastAt = now;
         if (typeof event.data !== 'string') socket.received += event.data.byteLength ?? event.data.size ?? 0;
       });
+      this.addEventListener('open', () => { socket.extensions = this.extensions; });
       this.addEventListener('close', event => { socket.closeCode = event.code; });
     }
   };
@@ -111,12 +113,16 @@ for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
   void Promise.allSettled(browsers.map(browser => browser.close()));
 });
 try {
-  const input = join(work, 'payload.bin');
-  const file = await open(input, 'w');
-  try { for (let index = 0; index < mib; index++) await file.writeFile(randomBytes(1048576)); }
-  finally { await file.close(); }
+  const input = process.env.CD_FRESH_INPUT ? resolve(process.env.CD_FRESH_INPUT) : join(work, 'payload.bin');
+  if (!process.env.CD_FRESH_INPUT) {
+    const file = await open(input, 'w');
+    try { for (let index = 0; index < mib; index++) await file.writeFile(randomBytes(1048576)); }
+    finally { await file.close(); }
+  }
   const expected = await digest(input);
-  report.input = expected;
+  assert.equal(expected.bytes, mib * 1048576, 'input size must match CD_FRESH_MIB');
+  report.input = { ...expected, generated: !process.env.CD_FRESH_INPUT };
+  report.benchmarkSHA256 = (await digest('scripts/bench-transfer-fresh.mjs')).sha256;
   report.localSource = {};
   for (const path of ['worker/index.ts', 'src/relay-sender.js', 'src/share.js', 'src/sink.js', 'src/send-window.js', 'dist/index.html']) {
     report.localSource[path] = createHash('sha256').update(await readFile(path)).digest('hex');
@@ -134,7 +140,10 @@ try {
   report.dirty = execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
   report.runtimeOverride = process.env.MINIFLARE_WORKERD_PATH ? execFileSync(process.env.MINIFLARE_WORKERD_PATH, ['--version'], { encoding: 'utf8' }).trim() : null;
   worker = await startWorker(work);
+  report.serviceOrigin = worker.publicBase;
+  report.runtime = process.env.CD_VERIFY_URL ? 'configured service' : 'Wrangler development proxy';
   for (let index = 0; index < 2; index++) browsers.push(await chromium.launch({ executablePath: await findChromium(), headless: true, args: ['--disable-dev-shm-usage'] }));
+  report.assetOverride = process.env.CD_FRESH_ASSET_DIR ? resolve(process.env.CD_FRESH_ASSET_DIR) : null;
   report.chromium = browsers.map(browser => browser.version());
   for (let run = 0; run < runs; run++) for (const route of run % 2 ? [...routes].reverse() : routes) {
     if (report.interrupted) throw new Error(`Benchmark interrupted by ${report.interrupted}`);
@@ -145,8 +154,18 @@ try {
       for (const browser of browsers) {
         const context = await browser.newContext({ acceptDownloads: true }); contexts.push(context);
         await context.addInitScript(probe, { relayOnly: route === 'relay' });
+        if (report.assetOverride) for (const pattern of [`${worker.publicBase}/`, `${worker.publicBase}/assets/*`]) await context.route(pattern, async request => {
+          const path = new URL(request.request().url()).pathname;
+          if (path === '/') return request.fulfill({ path: join(report.assetOverride, 'index.html') });
+          if (/^\/assets\/[A-Za-z0-9_.-]+$/.test(path)) return request.fulfill({ path: join(report.assetOverride, path.slice(1)) });
+          return request.continue();
+        });
       }
       sender = await contexts[0].newPage(); receiver = await contexts[1].newPage();
+      row.networkErrors = [];
+      for (const [role, page] of [['sender', sender], ['receiver', receiver]]) page.on('requestfailed', request => {
+        row.networkErrors.push({ role, path: new URL(request.url()).pathname.replace(/\/[A-Za-z0-9_-]{22}$/, '/<id>'), error: request.failure()?.errorText });
+      });
       for (const page of [sender, receiver]) { page.setDefaultTimeout(timeout); await page.goto(worker.publicBase); await page.locator('.workbench:not([inert])').waitFor(); }
       await receiver.locator('#receive-mode-btn').click();
       const ready = performance.now();
