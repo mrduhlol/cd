@@ -58,7 +58,7 @@ The production Worker's latest deployment metadata dates to 2026-10-19 and has n
 
 A second temporary candidate deleted `Sec-WebSocket-Extensions` from the request forwarded to the transfer Durable Object, in both v1 and v2 routes. It still negotiated compression and took 54.61 seconds, about 0.293 MiB/s. This did not establish a material improvement, so the source change was reverted. `isolated-worker-strip-extension-16.json` retains that failed optimization attempt. The flag alone and the forwarded-header change are not proven fixes. Cloudflare documents the opt-out in its [WebSocket compatibility flags](https://developers.cloudflare.com/workers/configuration/compatibility-flags/#websocket-compression).
 
-The relay slowdown remains unexplained. The next network control must distinguish WebSocket/relay behavior from basic upload and download capacity on the same hosted service. The temporary Worker is for that continuing investigation, not a production endpoint.
+The same-service HTTP control below is slow too. It does not isolate a CD-specific relay defect. The temporary diagnostic Worker was deleted after those controls.
 
 ## Fresh 600 MiB comparison
 
