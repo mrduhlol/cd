@@ -138,3 +138,13 @@ test('adaptive window improves a high bandwidth delayed path without exceeding i
   assert(adaptive.maxSamples <= 64);
   t.diagnostic(`delayed path adaptive=${JSON.stringify(adaptive)} fixed=${JSON.stringify(fixed)}`);
 });
+
+test('duplicate acknowledgements still advance the monotonic clock', () => {
+  const window = createSendWindow();
+  window.sent(MiB, 10);
+  window.acked(MiB / 2, 20);
+  assert.equal(window.acked(MiB / 2, 100), false);
+  assert.throws(() => window.acked(MiB, 99), /monotonic/);
+  assert.throws(() => window.sent(MiB + 1, 99), /monotonic/);
+  assert.equal(window.acked(MiB, 100), true);
+});

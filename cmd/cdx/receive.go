@@ -328,9 +328,17 @@ func receiveFile(ctx context.Context, code, out string, force bool, onReceived f
 	if reverseErr != nil {
 		lanDebug("reverse-receiver-listen-failed", reverseErr)
 	}
+	selectedCompression := ""
+	if offer.Compression == transferCompression && compressionEnabled() {
+		selectedCompression = transferCompression
+	}
+	selection := chunkAcceptance{ChunkSize: selectedChunkSize, Compression: selectedCompression}
 	if reverse != nil {
 		defer reverse.close()
-		acceptance, _ = json.Marshal(chunkAcceptance{ChunkSize: selectedChunkSize, LAN: &reverse.lane.offer})
+		selection.LAN = &reverse.lane.offer
+	}
+	if selectedCompression != "" || reverse != nil {
+		acceptance, _ = json.Marshal(selection)
 	}
 	if err := link.send(kindAccept, acceptance); err != nil {
 		return friendlyRelayError(fmt.Errorf("accept file offer: %w", err))
@@ -353,6 +361,8 @@ func receiveFile(ctx context.Context, code, out string, force bool, onReceived f
 		}
 	}
 
+	var decompressor chunkDecompressor
+	defer decompressor.close()
 	var received uint64
 	var chunks uint32
 	var acknowledged uint64
@@ -367,6 +377,13 @@ func receiveFile(ctx context.Context, code, out string, force bool, onReceived f
 		}
 		switch kind {
 		case kindChunk:
+			if selectedCompression != "" {
+				payload, err = decompressor.decode(payload, selectedChunkSize)
+				if err != nil {
+					bar.finish()
+					return err
+				}
+			}
 			if err := validateReceivedChunk(payload, selectedChunkSize, received, size); err != nil {
 				bar.finish()
 				return err

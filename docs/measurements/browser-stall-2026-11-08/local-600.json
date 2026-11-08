@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T08:59:15.783Z",
+  "commit": "db6934ba54380f8cd8a0b58157c0a3dcecbcf66c",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    1.41,
+    1.45,
+    2.2
+  ],
+  "mib": 600,
+  "runs": 1,
+  "topology": "two Chromium processes and local Worker on one Linux host",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "auto",
+      "ok": true,
+      "readyMs": 65.77723300000025,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 14643.203878,
+      "receiveMs": 16150.609882,
+      "senderCompleteMs": 16153.577808999999,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "5e0cd5b676a5175420c0a6fae39900999d22c4d04e1b1740d7000b427ddbf64f"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 629145600,
+        "firstAt": 577.4000000059605,
+        "lastAt": 14939.70000000298,
+        "maxGapMs": 875.5,
+        "records": 900,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host"
+            ]
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 828,
+            "maxGapMs": 170.89999999850988,
+            "lastAt": 569.5,
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1572864,
+          "inFlight": 0,
+          "minRTT": 15.699999995529652,
+          "acknowledged": "629145600"
+        }
+      },
+      "mibPerSecond": 37.15029985763605
+    },
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": true,
+      "readyMs": 43.92938100000174,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 23849.839859,
+      "receiveMs": 24626.047812000004,
+      "senderCompleteMs": 24630.582458000004,
+      "received": {
+        "bytes": 629145600,
+        "sha256": "5e0cd5b676a5175420c0a6fae39900999d22c4d04e1b1740d7000b427ddbf64f"
+      },
+      "transport": {
+        "relay": 629145600,
+        "direct": 0,
+        "firstAt": 360.09999999403954,
+        "lastAt": 24109.69999999553,
+        "maxGapMs": 105.80000000447035,
+        "records": 2400,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 24088,
+            "maxGapMs": 108.5,
+            "lastAt": 24146.39999999851,
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1572864,
+          "inFlight": 0,
+          "minRTT": 19.899999998509884,
+          "acknowledged": "629145600"
+        }
+      },
+      "mibPerSecond": 24.364445508289258
+    }
+  ],
+  "input": {
+    "bytes": 629145600,
+    "sha256": "5e0cd5b676a5175420c0a6fae39900999d22c4d04e1b1740d7000b427ddbf64f"
+  },
+  "localSource": {
+    "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+    "src/relay-sender.js": "d147a29f25f63f91da853ef86943b0423de776a36c26890c5f98dba169e4648b",
+    "src/share.js": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c",
+    "src/sink.js": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470",
+    "src/send-window.js": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473",
+    "dist/index.html": "6c10c1b73a6e3126c0183ad1a915145219247a738c29f2821f23847aa94ed723"
+  },
+  "dirty": [
+    "?? scripts/bench-transfer-fresh.mjs"
+  ],
+  "runtimeOverride": "workerd 2026-11-04",
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T09:00:00.344Z"
+}

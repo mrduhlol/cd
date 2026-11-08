@@ -1,0 +1,12 @@
+goos: linux
+goarch: amd64
+pkg: github.com/YashasVM/cd/cmd/cdx
+cpu: 13th Gen Intel(R) Core(TM) i5-13420H
+BenchmarkChunkCompression/source-12         	      67	   4793424 ns/op	 164.06 MB/s	         0.1404 wire/raw	   21923 B/op	       0 allocs/op
+BenchmarkChunkCompression/source-12         	      66	   5975000 ns/op	 131.62 MB/s	         0.1404 wire/raw	   22255 B/op	       0 allocs/op
+BenchmarkChunkCompression/random-12         	  174900	      3517 ns/op	223609.93 MB/s	         1.000 wire/raw	       0 B/op	       0 allocs/op
+BenchmarkChunkCompression/random-12         	  115065	      5181 ns/op	151799.16 MB/s	         1.000 wire/raw	       0 B/op	       0 allocs/op
+BenchmarkChunkCompression/archive-12        	   87421	      3858 ns/op	4080.69 MB/s	         1.000 wire/raw	       0 B/op	       0 allocs/op
+BenchmarkChunkCompression/archive-12        	   89797	      3635 ns/op	4331.43 MB/s	         1.000 wire/raw	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/YashasVM/cd/cmd/cdx	3.682s

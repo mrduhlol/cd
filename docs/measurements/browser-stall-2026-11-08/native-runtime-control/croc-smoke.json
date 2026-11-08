@@ -1,0 +1,55 @@
+{
+  "rows": [
+    {
+      "attempt": 0,
+      "ports": [
+        37389,
+        44135,
+        42897,
+        44663,
+        34153
+      ],
+      "readyMs": 11.834582999999995,
+      "receiverExit": 0,
+      "ms": 108.002584,
+      "senderExit": 0,
+      "bytes": 16777216,
+      "sha": "bcfed7cc7fe77c51d168cc5c1032dce4747a6adcc70b35bebbafa4a6ec0d1f59",
+      "ok": true,
+      "relayArgs": [
+        "relay",
+        "--host",
+        "127.0.0.1",
+        "--ports",
+        "37389,44135,42897,44663,34153"
+      ],
+      "senderArgs": [
+        "--ignore-stdin",
+        "--relay",
+        "127.0.0.1:37389",
+        "--relay6",
+        "127.0.0.1:37389",
+        "--yes",
+        "--overwrite",
+        "--disable-clipboard",
+        "send",
+        "--transport",
+        "relay",
+        "--no-local",
+        "/tmp/cd-plus-native-isolation/run-fixed-20261108a/smoke.bin"
+      ],
+      "receiverArgs": [
+        "--ignore-stdin",
+        "--relay",
+        "127.0.0.1:37389",
+        "--relay6",
+        "127.0.0.1:37389",
+        "--yes",
+        "--overwrite",
+        "--disable-clipboard",
+        "--out",
+        "/tmp/cd-plus-native-isolation/run-fixed-20261108a/smoke-out-0"
+      ]
+    }
+  ]
+}

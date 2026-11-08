@@ -242,7 +242,7 @@ export function startRelaySend(source, hooks = {}) {
       const { kind, plaintext } = await opener.open(event.data);
       if (kind === KIND_SIGNAL) {
         if (plaintext.byteLength > 64 * 1024) throw new RelaySendError('The receiver sent oversized direct signaling.');
-        if (direct && !switched) {
+        if (direct) {
           try { await direct.signal(JSON.parse(new TextDecoder().decode(plaintext))); }
           catch (error) {
             if (directUsed) throw new RelaySendError('The direct connection failed. Send again for a fresh transfer.');

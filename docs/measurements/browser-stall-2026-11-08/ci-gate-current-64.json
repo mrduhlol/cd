@@ -1,0 +1,506 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T11:34:07.754Z",
+  "commit": "0280b24056241ef94f75419451347f6d9298f256",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    0.57,
+    6.87,
+    12.85
+  ],
+  "mib": 64,
+  "runs": 3,
+  "topology": "two Chromium processes and local Worker on one Linux host",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "auto",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 59.480878000000075,
+      "assets": [
+        "/assets/index-DVEv5I1o.js"
+      ],
+      "downloadEventMs": 2130.760838,
+      "receiveMs": 2247.648353,
+      "senderCompleteMs": 2250.895207,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "0257a9a7b3af947ca32dcc13b14913d281ca991c93226257800a10b934656e0b"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 67108864,
+        "firstAt": 558.4000000059605,
+        "lastAt": 2415.2000000029802,
+        "maxGapMs": 625.0999999940395,
+        "records": 96,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host",
+              "host",
+              "srflx",
+              "srflx"
+            ],
+            "iceStates": [
+              {
+                "state": "checking",
+                "at": 549.2999999970198
+              },
+              {
+                "state": "connected",
+                "at": 552.7999999970198
+              }
+            ],
+            "candidatesAdded": [
+              {
+                "at": 553.4000000059605,
+                "type": "host"
+              },
+              {
+                "at": 555.6000000089407,
+                "type": "host"
+              }
+            ],
+            "channels": [
+              {
+                "label": "cd-direct",
+                "events": [
+                  {
+                    "event": "open",
+                    "at": 553.9000000059605,
+                    "bufferedAmount": 0
+                  },
+                  {
+                    "event": "close",
+                    "at": 2439.7999999970198,
+                    "bufferedAmount": 0
+                  }
+                ]
+              }
+            ],
+            "sctpState": "closed",
+            "selectedPairs": [
+              {
+                "state": "succeeded",
+                "bytesSent": 2065,
+                "bytesReceived": 2227,
+                "currentRoundTripTime": 0,
+                "requestsSent": 1,
+                "responsesReceived": 1,
+                "localType": "host",
+                "remoteType": "prflx",
+                "protocol": "udp"
+              }
+            ],
+            "pairsObservedAt": 555.2999999970198,
+            "closeCalledAt": 2438.5
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 1079,
+            "maxGapMs": 199.90000000596046,
+            "lastAt": 553.7000000029802,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 2281807,
+          "inFlight": 0,
+          "minRTT": 17.30000001192093,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 28.4742050127981
+    },
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 47.70123599999988,
+      "assets": [
+        "/assets/index-DVEv5I1o.js"
+      ],
+      "downloadEventMs": 2138.314886,
+      "receiveMs": 2241.7355369999996,
+      "senderCompleteMs": 2244.20194,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "0257a9a7b3af947ca32dcc13b14913d281ca991c93226257800a10b934656e0b"
+      },
+      "transport": {
+        "relay": 67108864,
+        "direct": 0,
+        "firstAt": 362.1000000089407,
+        "lastAt": 2368.9000000059605,
+        "maxGapMs": 72.8999999910593,
+        "records": 256,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 2648,
+            "maxGapMs": 81.5,
+            "lastAt": 2438.7999999970198,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 3188664,
+          "inFlight": 0,
+          "minRTT": 55.70000000298023,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 28.549308758181148
+    },
+    {
+      "run": 1,
+      "route": "relay",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 89.70450699999947,
+      "assets": [
+        "/assets/index-DVEv5I1o.js"
+      ],
+      "downloadEventMs": 2224.3472949999996,
+      "receiveMs": 2357.2569299999996,
+      "senderCompleteMs": 2360.7782150000003,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "0257a9a7b3af947ca32dcc13b14913d281ca991c93226257800a10b934656e0b"
+      },
+      "transport": {
+        "relay": 67108864,
+        "direct": 0,
+        "firstAt": 404.1000000089407,
+        "lastAt": 2527.800000011921,
+        "maxGapMs": 72,
+        "records": 256,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 2648,
+            "maxGapMs": 115.70000000298023,
+            "lastAt": 2559.1000000089407,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1572864,
+          "inFlight": 0,
+          "minRTT": 19.600000008940697,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 27.150201229867637
+    },
+    {
+      "run": 1,
+      "route": "auto",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 50.14437199999884,
+      "assets": [
+        "/assets/index-DVEv5I1o.js"
+      ],
+      "downloadEventMs": 3069.421147000001,
+      "receiveMs": 3211.4566460000005,
+      "senderCompleteMs": 3214.0474670000003,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "0257a9a7b3af947ca32dcc13b14913d281ca991c93226257800a10b934656e0b"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 67108864,
+        "firstAt": 550.3000000119209,
+        "lastAt": 3337.9000000059605,
+        "maxGapMs": 1709.7000000029802,
+        "records": 96,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host",
+              "host",
+              "srflx",
+              "srflx"
+            ],
+            "iceStates": [
+              {
+                "state": "checking",
+                "at": 535.5
+              },
+              {
+                "state": "connected",
+                "at": 537.7000000029802
+              }
+            ],
+            "candidatesAdded": [
+              {
+                "at": 542.3000000119209,
+                "type": "host"
+              }
+            ],
+            "channels": [
+              {
+                "label": "cd-direct",
+                "events": [
+                  {
+                    "event": "open",
+                    "at": 542,
+                    "bufferedAmount": 0
+                  },
+                  {
+                    "event": "close",
+                    "at": 3366.5,
+                    "bufferedAmount": 0
+                  }
+                ]
+              }
+            ],
+            "sctpState": "closed",
+            "selectedPairs": [
+              {
+                "state": "succeeded",
+                "bytesSent": 2064,
+                "bytesReceived": 2226,
+                "currentRoundTripTime": 0,
+                "requestsSent": 1,
+                "responsesReceived": 1,
+                "localType": "host",
+                "remoteType": "prflx",
+                "protocol": "udp"
+              }
+            ],
+            "pairsObservedAt": 545.2000000029802,
+            "closeCalledAt": 3365.1000000089407
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 826,
+            "maxGapMs": 185.09999999403954,
+            "lastAt": 542.2000000029802,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1858184,
+          "inFlight": 0,
+          "minRTT": 16.400000005960464,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 19.928651404874046
+    },
+    {
+      "run": 2,
+      "route": "auto",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 52.71679699999913,
+      "assets": [
+        "/assets/index-DVEv5I1o.js"
+      ],
+      "downloadEventMs": 1476.1295520000003,
+      "receiveMs": 1559.6539590000011,
+      "senderCompleteMs": 1562.9705119999999,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "0257a9a7b3af947ca32dcc13b14913d281ca991c93226257800a10b934656e0b"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 67108864,
+        "firstAt": 541.3999999910593,
+        "lastAt": 1712.5,
+        "maxGapMs": 67,
+        "records": 96,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host",
+              "host",
+              "srflx",
+              "srflx"
+            ],
+            "iceStates": [
+              {
+                "state": "checking",
+                "at": 527.5
+              },
+              {
+                "state": "connected",
+                "at": 528.1999999880791
+              }
+            ],
+            "candidatesAdded": [
+              {
+                "at": 534.1999999880791,
+                "type": "host"
+              }
+            ],
+            "channels": [
+              {
+                "label": "cd-direct",
+                "events": [
+                  {
+                    "event": "open",
+                    "at": 532.2999999970198,
+                    "bufferedAmount": 0
+                  },
+                  {
+                    "event": "close",
+                    "at": 1766.199999988079,
+                    "bufferedAmount": 0
+                  }
+                ]
+              }
+            ],
+            "sctpState": "closed",
+            "selectedPairs": [
+              {
+                "state": "succeeded",
+                "bytesSent": 1820,
+                "bytesReceived": 1921,
+                "currentRoundTripTime": 0,
+                "requestsSent": 1,
+                "responsesReceived": 1,
+                "localType": "host",
+                "remoteType": "prflx",
+                "protocol": "udp"
+              }
+            ],
+            "pairsObservedAt": 530.7999999970198,
+            "closeCalledAt": 1764.7999999970198
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 828,
+            "maxGapMs": 192.29999999701977,
+            "lastAt": 536.1999999880791,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 3375304,
+          "inFlight": 0,
+          "minRTT": 28.5,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 41.03474339976972
+    },
+    {
+      "run": 2,
+      "route": "relay",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 45.26195499999994,
+      "assets": [
+        "/assets/index-DVEv5I1o.js"
+      ],
+      "downloadEventMs": 2186.0384060000015,
+      "receiveMs": 2316.9325899999985,
+      "senderCompleteMs": 2321.2462990000004,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "0257a9a7b3af947ca32dcc13b14913d281ca991c93226257800a10b934656e0b"
+      },
+      "transport": {
+        "relay": 67108864,
+        "direct": 0,
+        "firstAt": 346.79999999701977,
+        "lastAt": 2430.7999999970198,
+        "maxGapMs": 97.90000000596046,
+        "records": 256,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 2648,
+            "maxGapMs": 94.70000000298023,
+            "lastAt": 2467,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1572864,
+          "inFlight": 0,
+          "minRTT": 26.200000002980232,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 27.622728549042524
+    }
+  ],
+  "input": {
+    "bytes": 67108864,
+    "sha256": "0257a9a7b3af947ca32dcc13b14913d281ca991c93226257800a10b934656e0b",
+    "generated": true
+  },
+  "benchmarkSHA256": "e19af5bc80f27f60366c1b480e14fe98e409a4420bc3cac288d89fb0edef9aaf",
+  "probeSHA256": "5cb6d504c38fcff27a686d6a193f6b668ca794bbb44c904084d12649001ce983",
+  "localSource": {
+    "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+    "src/relay-sender.js": "5b954d213044b90c048a377d4cb237d5af7c858d3607d90892225495f53c4b5a",
+    "src/share.js": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c",
+    "src/sink.js": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470",
+    "src/send-window.js": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473",
+    "dist/index.html": "05c9d1a2bafe2715f7b7b78138aa749b40c3c6bb1bfa990ad8b622007a0f461e"
+  },
+  "dirty": [
+    "M docs/measurements/browser-stall-2026-11-08/README.md",
+    " M scripts/bench-browser-android-fresh.mjs",
+    " M scripts/bench-transfer-compare-fresh.mjs",
+    " M scripts/bench-transfer-fresh.mjs",
+    " M src/relay-sender.js",
+    " M src/relay-sender.test.js",
+    "?? docs/measurements/browser-stall-2026-11-08/android-chrome/",
+    "?? docs/measurements/browser-stall-2026-11-08/android/receive-current-main-600.json",
+    "?? docs/measurements/browser-stall-2026-11-08/android/unit-current-main-summary.json",
+    "?? docs/measurements/browser-stall-2026-11-08/compare-current-idle-600.json",
+    "?? docs/measurements/browser-stall-2026-11-08/compare-current-main-emulator-contended.json",
+    "?? docs/measurements/browser-stall-2026-11-08/wormhole-packages.json",
+    "?? scripts/bench-browser-chrome-fresh.mjs",
+    "?? scripts/fresh-browser-probe.mjs"
+  ],
+  "runtimeOverride": null,
+  "serviceOrigin": "http://127.0.0.1:35117",
+  "runtime": "Wrangler development proxy",
+  "assetOverride": null,
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T11:34:25.863Z"
+}

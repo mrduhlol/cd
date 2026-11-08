@@ -1,0 +1,45 @@
+
+> cd@1.0.0 verify:performance
+> npm run build && CD_FRESH_MIB=64 CD_FRESH_RUNS=3 CD_FRESH_OUTPUT=/tmp/cd-fresh-performance.json node scripts/bench-transfer-fresh.mjs && node scripts/fresh-transfer-gates.mjs /tmp/cd-fresh-performance.json
+
+
+> cd@1.0.0 build
+> npm run skill:check && node scripts/build-design.mjs && node scripts/sync-install.mjs && vite build
+
+
+> cd@1.0.0 skill:check
+> node scripts/generate-sharing-skill.mjs --check
+
+design: wrote 1 docs -> public/design/docs.json
+install: synced scripts/install.sh -> public/install.sh
+install: synced scripts/install.ps1 -> public/install.ps1
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 88 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/resume-opfs-worker-BdGPSw2v.js    0.78 kB
+dist/index.html                              14.75 kB │ gzip:  3.26 kB
+dist/assets/index-BQNCGYPm.css               24.21 kB │ gzip:  5.97 kB
+dist/assets/share-page-CiWNqNdQ.js            0.92 kB │ gzip:  0.54 kB
+dist/assets/agent-send-B5NHFUxY.js            3.49 kB │ gzip:  1.15 kB
+dist/assets/sink-B8B4Z51a.js                  3.62 kB │ gzip:  1.48 kB
+dist/assets/index-Xpb1FfHY.js                 6.60 kB │ gzip:  2.81 kB
+dist/assets/transfer-limits-Bq76ANWO.js       8.94 kB │ gzip:  3.28 kB
+dist/assets/share-BoRyW562.js                14.84 kB │ gzip:  5.70 kB
+dist/assets/relay-sender-jX1b_aXj.js         16.56 kB │ gzip:  6.47 kB
+dist/assets/browser-CX7wg_GR.js              23.46 kB │ gzip:  8.85 kB
+dist/assets/resume-browser-B2sHrfxX.js       32.93 kB │ gzip: 11.05 kB
+dist/assets/main-CfWX55b4.js                 37.57 kB │ gzip: 12.57 kB
+dist/assets/bundler-wkWVSANU.js              86.45 kB │ gzip: 23.11 kB
+dist/assets/jsQR-BuwBI9lN.js                129.97 kB │ gzip: 47.49 kB
+
+✓ built in 557ms
+{"run":0,"route":"auto","ok":true,"networkErrors":[],"readyMs":92.15876500000013,"assets":["/assets/index-Xpb1FfHY.js"],"downloadEventMs":1464.660023,"receiveMs":1547.2416559999997,"senderCompleteMs":1550.4944219999998,"received":{"bytes":67108864,"sha256":"30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"},"transport":{"relay":0,"direct":67108864,"firstAt":598.3999999985099,"lastAt":1749.5,"maxGapMs":38.79999999701977,"records":96,"peers":[{"states":["connecting","connected"],"candidateTypes":["host","srflx"]}],"sockets":[{"path":"/ws/v1/<id>","received":828,"maxGapMs":180.60000000149012,"lastAt":591.7000000029802,"extensions":"permessage-deflate; client_max_window_bits=15","closeCode":4404}],"window":{"size":6646859,"inFlight":0,"minRTT":55.100000001490116,"acknowledged":"67108864"}},"mibPerSecond":41.3639328748786}
+{"run":0,"route":"relay","ok":true,"networkErrors":[],"readyMs":49.86910099999977,"assets":["/assets/index-Xpb1FfHY.js"],"downloadEventMs":2082.075374,"receiveMs":2231.741841,"senderCompleteMs":2235.251757,"received":{"bytes":67108864,"sha256":"30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"},"transport":{"relay":67108864,"direct":0,"firstAt":366.70000000298023,"lastAt":2325.39999999851,"maxGapMs":69.80000000447035,"records":256,"peers":[],"sockets":[{"path":"/ws/v1/<id>","received":2648,"maxGapMs":82.5,"lastAt":2386.3000000044703,"extensions":"permessage-deflate; client_max_window_bits=15","closeCode":4404}],"window":{"size":2832899,"inFlight":0,"minRTT":38.600000001490116,"acknowledged":"67108864"}},"mibPerSecond":28.677152000395733}
+{"run":1,"route":"relay","ok":true,"networkErrors":[],"readyMs":48.790422000000035,"assets":["/assets/index-Xpb1FfHY.js"],"downloadEventMs":2246.697602000001,"receiveMs":2409.478288000001,"senderCompleteMs":2413.2154710000004,"received":{"bytes":67108864,"sha256":"30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"},"transport":{"relay":67108864,"direct":0,"firstAt":363.6000000014901,"lastAt":2517.10000000149,"maxGapMs":120.59999999403954,"records":256,"peers":[],"sockets":[{"path":"/ws/v1/<id>","received":2648,"maxGapMs":133.39999999850988,"lastAt":2548,"extensions":"permessage-deflate; client_max_window_bits=15","closeCode":4404}],"window":{"size":1702577,"inFlight":0,"minRTT":22.80000000447035,"acknowledged":"67108864"}},"mibPerSecond":26.561766635848585}
+{"run":1,"route":"auto","ok":true,"networkErrors":[],"readyMs":56.02955099999963,"assets":["/assets/index-Xpb1FfHY.js"],"downloadEventMs":3096.133685999999,"receiveMs":3179.1622069999994,"senderCompleteMs":3182.4929460000003,"received":{"bytes":67108864,"sha256":"30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"},"transport":{"relay":0,"direct":67108864,"firstAt":542.2999999970198,"lastAt":3365.5,"maxGapMs":1297.2000000029802,"records":96,"peers":[{"states":["connecting","connected"],"candidateTypes":["host","srflx"]}],"sockets":[{"path":"/ws/v1/<id>","received":828,"maxGapMs":192.59999999403954,"lastAt":536.3999999985099,"extensions":"permessage-deflate; client_max_window_bits=15","closeCode":4404}],"window":{"size":1854560,"inFlight":0,"minRTT":16.600000001490116,"acknowledged":"67108864"}},"mibPerSecond":20.131089838411636}
+{"run":2,"route":"auto","ok":true,"networkErrors":[],"readyMs":49.15863100000024,"assets":["/assets/index-Xpb1FfHY.js"],"downloadEventMs":3914.523792,"receiveMs":4048.703776999999,"senderCompleteMs":4051.869760999998,"received":{"bytes":67108864,"sha256":"30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"},"transport":{"relay":0,"direct":67108864,"firstAt":572.7999999970198,"lastAt":4203.89999999851,"maxGapMs":2541.5,"records":96,"peers":[{"states":["connecting","connected"],"candidateTypes":["host","srflx"]}],"sockets":[{"path":"/ws/v1/<id>","received":828,"maxGapMs":202.80000000447035,"lastAt":567.7999999970198,"extensions":"permessage-deflate; client_max_window_bits=15","closeCode":4404}],"window":{"size":1662085,"inFlight":0,"minRTT":13.899999998509884,"acknowledged":"67108864"}},"mibPerSecond":15.8075284152852}
+{"run":2,"route":"relay","ok":true,"networkErrors":[],"readyMs":45.86838099999659,"assets":["/assets/index-Xpb1FfHY.js"],"downloadEventMs":2451.1687980000024,"receiveMs":2534.3172350000023,"senderCompleteMs":2537.692253000001,"received":{"bytes":67108864,"sha256":"30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"},"transport":{"relay":67108864,"direct":0,"firstAt":343.29999999701977,"lastAt":2695.5999999940395,"maxGapMs":84.30000000447035,"records":256,"peers":[],"sockets":[{"path":"/ws/v1/<id>","received":2648,"maxGapMs":86.39999999850988,"lastAt":2727.89999999851,"extensions":"permessage-deflate; client_max_window_bits=15","closeCode":4404}],"window":{"size":1572864,"inFlight":0,"minRTT":18.900000005960464,"acknowledged":"67108864"}},"mibPerSecond":25.25334994219851}
+{"output":"/tmp/cd-fresh-performance.json","passed":6}
+{"ok":true,"errors":[]}

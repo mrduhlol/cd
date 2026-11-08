@@ -39,3 +39,50 @@ test('benchmark worker has isolated rate namespaces and no deployment routes', a
   assert.ok(config.ratelimits.every(binding => binding.simple.limit >= 100000));
   assert.deepEqual(config.durable_objects.bindings.map(binding => binding.name), ['TRANSFERS', 'PEERS', 'CODES', 'DEVICES']);
 });
+
+test('input manifests preserve filenames, empty directories and every file hash', async () => {
+  const { mkdtemp, mkdir, writeFile, rm, symlink } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { manifest } = await import('./bench-croc-matrix.mjs');
+  const root = await mkdtemp(join(tmpdir(), 'cd-task-manifest-'));
+  try {
+    const input = join(root, 'project');
+    await mkdir(join(input, 'empty'), { recursive: true });
+    await writeFile(join(input, 'readme.md'), 'hello');
+    assert.deepEqual(await manifest(input), [
+      { name: 'project', directory: true },
+      { name: 'project/empty', directory: true },
+      { name: 'project/readme.md', size: 5, sha256: '2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824' }
+    ]);
+    const before = await manifest(input);
+    await writeFile(join(input, 'readme.md'), 'HELLO');
+    assert.notDeepEqual(await manifest(input), before);
+    if (process.platform !== 'win32') {
+      await symlink(join(input, 'readme.md'), join(input, 'linked'));
+      await assert.rejects(manifest(input), /unsupported benchmark input/);
+    }
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('real-task fixtures contain actual source, a readable archive and a mixed folder', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const { mkdtemp, readFile, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const root = await mkdtemp(join(tmpdir(), 'cd-real-task-fixtures-'));
+  try {
+    execFileSync(process.execPath, [new URL('./bench-real-task-fixtures.mjs', import.meta.url).pathname, root]);
+    assert.deepEqual(await readFile(join(root, 'small-file.go')), await readFile(new URL('../cmd/cdx/protocol.go', import.meta.url)));
+    const entries = execFileSync('tar', ['-tzf', join(root, 'source-tree.tar.gz')], { encoding: 'utf8' });
+    assert.match(entries, /source-tree\/cmd\/cdx\/protocol.go/);
+    assert.deepEqual(await readFile(join(root, 'mixed/project-backup.tar.gz')), await readFile(join(root, 'source-tree.tar.gz')));
+    assert.equal(JSON.parse(await readFile(join(root, 'tasks.json'), 'utf8')).length, 4);
+    assert.throws(() => execFileSync(process.execPath, [new URL('./bench-real-task-fixtures.mjs', import.meta.url).pathname, root], { stdio: 'pipe' }));
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test('croc zip mode rejects values other than explicit 0 or 1', async () => {
+  const { main } = await import('./bench-croc-matrix.mjs');
+  await assert.rejects(main(['--croc-zip', 'true']), /--croc-zip must be 0 or 1/);
+});

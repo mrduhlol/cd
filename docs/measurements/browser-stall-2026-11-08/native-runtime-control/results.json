@@ -1,0 +1,225 @@
+{
+  "started": "2026-11-08T12:19:56.089Z",
+  "commit": "17db2f94e6278691f3d9816d62a55747c35620d1",
+  "node": "v26.13.0",
+  "rows": [
+    {
+      "round": 0,
+      "kind": "wrangler",
+      "receiverExit": 0,
+      "ms": 1639.802642,
+      "senderExit": 0,
+      "bytes": 629145600,
+      "sha256": "dfca011ea01891e1cebfd2ea41c0aba73eb16bf3d4381f81a53cf2f3423d9e01",
+      "transport": [
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 629169015,
+            "directBytes": 0
+          }
+        ],
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 16115,
+            "directBytes": 0
+          }
+        ]
+      ],
+      "mibps": 365.897690753934
+    },
+    {
+      "round": 0,
+      "kind": "core",
+      "receiverExit": 0,
+      "ms": 1157.0256520000003,
+      "senderExit": 0,
+      "bytes": 629145600,
+      "sha256": "dfca011ea01891e1cebfd2ea41c0aba73eb16bf3d4381f81a53cf2f3423d9e01",
+      "transport": [
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 629169015,
+            "directBytes": 0
+          }
+        ],
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 16115,
+            "directBytes": 0
+          }
+        ]
+      ],
+      "mibps": 518.5710437472651
+    },
+    {
+      "round": 0,
+      "kind": "croc",
+      "receiverExit": 0,
+      "ms": 436.84567399999924,
+      "senderExit": 0,
+      "bytes": 629145600,
+      "sha256": "dfca011ea01891e1cebfd2ea41c0aba73eb16bf3d4381f81a53cf2f3423d9e01",
+      "transport": [
+        [],
+        []
+      ],
+      "mibps": 1373.4827553769046
+    },
+    {
+      "round": 1,
+      "kind": "core",
+      "receiverExit": 0,
+      "ms": 1060.269824,
+      "senderExit": 0,
+      "bytes": 629145600,
+      "sha256": "dfca011ea01891e1cebfd2ea41c0aba73eb16bf3d4381f81a53cf2f3423d9e01",
+      "transport": [
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 629169015,
+            "directBytes": 0
+          }
+        ],
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 16115,
+            "directBytes": 0
+          }
+        ]
+      ],
+      "mibps": 565.8936870771491
+    },
+    {
+      "round": 1,
+      "kind": "croc",
+      "receiverExit": 0,
+      "ms": 438.9638729999997,
+      "senderExit": 0,
+      "bytes": 629145600,
+      "sha256": "dfca011ea01891e1cebfd2ea41c0aba73eb16bf3d4381f81a53cf2f3423d9e01",
+      "transport": [
+        [],
+        []
+      ],
+      "mibps": 1366.8550805774407
+    },
+    {
+      "round": 1,
+      "kind": "wrangler",
+      "receiverExit": 0,
+      "ms": 1613.0628800000013,
+      "senderExit": 0,
+      "bytes": 629145600,
+      "sha256": "dfca011ea01891e1cebfd2ea41c0aba73eb16bf3d4381f81a53cf2f3423d9e01",
+      "transport": [
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 629169015,
+            "directBytes": 0
+          }
+        ],
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 16115,
+            "directBytes": 0
+          }
+        ]
+      ],
+      "mibps": 371.9631810013504
+    },
+    {
+      "round": 2,
+      "kind": "croc",
+      "receiverExit": 0,
+      "ms": 443.4464659999994,
+      "senderExit": 0,
+      "bytes": 629145600,
+      "sha256": "dfca011ea01891e1cebfd2ea41c0aba73eb16bf3d4381f81a53cf2f3423d9e01",
+      "transport": [
+        [],
+        []
+      ],
+      "mibps": 1353.0381816144652
+    },
+    {
+      "round": 2,
+      "kind": "wrangler",
+      "receiverExit": 0,
+      "ms": 1638.453238,
+      "senderExit": 0,
+      "bytes": 629145600,
+      "sha256": "dfca011ea01891e1cebfd2ea41c0aba73eb16bf3d4381f81a53cf2f3423d9e01",
+      "transport": [
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 629169015,
+            "directBytes": 0
+          }
+        ],
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 16115,
+            "directBytes": 0
+          }
+        ]
+      ],
+      "mibps": 366.1990382663579
+    },
+    {
+      "round": 2,
+      "kind": "core",
+      "receiverExit": 0,
+      "ms": 1108.0411970000005,
+      "senderExit": 0,
+      "bytes": 629145600,
+      "sha256": "dfca011ea01891e1cebfd2ea41c0aba73eb16bf3d4381f81a53cf2f3423d9e01",
+      "transport": [
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 629169015,
+            "directBytes": 0
+          }
+        ],
+        [
+          {
+            "transport": "relay",
+            "relayBytes": 16115,
+            "directBytes": 0
+          }
+        ]
+      ],
+      "mibps": 541.4961118995287
+    }
+  ],
+  "hashes": {
+    "croc": "d6cde9a91bb16007e96355ef68b64da1b5cc714a8999c16e10d050f6407c5d5c",
+    "worker.mjs": "8d3f7e8bb297171dc178e156193f7ea85abc6bb96466b7ae6868f2af04a1f89d",
+    "cdx": "583f19cc6f4a6a7edbf76498ce2fdf1c070a15f0d77f7f7da770703399290812"
+  },
+  "inputHash": "dfca011ea01891e1cebfd2ea41c0aba73eb16bf3d4381f81a53cf2f3423d9e01",
+  "ports": [
+    42923,
+    43771,
+    35433,
+    40931,
+    39829
+  ],
+  "sanitization": {
+    "removedFields": [
+      "rows[].sender",
+      "rows[].receiver"
+    ],
+    "reason": "Raw process output contains invitation secrets and private addresses. Numeric values, hashes and parsed transport reports are unchanged."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+  "wrangler.jsonc": "bc9cb1ff83866918a37e59bcb52234e7bdbd3b7b357c0856d94a37409bf149f5",
+  "scripts/bench-direct-runtime.mjs": "d1f99c161c5e02c55056261ff7d0d9a951866a01a772a93b8d4e020a2dd6125e",
+  "scripts/bench-transfer-compare-fresh.mjs": "e1df72be9436b5446e154c7b310161e058e4e0903bd89c8f5b00a77d970955ce",
+  "cmd/cdx/main.go": "677b9af2fddc050f1e6ed0ad8fbaf4a79dfaffde09e2c08f4896859cbd650bfb",
+  "load": "1.87 1.77 2.10 1/2014 1014331\n",
+  "processes": "",
+  "versions": "v26.13.0\ngo version go1.26.8 linux/amd64\ncroc version 11.6.5"
+}

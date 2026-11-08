@@ -1,0 +1,266 @@
+[
+  {
+    "name": "magic-wormhole",
+    "version": "0.24.0",
+    "url": "https://files.pythonhosted.org/packages/fa/f4/e10f3fd5856f8d7172b56a02ec8312c5f472aa5f569701042da45faabc7b/magic_wormhole-0.24.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "312d7d55cba76fe443fd207b1e006d12b7c56699961ed6dce46bed765945e712"
+    }
+  },
+  {
+    "name": "magic-wormhole-mailbox-server",
+    "version": "0.8.0",
+    "url": "https://files.pythonhosted.org/packages/58/ae/9e4d43a73998d06c37d79a6d892f382faae769ca4450e1cfb2f45fa08249/magic_wormhole_mailbox_server-0.8.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "e03f6a60284c6174baf4d94ee880f90071c1d01afe7f65380fa5f20ff0f01ad4"
+    }
+  },
+  {
+    "name": "magic-wormhole-transit-relay",
+    "version": "0.5.0",
+    "url": "https://files.pythonhosted.org/packages/36/53/5f09bdc513d9bd7429ed9dd0ab81541e884e3e6d7753fd367be4ec074f80/magic_wormhole_transit_relay-0.5.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "e2a378a84e6bdb3e317d1e0dfaf02e9f4a92e30aa5686c5e4ef27209c3ac0b57"
+    }
+  },
+  {
+    "name": "spake2",
+    "version": "0.9",
+    "url": "https://files.pythonhosted.org/packages/d2/42/a4e93badf46c20d862ce298d8873451e19f18141c6811ae7fdfaef0ea107/spake2-0.9-py3-none-any.whl",
+    "hashes": {
+      "sha256": "2d7cbe936519c4172866649ddceefdec08e3d9b3ce4c8a75bbf84d6bdd07a2fb"
+    }
+  },
+  {
+    "name": "iterable-io",
+    "version": "1.0.4",
+    "url": "https://files.pythonhosted.org/packages/59/28/66a098e4c0428d1dfd0a30f8fe1ddfeb4a0d9472c8b117169e77b57a5f14/iterable_io-1.0.4-py3-none-any.whl",
+    "hashes": {
+      "sha256": "7d7104b69e499bcdad856e623bbc0feb0970eae5416b2b49be8b822ff4a37347"
+    }
+  },
+  {
+    "name": "zipstream-ng",
+    "version": "1.9.3",
+    "url": "https://files.pythonhosted.org/packages/75/44/e6d863aebd6d57a1de20d2350328379b5b970c29a217af349793f12d753c/zipstream_ng-1.9.3-py3-none-any.whl",
+    "hashes": {
+      "sha256": "6614580d7ae56bc9f3c2a342210108450e2d191b62038e818bae7845612584b7"
+    }
+  },
+  {
+    "name": "attrs",
+    "version": "26.1.0",
+    "url": "https://files.pythonhosted.org/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309"
+    }
+  },
+  {
+    "name": "autobahn",
+    "version": "26.11.1",
+    "url": "https://files.pythonhosted.org/packages/95/97/d700bf925f97fd7f1b35d5abd16f0f09949df9ad746eba179d7dd05731f7/autobahn-26.11.1-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",
+    "hashes": {
+      "sha256": "d52950ba232c05aa3650ba161442ad90e505ad2827576b67e7e182584732e7b9"
+    }
+  },
+  {
+    "name": "cbor2",
+    "version": "6.2.1",
+    "url": "https://files.pythonhosted.org/packages/8f/29/771926e914ad1e8656efa14d68bc24dbabec7b9aa3d542907aba34cca66c/cbor2-6.2.1-cp314-cp314-manylinux_2_28_x86_64.whl",
+    "hashes": {
+      "sha256": "7225faafc3d341d905480ce3f821e4d0f23511025532b64d5f44780a5bd625e7"
+    }
+  },
+  {
+    "name": "cffi",
+    "version": "2.1.1",
+    "url": "https://files.pythonhosted.org/packages/e9/02/4e7d553a7ac4b4238b38b3c1b80d486e9d4436f8d2acbf87a0997fe3f402/cffi-2.1.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+    "hashes": {
+      "sha256": "b0431303acaea1089ad4b3e9ce4e6518193def1118d4073ca848635ee4ea2e96"
+    }
+  },
+  {
+    "name": "cryptography",
+    "version": "50.0.2",
+    "url": "https://files.pythonhosted.org/packages/d3/69/2c833a049475e0a3444e94c7d0aca0aa51d166374a449b09e92ac98138de/cryptography-50.0.2-cp311-abi3-manylinux_2_34_x86_64.whl",
+    "hashes": {
+      "sha256": "9dab55f57c74c3cad24c323bacbbd04be4705ba6eb0d92e920b1fc4837ed5079"
+    }
+  },
+  {
+    "name": "hyperlink",
+    "version": "21.0.0",
+    "url": "https://files.pythonhosted.org/packages/6e/aa/8caf6a0a3e62863cbb9dab27135660acba46903b703e224f14f447e57934/hyperlink-21.0.0-py2.py3-none-any.whl",
+    "hashes": {
+      "sha256": "e6b14c37ecb73e89c77d78cdb4c2cc8f3fb59a885c5b3f819ff4ed80f25af1b4"
+    }
+  },
+  {
+    "name": "idna",
+    "version": "3.20",
+    "url": "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl",
+    "hashes": {
+      "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c"
+    }
+  },
+  {
+    "name": "msgpack",
+    "version": "1.2.4",
+    "url": "https://files.pythonhosted.org/packages/39/8f/bf975b5d2111e4954a0f8567fc6b60bab22c8766dd4fa509af1334c91a4f/msgpack-1.2.4-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+    "hashes": {
+      "sha256": "5d65b791ce4283e02b6267742ad540899155e1b32887b9cbdda47f38f5a076b5"
+    }
+  },
+  {
+    "name": "qrcode",
+    "version": "8.2",
+    "url": "https://files.pythonhosted.org/packages/dd/b8/d2d6d731733f51684bbf76bf34dab3b70a9148e8f2cef2bb544fccec681a/qrcode-8.2-py3-none-any.whl",
+    "hashes": {
+      "sha256": "16e64e0716c14960108e85d853062c9e8bba5ca8252c0b4d0231b9df4060ff4f"
+    }
+  },
+  {
+    "name": "tqdm",
+    "version": "4.70.1",
+    "url": "https://files.pythonhosted.org/packages/a7/03/921a3d3c75785aca9ebfbfcabfbc3a1be12e2ab5265deb026d55a5a3f83e/tqdm-4.70.1-py3-none-any.whl",
+    "hashes": {
+      "sha256": "c293e525e6fef9c20e8728fd4612df02a0aa31bb5fe91ecd93e123b1b7bffa73"
+    }
+  },
+  {
+    "name": "Twisted",
+    "version": "26.10.0",
+    "url": "https://files.pythonhosted.org/packages/10/93/fdfa79229fdc19a6542086d46b5c5d424ee62a6408d25657e8690e0a745f/twisted-26.10.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "3732f42af218925a0fe78d6668db55853f7fb532245a89a2669babe7d3000fa8"
+    }
+  },
+  {
+    "name": "Automat",
+    "version": "25.4.16",
+    "url": "https://files.pythonhosted.org/packages/02/ff/1175b0b7371e46244032d43a56862d0af455823b5280a50c63d99cc50f18/automat-25.4.16-py3-none-any.whl",
+    "hashes": {
+      "sha256": "04e9bce696a8d5671ee698005af6e5a9fa15354140a87f4870744604dcdd3ba1"
+    }
+  },
+  {
+    "name": "constantly",
+    "version": "23.10.4",
+    "url": "https://files.pythonhosted.org/packages/b8/40/c199d095151addf69efdb4b9ca3a4f20f70e20508d6222bffb9b76f58573/constantly-23.10.4-py3-none-any.whl",
+    "hashes": {
+      "sha256": "3fd9b4d1c3dc1ec9757f3c52aef7e53ad9323dbe39f51dfd4c43853b68dfa3f9"
+    }
+  },
+  {
+    "name": "Incremental",
+    "version": "24.11.0",
+    "url": "https://files.pythonhosted.org/packages/1d/55/0f4df2a44053867ea9cbea73fc588b03c55605cd695cee0a3d86f0029cb2/incremental-24.11.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "a34450716b1c4341fe6676a0598e88a39e04189f4dce5dc96f656e040baa10b3"
+    }
+  },
+  {
+    "name": "packaging",
+    "version": "26.3",
+    "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+    "hashes": {
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+    }
+  },
+  {
+    "name": "pyOpenSSL",
+    "version": "26.4.0",
+    "url": "https://files.pythonhosted.org/packages/51/ad/2cf6d3fa2fae5c79e1ed9960c0d42badd0f94d81dd12b50604cdc839e648/pyopenssl-26.4.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "f0eb0cb2d581d3ad2b9c489468485e7f2ab6727d08401bcf9d824c3caddf3c1c"
+    }
+  },
+  {
+    "name": "service-identity",
+    "version": "26.1.0",
+    "url": "https://files.pythonhosted.org/packages/93/eb/2433e1af4ff903499144de4846569fb3300b816179ae99a03c2f011b666a/service_identity-26.1.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "68c32dadbb69135fb951077677e07cd7f6031020f3a8c8f47a28cda8a0742118"
+    }
+  },
+  {
+    "name": "txaio",
+    "version": "26.6.1",
+    "url": "https://files.pythonhosted.org/packages/91/68/075bf851e11c9ef65bd6a0426791f0d9a0c7dae0e7f6e0b16ca67334b456/txaio-26.6.1-py3-none-any.whl",
+    "hashes": {
+      "sha256": "91a84a7825485a367c0b070c7399824c0e1a1e8c071cbdf3882dd3146dab587b"
+    }
+  },
+  {
+    "name": "txtorcon",
+    "version": "26.6.0",
+    "url": "https://files.pythonhosted.org/packages/41/27/c8b133268a62f7afa637f0cba1a02741a91cb91ad24596bc3f947c1754a2/txtorcon-26.6.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "2c5a6e9bf639e48a8fb8a19ceedca0c8b40a8b15c7c049483671fec625dc93a0"
+    }
+  },
+  {
+    "name": "typing_extensions",
+    "version": "4.16.0",
+    "url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+    }
+  },
+  {
+    "name": "ujson",
+    "version": "6.1.0",
+    "url": "https://files.pythonhosted.org/packages/af/b0/458b7210aafa532e6c6f35adde59d1b34180f775d4f309e9829eb1233dd2/ujson-6.1.0-cp314-cp314-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",
+    "hashes": {
+      "sha256": "7efd19d1af7fac349342b43364de764a924a83339341faec3fb7d06717931f36"
+    }
+  },
+  {
+    "name": "zope.interface",
+    "version": "8.7",
+    "url": "https://files.pythonhosted.org/packages/50/03/372676f4a91df53b9fae808b26fac6fce3d8e02bfa0e134162d11a7b607b/zope_interface-8.7-cp314-cp314-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl",
+    "hashes": {
+      "sha256": "6260ccc856a2c561b20341a74a8c1d9bb13916f6b52e880f336a0ddf61a1b726"
+    }
+  },
+  {
+    "name": "click",
+    "version": "8.5.1",
+    "url": "https://files.pythonhosted.org/packages/31/7d/164b7ffc8624fe9efb4221bf9af485d5c1e41b9ae118045d2b6dc5457d8b/click-8.5.1-py3-none-any.whl",
+    "hashes": {
+      "sha256": "8bb5376d2006950386f8c6427613334a2acadc5f559cb80e638d00b4df957e37"
+    }
+  },
+  {
+    "name": "humanize",
+    "version": "4.16.0",
+    "url": "https://files.pythonhosted.org/packages/b0/aa/0b7365d30fed43e7a3449aba1fe20a0a7174d9cf13e282af4e69ac825441/humanize-4.16.0-py3-none-any.whl",
+    "hashes": {
+      "sha256": "353eb2f34c09d098b2880eee8bef21832eae6d174f48c5762fff7e5fcb74d01d"
+    }
+  },
+  {
+    "name": "pycparser",
+    "version": "3.12",
+    "url": "https://files.pythonhosted.org/packages/b6/ae/315bbeee126a769cbde43cf4908acb4b40408d8bf8bbf334dd7368d8dadf/pycparser-3.12-py3-none-any.whl",
+    "hashes": {
+      "sha256": "a076f3f489b39b43ed13563a1dafe42447445bec2e294154ec5c57fcdda4c85e"
+    }
+  },
+  {
+    "name": "PyNaCl",
+    "version": "1.6.2",
+    "url": "https://files.pythonhosted.org/packages/c9/a8/b917096b1accc9acd878819a49d3d84875731a41eb665f6ebc826b1af99e/pynacl-1.6.2-cp38-abi3-manylinux_2_34_x86_64.whl",
+    "hashes": {
+      "sha256": "c8a231e36ec2cab018c4ad4358c386e36eede0319a0c41fed24f840b1dac59f6"
+    }
+  },
+  {
+    "name": "setuptools",
+    "version": "84.2.1",
+    "url": "https://files.pythonhosted.org/packages/ef/55/6dc6d6bb953bdfc52519a0059592c52b6e3b8ad51cf8256dffceb55b0610/setuptools-84.2.1-py3-none-any.whl",
+    "hashes": {
+      "sha256": "ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2"
+    }
+  }
+]

@@ -1,0 +1,344 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T09:27:37.321Z",
+  "commit": "46b2ae64f9bbfba880c4eb7fe5f90f2c2a3e6388",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    0.74,
+    0.95,
+    1.36
+  ],
+  "mib": 64,
+  "runs": 3,
+  "topology": "two Chromium processes and local Worker on one Linux host",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "auto",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 92.15876500000013,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 1464.660023,
+      "receiveMs": 1547.2416559999997,
+      "senderCompleteMs": 1550.4944219999998,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 67108864,
+        "firstAt": 598.3999999985099,
+        "lastAt": 1749.5,
+        "maxGapMs": 38.79999999701977,
+        "records": 96,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host",
+              "srflx"
+            ]
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 828,
+            "maxGapMs": 180.60000000149012,
+            "lastAt": 591.7000000029802,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 6646859,
+          "inFlight": 0,
+          "minRTT": 55.100000001490116,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 41.3639328748786
+    },
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 49.86910099999977,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 2082.075374,
+      "receiveMs": 2231.741841,
+      "senderCompleteMs": 2235.251757,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"
+      },
+      "transport": {
+        "relay": 67108864,
+        "direct": 0,
+        "firstAt": 366.70000000298023,
+        "lastAt": 2325.39999999851,
+        "maxGapMs": 69.80000000447035,
+        "records": 256,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 2648,
+            "maxGapMs": 82.5,
+            "lastAt": 2386.3000000044703,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 2832899,
+          "inFlight": 0,
+          "minRTT": 38.600000001490116,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 28.677152000395733
+    },
+    {
+      "run": 1,
+      "route": "relay",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 48.790422000000035,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 2246.697602000001,
+      "receiveMs": 2409.478288000001,
+      "senderCompleteMs": 2413.2154710000004,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"
+      },
+      "transport": {
+        "relay": 67108864,
+        "direct": 0,
+        "firstAt": 363.6000000014901,
+        "lastAt": 2517.10000000149,
+        "maxGapMs": 120.59999999403954,
+        "records": 256,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 2648,
+            "maxGapMs": 133.39999999850988,
+            "lastAt": 2548,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1702577,
+          "inFlight": 0,
+          "minRTT": 22.80000000447035,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 26.561766635848585
+    },
+    {
+      "run": 1,
+      "route": "auto",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 56.02955099999963,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 3096.133685999999,
+      "receiveMs": 3179.1622069999994,
+      "senderCompleteMs": 3182.4929460000003,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 67108864,
+        "firstAt": 542.2999999970198,
+        "lastAt": 3365.5,
+        "maxGapMs": 1297.2000000029802,
+        "records": 96,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host",
+              "srflx"
+            ]
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 828,
+            "maxGapMs": 192.59999999403954,
+            "lastAt": 536.3999999985099,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1854560,
+          "inFlight": 0,
+          "minRTT": 16.600000001490116,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 20.131089838411636
+    },
+    {
+      "run": 2,
+      "route": "auto",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 49.15863100000024,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 3914.523792,
+      "receiveMs": 4048.703776999999,
+      "senderCompleteMs": 4051.869760999998,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"
+      },
+      "transport": {
+        "relay": 0,
+        "direct": 67108864,
+        "firstAt": 572.7999999970198,
+        "lastAt": 4203.89999999851,
+        "maxGapMs": 2541.5,
+        "records": 96,
+        "peers": [
+          {
+            "states": [
+              "connecting",
+              "connected"
+            ],
+            "candidateTypes": [
+              "host",
+              "srflx"
+            ]
+          }
+        ],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 828,
+            "maxGapMs": 202.80000000447035,
+            "lastAt": 567.7999999970198,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1662085,
+          "inFlight": 0,
+          "minRTT": 13.899999998509884,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 15.8075284152852
+    },
+    {
+      "run": 2,
+      "route": "relay",
+      "ok": true,
+      "networkErrors": [],
+      "readyMs": 45.86838099999659,
+      "assets": [
+        "/assets/index-Xpb1FfHY.js"
+      ],
+      "downloadEventMs": 2451.1687980000024,
+      "receiveMs": 2534.3172350000023,
+      "senderCompleteMs": 2537.692253000001,
+      "received": {
+        "bytes": 67108864,
+        "sha256": "30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523"
+      },
+      "transport": {
+        "relay": 67108864,
+        "direct": 0,
+        "firstAt": 343.29999999701977,
+        "lastAt": 2695.5999999940395,
+        "maxGapMs": 84.30000000447035,
+        "records": 256,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 2648,
+            "maxGapMs": 86.39999999850988,
+            "lastAt": 2727.89999999851,
+            "extensions": "permessage-deflate; client_max_window_bits=15",
+            "closeCode": 4404
+          }
+        ],
+        "window": {
+          "size": 1572864,
+          "inFlight": 0,
+          "minRTT": 18.900000005960464,
+          "acknowledged": "67108864"
+        }
+      },
+      "mibPerSecond": 25.25334994219851
+    }
+  ],
+  "input": {
+    "bytes": 67108864,
+    "sha256": "30484061394a339380dd83464bca18bf0300d105ad1d5767205530d323899523",
+    "generated": true
+  },
+  "benchmarkSHA256": "c44590883c4779e23551aa98ecf9bdb1d4a6d3013720b255bb15490d4a8a6185",
+  "localSource": {
+    "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+    "src/relay-sender.js": "d147a29f25f63f91da853ef86943b0423de776a36c26890c5f98dba169e4648b",
+    "src/share.js": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c",
+    "src/sink.js": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470",
+    "src/send-window.js": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473",
+    "dist/index.html": "6c10c1b73a6e3126c0183ad1a915145219247a738c29f2821f23847aa94ed723"
+  },
+  "dirty": [
+    "M .github/workflows/ci.yml",
+    " M package.json",
+    " M scripts/bench-transfer-fresh.mjs",
+    "?? docs/measurements/browser-stall-2026-11-08/candidate-on-existing-test-16.json",
+    "?? docs/measurements/browser-stall-2026-11-08/candidate-on-production-16.json",
+    "?? docs/measurements/browser-stall-2026-11-08/compare-600-wrangler-proxy.json",
+    "?? docs/measurements/browser-stall-2026-11-08/isolated-worker-16.json",
+    "?? docs/measurements/browser-stall-2026-11-08/isolation/",
+    "?? scripts/bench-transfer-compare-fresh.mjs",
+    "?? scripts/fresh-transfer-gates.mjs",
+    "?? scripts/fresh-transfer-gates.test.mjs"
+  ],
+  "runtimeOverride": "workerd 2026-11-04",
+  "workerCompatibilityFlags": null,
+  "assetOverride": null,
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T09:27:57.798Z"
+}
