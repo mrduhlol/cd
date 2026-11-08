@@ -27,8 +27,9 @@ try {
     ws.send(JSON.stringify({ type: 'join', protocol: 'cd-transfer-v2', role, ...(role === 'sender' ? {
       senderToken: cap.senderToken, senderTokenHash: hash(senderToken), receiverTokenHash: hash(receiverToken), sessionNonce: encode(nonce)
     } : { receiverToken: encode(receiverToken), receiverNonce: encode(nonce) }), nonceProof: proof(role, nonce) }));
-    assert.equal((await next()).type, 'accepted');
-    return { ws, next };
+    const accepted = await next();
+    assert.equal(accepted.type, 'accepted');
+    return { ws, next, accepted };
   }
   const sender = await peer('sender');
   const post = body => fetch(`${worker.publicBase}/api/codes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -48,6 +49,12 @@ try {
   await peer('receiver');
   assert.equal((await sender.next()).type, 'peer-joined');
   assert.equal((await fetch(`${worker.publicBase}/api/codes/${claim.code}`)).status, 404);
+  assert.equal((await post(cap)).status, 403);
+  const closed = new Promise(resolve => sender.ws.addEventListener('close', resolve, { once: true }));
+  sender.ws.close();
+  await withTimeout(closed, 10_000, 'sender close timed out');
+  const resumed = await peer('sender');
+  assert.equal(resumed.accepted.codeSpent, true, 'reconnect must retain spent-code state');
   assert.equal((await post(cap)).status, 403);
   console.log('v2 numeric codes: authenticated claim, key proof, version, TTL, reuse and one-receiver release passed');
 } finally {

@@ -104,7 +104,7 @@ export class ResumeRoomProtocol {
       // proof to this session and forwards it for end-to-end verification.
       state.prefix=p.prefix;state.status='waiting';state.sessions++;state.nonces=[...state.nonces,j.sessionNonce];state.sessionNonce=j.sessionNonce;state.senderProof=j.nonceProof;state.receiverNonce=undefined;state.receiverProof=undefined;state.receiverCompleteForwarded=false;
       socket.serializeAttachment({kind:'resume-peer',role:'sender',rootId:p.rootId,sessionNonce:j.sessionNonce,lastActivityAt:Date.now()} satisfies Peer);
-      await this.save(state);socket.send(event('accepted',{expiresAt:state.expiresAt,sessionNonce:j.sessionNonce,senderNonceProof:j.nonceProof}));
+      await this.save(state);socket.send(event('accepted',{expiresAt:state.expiresAt,sessionNonce:j.sessionNonce,senderNonceProof:j.nonceProof,codeSpent:!!state.codeSpent}));
       const receiver=this.peer('receiver');if(receiver){this.reject(receiver,4409,'session interrupted');}return;
     }
     if(!is32(j.receiverToken)||!is32(j.receiverNonce)||!is32(j.nonceProof)){this.reject(socket,4406,'invalid receiver join');return;}

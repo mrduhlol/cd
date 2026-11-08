@@ -145,7 +145,7 @@ try {
 
   // 3. Browser -> browser by scanning the QR code with a (fake) camera.
   {
-    const { context, page } = await startSend([singlePath]);
+    const { context, page, code } = await startSend([singlePath]);
     await page.waitForFunction(() => {
       const canvas = document.getElementById('share-qr');
       return canvas.getContext('2d').getImageData(0, 0, 1, 1).data[3] > 0;
@@ -155,7 +155,7 @@ try {
       return { data: Array.from(data), width, height };
     });
     const decoded = jsQR(Uint8ClampedArray.from(qr.data), qr.width, qr.height);
-    assert.match(decoded?.data ?? '', /\/s\/[A-Za-z0-9_-]{22}#v1\./, 'the on-screen QR does not hold the share link');
+    assert.equal(decoded?.data, code, 'the on-screen QR does not hold the numeric code');
 
     const videoPath = join(work, 'qr.y4m');
     await writeFile(videoPath, qrVideo(decoded.data));
