@@ -81,3 +81,13 @@ func TestAgentSetupStopsWithoutInput(t *testing.T) {
 		t.Fatal("wrote a skill with no answer")
 	}
 }
+
+func TestAgentInstructionsOfferPairedDeviceChoice(t *testing.T) {
+	for name, instructions := range map[string]string{"skill": agentSkill, "global note": agentBlock} {
+		for _, required := range []string{"cdx devices --json", "request_user_input", "--to", "multiple", "APK"} {
+			if !strings.Contains(instructions, required) {
+				t.Errorf("%s omits %q", name, required)
+			}
+		}
+	}
+}

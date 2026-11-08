@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -319,17 +320,60 @@ func runDevices(args []string) int {
 	return 0
 }
 
+// "phone" remains convenient when pairing used the Android model as its alias.
+func resolveDeviceTarget(store devices.Store, name string) (string, error) {
+	if name != "phone" {
+		return name, nil
+	}
+	if _, err := store.Load(name); err == nil {
+		return name, nil
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return "", err
+	}
+	list, err := store.List()
+	if err != nil {
+		return "", err
+	}
+	if len(list) == 1 {
+		return list[0].Name, nil
+	}
+	if len(list) > 1 {
+		names := make([]string, len(list))
+		for i, device := range list {
+			names[i] = device.Name
+		}
+		return "", fmt.Errorf("multiple paired devices: %s; choose one with --to <name> (cdx devices --json)", strings.Join(names, ", "))
+	}
+	return name, nil
+}
+
 func runDeviceSend(request sendRequest) int {
-	if request.detach || request.requestID != "" {
-		return deviceFailure(errors.New("targeted sends currently stay in the foreground; remove --detach and --request-id"), request.jsonOutput)
+	if request.requestID != "" {
+		return deviceFailure(errors.New("targeted sends do not support --request-id"), request.jsonOutput)
 	}
 	store, err := deviceStore()
+	if err != nil {
+		return deviceFailure(err, request.jsonOutput)
+	}
+	request.to, err = resolveDeviceTarget(store, request.to)
 	if err != nil {
 		return deviceFailure(err, request.jsonOutput)
 	}
 	pair, err := store.Load(request.to)
 	if err != nil {
 		return deviceFailure(fmt.Errorf("load paired device %q: %w", request.to, err), request.jsonOutput)
+	}
+	if shouldDetach(request, isTerminal(os.Stdout)) {
+		if err := validateSourcePaths(request.files); err != nil {
+			return deviceFailure(err, request.jsonOutput)
+		}
+		args := []string{"send", "--to", request.to, "--wait", "--json"}
+		if request.resumeID != "" {
+			args = append(args, "--resume", request.resumeID)
+		}
+		args = append(args, "--")
+		args = append(args, request.files...)
+		return runBackgroundTransfer(args, request.jsonOutput, "device-send")
 	}
 	if err = validateSourcePaths(request.files); err != nil {
 		reportFailure(os.Stdout, os.Stderr, err, request.jsonOutput)

@@ -61,6 +61,11 @@ class QrScannerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.cd_qr_scanner)
         barcodeView = findViewById(R.id.scanner_barcode)
+        barcodeView.barcodeView.marginFraction = 0.05
+        barcodeView.cameraSettings = barcodeView.cameraSettings.apply {
+            isAutoFocusEnabled = true
+            isContinuousFocusEnabled = true
+        }
         capture = CaptureManager(this, barcodeView)
         capture.initializeFromIntent(intent, savedInstanceState)
         // zxing can lock the orientation to the rotation the phone had when scanning started, which left

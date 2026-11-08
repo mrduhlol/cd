@@ -45,4 +45,21 @@ class BackpressureQueueTest {
             assertThrows(IOException::class.java) { inbox.take(10000) }
         } finally { inbox.close(); worker.shutdownNow() }
     }
+    @Test fun gracefulCloseDrainsQueuedCompletionBeforeEOF() {
+        val inbox = BackpressureQueue<Int>(2)
+        inbox.put(1); inbox.put(2)
+        val eof = IOException("Peer closed")
+        inbox.finish(eof)
+        assertEquals(1, inbox.take(1000))
+        assertEquals(2, inbox.take(1000))
+        assertSame(eof, assertThrows(IOException::class.java) { inbox.take(1000) })
+        assertSame(eof, assertThrows(IOException::class.java) { inbox.put(3) })
+    }
+    @Test fun explicitAbortStillDiscardsFramesAfterGracefulClose() {
+        val inbox = BackpressureQueue<Int>(1)
+        inbox.put(1); inbox.finish(IOException("Peer closed"))
+        val aborted = IOException("User cancelled")
+        inbox.close(aborted)
+        assertSame(aborted, assertThrows(IOException::class.java) { inbox.take(1000) })
+    }
 }

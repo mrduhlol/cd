@@ -20,7 +20,7 @@ New senders advertise a four-MiB window and accept increasing cumulative durable
 
 A checkpoint advances only after syncing the staging file, checkpoint file, and checkpoint directory. Restart validates the checkpoint MAC and retained prefix, truncates any uncommitted tail, and resumes from committed bytes. The receiver verifies the complete size and SHA-256 before publishing through MediaStore. CLI completion requires the authenticated completion exchange or a matching trusted publication receipt after revalidating the source and saved capability. This receipt recovers a final acknowledgement lost after publication.
 
-Targeted CLI sends persist an intent bound to the pair and ordered absolute source paths. Running the same command after interruption loads the same authenticated transfer capability. The existing source digest check rejects changed bytes. Intent and resume retention are 24 hours. The initial targeted sender stays in the foreground; a persistent background send daemon is not implied.
+Targeted CLI sends persist an intent bound to the pair and ordered absolute source paths. Running the same command after interruption loads the same authenticated transfer capability. The existing source digest check rejects changed bytes. Intent and resume retention are 24 hours. Targeted sends re-execute a sender process when stdout is captured or `--detach` is selected. The command returns its PID and private log path; `--wait` keeps it in the foreground. This process must remain online and is not a persistent daemon across computer restarts.
 
 This extends ADR 0001's initial exclusions of discovery and paired devices. Its authentication and durability requirements remain applicable.
 

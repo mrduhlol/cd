@@ -30,6 +30,11 @@ object ReceiveMode {
     private val _paused = MutableStateFlow(false)
     val paused: StateFlow<Boolean> = _paused.asStateFlow()
 
+    fun stopped(context: Context) {
+        context.getSharedPreferences("cd-ui", Context.MODE_PRIVATE).edit().putBoolean("receivePaused", true).apply()
+        _paused.value = true
+    }
+
     fun load(context: Context) {
         _paused.value = context.getSharedPreferences("cd-ui", Context.MODE_PRIVATE).getBoolean("receivePaused", false)
     }

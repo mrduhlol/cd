@@ -44,7 +44,7 @@ class ReceiverService: Service() {
     override fun onBind(intent: Intent?) = null
     companion object { @Volatile var alive = false; private set }
     override fun onCreate() {
-        super.onCreate(); store = StoreRegistry.get(this); network = ReceiverNetwork(this, store); ReceiveViews.load(this)
+        super.onCreate(); store = StoreRegistry.get(this); store.recoverInterruptedTransfers(); network = ReceiverNetwork(this, store); ReceiveViews.load(this)
         getSystemService(NotificationManager::class.java).createNotificationChannel(NotificationChannel("receiving", "File receiving", NotificationManager.IMPORTANCE_LOW))
         try {
             ServiceCompat.startForeground(this, 1, notification("Ready to receive", null, null), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
@@ -125,6 +125,7 @@ class ReceiverService: Service() {
     }
     private fun stopReceiving(startId: Int) {
         if (!stopping.compareAndSet(false, true)) return
+        `in`.yash0.cd.ui.ReceiveMode.stopped(this)
         val paused = runCatching { store.pauseReceiving() }.getOrElse { store.tasks().filter { it.getString("state") == "paused" } }
         transferSocket?.cancel()
         paused.forEach { control(it.optString("pairId"), "paused", it.getString("id")) }
@@ -215,7 +216,7 @@ class ReceiverService: Service() {
                 if (current.getString("state") == "complete") { cleanupStaging(current); control(task.optString("pairId"), "received", id); return }
                 if (current.getString("state") in listOf("paused", "cancelled") || !running.get()) { control(task.optString("pairId"), "paused", id); return }
                 if (Invitation.parse(task.getString("url")).version == 1) {
-                    store.state(id, "paused", "This transfer cannot resume. Ask the sender for a new code or link.")
+                    store.state(id, "failed", "This transfer cannot resume. Ask the sender for a new code or link.")
                     return
                 }
                 if (e is ExhaustedTransferException || (e is WireFailure && e.exhausted)) {

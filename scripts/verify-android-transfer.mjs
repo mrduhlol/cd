@@ -55,7 +55,7 @@ try {
   const env = { ...process.env, CD_DEVICE_LAN: route === 'local' ? '1' : '0', CD_DIRECT: route === 'relay' ? '0' : '1' };
   let output = '';
   const launch = () => {
-    const child = spawn(executable, ['send', '--to', device, '--json', '--progress', source], { env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(executable, ['send', '--to', device, '--wait', '--json', '--progress', source], { env, stdio: ['ignore', 'pipe', 'pipe'] });
     for (const stream of [child.stdout, child.stderr]) stream.on('data', data => { output += data; });
     return child;
   };

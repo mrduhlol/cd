@@ -331,7 +331,8 @@ private fun ColumnScope.Pinned(view: TransferView, link: String?, code: String?,
         }
         view.phase == TransferPhase.FAILED -> {
             if (send) PrimaryButton("Choose files again", { actions.pickFiles() }, Modifier.fillMaxWidth(), icon = CdIcons.Upload)
-            else PrimaryButton("Try again", { actions.resume(view) }, Modifier.fillMaxWidth(), icon = CdIcons.Retry)
+            else if (view.resumable) PrimaryButton("Try again", { actions.resume(view) }, Modifier.fillMaxWidth(), icon = CdIcons.Retry)
+            if (!send && !view.resumable) PrimaryButton("Enter a new code", onBack, Modifier.fillMaxWidth(), icon = CdIcons.Retry)
             SecondaryButton("Remove from list", { actions.dismiss(view) }, Modifier.fillMaxWidth())
         }
         view.phase == TransferPhase.CANCELLED -> SecondaryButton("Remove from list", { actions.dismiss(view) }, Modifier.fillMaxWidth())
@@ -344,9 +345,10 @@ private fun ColumnScope.Pinned(view: TransferView, link: String?, code: String?,
             Text("Cancel send", Modifier.align(Alignment.CenterHorizontally).clip(RoundedCornerShape(10.dp)).clickable(role = Role.Button) { actions.cancel(view) }.padding(horizontal = 16.dp, vertical = 12.dp), style = CdType.label.copy(color = Cd.danger))
         }
         else -> {
-            val canResume = view.phase == TransferPhase.PAUSED || (view.phase == TransferPhase.RETRYING && !send)
+            val canResume = view.resumable && (view.phase == TransferPhase.PAUSED || (view.phase == TransferPhase.RETRYING && !send))
             // Receive transfers are discarded only once paused (the receiver keeps verified progress until then).
             val canCancel = send || view.phase == TransferPhase.PAUSED
+            if (!view.resumable && view.phase == TransferPhase.PAUSED) PrimaryButton("Enter a new code", onBack, Modifier.fillMaxWidth(), icon = CdIcons.Retry)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (canCancel) SecondaryButton(if (send) "Cancel" else "Discard", { actions.cancel(view) }, Modifier.weight(1f), icon = CdIcons.Close, danger = true)
                 if (canResume) PrimaryButton(if (codeExpired(view)) "Get code" else "Resume", { actions.resume(view) }, Modifier.weight(1f), icon = CdIcons.Play)

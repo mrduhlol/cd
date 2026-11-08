@@ -441,15 +441,103 @@ func TestDeviceSenderPipelinesChunksAndRejectsInvalidACK(t *testing.T) {
 	}
 }
 
-func TestDeviceTargetedSendRejectsBackgroundOptionsBeforeNetwork(t *testing.T) {
+func TestPhoneTargetResolvesSavedPairName(t *testing.T) {
+	t.Setenv("CD_DEVICE_DIR", filepath.Join(t.TempDir(), "devices"))
+	store, err := deviceStore()
+	if err != nil {
+		t.Fatal(err)
+	}
+	pair, err := devices.NewPair("Galaxy S24 Ultra", "wss://cd.yash0.in", nil, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = store.Save("Galaxy-S24-Ultra", pair); err != nil {
+		t.Fatal(err)
+	}
+	name, err := resolveDeviceTarget(store, "phone")
+	if err != nil || name != "Galaxy-S24-Ultra" {
+		t.Fatalf("phone resolved to %q: %v", name, err)
+	}
+	if err = store.Save("Pixel", pair); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = resolveDeviceTarget(store, "phone"); err == nil || !strings.Contains(err.Error(), "multiple") {
+		t.Fatalf("ambiguous phone: %v", err)
+	}
+	name, err = resolveDeviceTarget(store, "Pixel")
+	if err != nil || name != "Pixel" {
+		t.Fatalf("explicit target %q: %v", name, err)
+	}
+	if err = store.Save("phone", pair); err != nil {
+		t.Fatal(err)
+	}
+	name, err = resolveDeviceTarget(store, "phone")
+	if err != nil || name != "phone" {
+		t.Fatalf("explicit phone alias %q: %v", name, err)
+	}
+}
+
+func TestPhoneTargetWithoutPairKeepsMissingName(t *testing.T) {
+	t.Setenv("CD_DEVICE_DIR", filepath.Join(t.TempDir(), "devices"))
+	store, err := deviceStore()
+	if err != nil {
+		t.Fatal(err)
+	}
+	name, err := resolveDeviceTarget(store, "phone")
+	if err != nil || name != "phone" {
+		t.Fatalf("unpaired target %q: %v", name, err)
+	}
+}
+
+func TestAmbiguousPhoneFailsBeforeBackgroundSend(t *testing.T) {
+	t.Setenv("CD_DEVICE_DIR", filepath.Join(t.TempDir(), "devices"))
+	store, err := deviceStore()
+	if err != nil {
+		t.Fatal(err)
+	}
+	pair, err := devices.NewPair("Android", "wss://cd.yash0.in", nil, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"Galaxy", "Pixel"} {
+		if err = store.Save(name, pair); err != nil {
+			t.Fatal(err)
+		}
+	}
 	output := deviceTestOutput(t)
-	for _, request := range []sendRequest{{to: "phone", detach: true, jsonOutput: true}, {to: "phone", requestID: "stable", jsonOutput: true}} {
-		if code := runDeviceSend(request); code != 1 {
-			t.Fatalf("unsupported background option returned %d", code)
+	if code := runDeviceSend(sendRequest{to: "phone", files: []string{"missing.apk"}, detach: true, jsonOutput: true}); code != 1 {
+		t.Fatalf("exit %d", code)
+	}
+	data := deviceOutputBytes(t, output)
+	if !bytes.Contains(data, []byte("multiple paired devices: Galaxy, Pixel")) || bytes.Contains(data, []byte("background")) {
+		t.Fatalf("expected destination choice, got %s", data)
+	}
+}
+
+func TestDeviceTargetedSendRejectsRequestIDBeforeNetwork(t *testing.T) {
+	output := deviceTestOutput(t)
+	if code := runDeviceSend(sendRequest{to: "phone", requestID: "stable", jsonOutput: true}); code != 1 {
+		t.Fatalf("exit %d", code)
+	}
+	if !bytes.Contains(deviceOutputBytes(t, output), []byte("targeted sends do not support --request-id")) {
+		t.Fatal("missing request ID error")
+	}
+}
+
+func TestUnpairedDeviceFailsBeforeBackgroundSend(t *testing.T) {
+	t.Setenv("CD_DEVICE_DIR", filepath.Join(t.TempDir(), "devices"))
+	file := filepath.Join(t.TempDir(), "report.apk")
+	if err := os.WriteFile(file, []byte("test"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	output := deviceTestOutput(t)
+	for _, name := range []string{"nonexistent", "phone"} {
+		if code := runDeviceSend(sendRequest{to: name, files: []string{file}, jsonOutput: true}); code != 1 {
+			t.Fatalf("%s exit %d", name, code)
 		}
 	}
 	data := deviceOutputBytes(t, output)
-	if bytes.Count(data, []byte("targeted sends currently stay in the foreground")) != 2 {
-		t.Fatalf("missing actionable option errors: %s", data)
+	if bytes.Count(data, []byte("load paired device")) != 2 || bytes.Contains(data, []byte("pid")) {
+		t.Fatalf("expected pairing failure, got %s", data)
 	}
 }
