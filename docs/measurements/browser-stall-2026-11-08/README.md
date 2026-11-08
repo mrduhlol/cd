@@ -177,3 +177,46 @@ CD_FRESH_CROC=/absolute/path/to/checksum-verified/croc \
 The final review found stale desktop RTC snapshots and unbounded adb file operations. Desktop results now call the rich snapshot collector at success/failure; cached candidate-pair samples retain their observation timestamp. Both Android helpers now use the project's process deadline and kill/reap utility, with thirty seconds for metadata/cleanup and two minutes for a full pull. Earlier rows are retained with their original diagnostic sample times.
 
 Final local checks: all 170 JavaScript tests, full Go tests, type checking, the 85 Android JVM tests, real browser/CLI/agent flows, v2 relay checks, code-directory security checks, the Worker dry-run bundle, and the six-trial 64 MiB performance command passed. The six 600 MiB browser rows also passed the same regression gate. A simulated adb process that hangs for ninety seconds was terminated at the thirty-second metadata deadline by each Android helper; both wrote the expected failure report and completed cleanup. These are harness checks, not device-transfer results. `validation-current.json` and `ci-gate-current-64.json` retain the summaries. No production deployment occurred.
+
+## Idle hosted frontend control
+
+A later check with the dedicated emulator shut down completed both deployed-frontend 16 MiB trials, unlike the earlier hosted timeouts. The deployed entry asset SHA-256 remained `d29a551f464a274bf26eedfdf8e660bedfa27549e430edf2eb84f300b11d86ea`, and a fresh fetch of the deployed sender confirmed its earlier SHA-256 `5c30267f2d25e9b1ea105030981f805692c23899347c5b22edbfcc4f2f574e44`. Therefore the change from stalls to completed transfers does not require a frontend code change; it does not identify whether network conditions or service load caused the earlier stalls.
+
+A controlled follow-up used the exact same fresh 16 MiB random input for twelve real browser transfers: three trials per deployed/candidate frontend and automatic/forced-relay route. Variant and route order alternate. Both frontends used the production API and sockets; candidate asset fulfillment changed only the app root and asset requests. All twelve outputs match the same full size and SHA-256. Raw reports and the trial ledger are in `hosted-idle/`.
+
+| Frontend and requested route | Median completion seconds | Observed payload route |
+| --- | ---: | --- |
+| deployed, auto | 5.107 | Relay only |
+| deployed, relay | 5.090 | Relay only |
+| candidate, auto | 2.401 | WebRTC; one trial also sent initial relay records before replay |
+| candidate, relay | 4.630 | Relay only |
+
+The candidate's automatic route sent the complete input over WebRTC in all three trials; one also sent 3.75 MiB over relay before direct replay. The deployed sender sent all payload through relay, including automatic mode, and created no peer connection. Forced-relay completion times overlap between frontends. These results isolate a deployed routing difference, not a persistent CD-only relay defect or a speed gain caused by the one-line ICE fix.
+
+Both peers run on the same Linux host. Candidate WebRTC payload stays local while signaling is hosted; this is not a cross-device WAN or physical-phone measurement. Timers include code entry through saved output. The earlier failed transfers remain retained alongside these later healthy trials. No production deployment occurred.
+
+The read-only deployment check after these trials still identifies production's latest deployment as `2026-10-19T19:32:11.967883Z`, with version `33d007ce-875e-448e-a98e-534af42888a0` at 100%. The sanitized deployment record excludes account and author details; see `hosted-idle/production-deployment.json`. This rules out a newer production deployment as the explanation for the changed outcomes during this investigation, while service load and network behavior remain unmeasured causes.
+
+Cloud CI at `5911810` passed both browser verification/performance jobs, both security scans, CodeQL, and one Android JVM job. The other Android job failed before tests while downloading `kotlin-compiler-embeddable-2.1.20.jar` through an upstream redirect. CI now gives Gradle artifact HTTP connections sixty seconds and idle reads two minutes, rather than the pinned Gradle 8.13 defaults of thirty seconds. These internal properties are verified against the installed 8.13 class and its [upstream source](https://github.com/gradle/gradle/blob/v8.13.0/platforms/software/resources-http/src/main/java/org/gradle/internal/resource/transport/http/JavaSystemPropertiesHttpTimeoutSettings.java); recheck them on a Gradle upgrade. The distribution-download timeout is separate. This does not retry failed test assertions.
+
+The exact new Android CI command passed an offline `--rerun-tasks` run: 85 tests, zero failures/errors/skips, with all 22 tasks executed. This validates the command and assertions; only a fresh cloud run can check whether the longer network timeout accommodates that environment.
+
+To reproduce the hosted frontend control from the repo root, use Bash and an unused output directory. API/socket traffic remains hosted in both variants:
+
+```bash
+npm run build
+fresh_frontend_dir=$(mktemp -d /tmp/cd-hosted-frontends.XXXXXX)
+dd if=/dev/urandom of="$fresh_frontend_dir/payload.bin" bs=1048576 count=16 status=none
+for spec in '0 deployed auto,relay' '0 candidate auto,relay' '1 candidate relay,auto' '1 deployed relay,auto' '2 deployed auto,relay' '2 candidate auto,relay'; do
+  read -r trial frontend routes <<< "$spec"
+  asset_dir=""
+  if [ "$frontend" = candidate ]; then asset_dir="$PWD/dist"; fi
+  CD_VERIFY_URL=https://cd.yash0.in CD_FRESH_ASSET_DIR="$asset_dir" \
+    CD_FRESH_MIB=16 CD_FRESH_RUNS=1 CD_FRESH_ROUTES="$routes" \
+    CD_FRESH_INPUT="$fresh_frontend_dir/payload.bin" CD_FRESH_TIMEOUT_MS=90000 \
+    CD_FRESH_OUTPUT="$fresh_frontend_dir/$trial-$frontend.json" \
+    node scripts/bench-transfer-fresh.mjs > "$fresh_frontend_dir/$trial-$frontend.log" 2>&1
+done
+```
+
+Retain failed rows as well as successful ones. These hosted controls do not use the local 8 MiB/s regression floor and do not prove physical-phone speeds.

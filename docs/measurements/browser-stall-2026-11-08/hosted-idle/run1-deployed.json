@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T11:50:30.099Z",
+  "commit": "59118101621b34c812e4d54da2b6e050b73073f5",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    0.65,
+    0.6,
+    4.67
+  ],
+  "mib": 16,
+  "runs": 1,
+  "topology": "two Chromium processes on one Linux host, hosted relay",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": true,
+      "networkErrors": [
+        {
+          "role": "sender",
+          "path": "/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092",
+          "error": "csp"
+        },
+        {
+          "role": "receiver",
+          "path": "/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092",
+          "error": "csp"
+        }
+      ],
+      "readyMs": 1304.55071,
+      "assets": [
+        "/assets/index-CAq_iO25.js",
+        "/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092"
+      ],
+      "downloadEventMs": 5287.076623999999,
+      "receiveMs": 5334.849845999999,
+      "senderCompleteMs": 5412.0561450000005,
+      "received": {
+        "bytes": 16777216,
+        "sha256": "959de812cca889ba1545d1394131849992d457627254125f8fffaafa1262a203"
+      },
+      "transport": {
+        "relay": 16777216,
+        "direct": 0,
+        "firstAt": 5658.5,
+        "lastAt": 7362.399999991059,
+        "maxGapMs": 531.3999999910593,
+        "records": 64,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 708,
+            "maxGapMs": 2334.2000000029802,
+            "lastAt": 8682,
+            "extensions": "permessage-deflate; client_max_window_bits=15"
+          }
+        ]
+      },
+      "mibPerSecond": 2.999147204114206
+    },
+    {
+      "run": 0,
+      "route": "auto",
+      "ok": true,
+      "networkErrors": [
+        {
+          "role": "sender",
+          "path": "/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092",
+          "error": "csp"
+        },
+        {
+          "role": "receiver",
+          "path": "/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092",
+          "error": "csp"
+        }
+      ],
+      "readyMs": 1792.7665079999988,
+      "assets": [
+        "/assets/index-CAq_iO25.js",
+        "/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092"
+      ],
+      "downloadEventMs": 5081.053437999999,
+      "receiveMs": 5106.699106,
+      "senderCompleteMs": 5183.366083000001,
+      "received": {
+        "bytes": 16777216,
+        "sha256": "959de812cca889ba1545d1394131849992d457627254125f8fffaafa1262a203"
+      },
+      "transport": {
+        "relay": 16777216,
+        "direct": 0,
+        "firstAt": 5274.20000000298,
+        "lastAt": 6991.20000000298,
+        "maxGapMs": 725.7999999970198,
+        "records": 64,
+        "peers": [],
+        "sockets": [
+          {
+            "path": "/ws/v1/<id>",
+            "received": 708,
+            "maxGapMs": 2079.2999999970198,
+            "lastAt": 8491.89999999106,
+            "extensions": "permessage-deflate; client_max_window_bits=15"
+          }
+        ]
+      },
+      "mibPerSecond": 3.1331393661320606
+    }
+  ],
+  "input": {
+    "bytes": 16777216,
+    "sha256": "959de812cca889ba1545d1394131849992d457627254125f8fffaafa1262a203",
+    "generated": false
+  },
+  "benchmarkSHA256": "5fb58315f491f8734434bbe320c8e1d8d306cdcb7473174f95f1da63712ea9d4",
+  "probeSHA256": "01ed2c4f01b1e94e3eadbd1bef492cf78f301ac346938e4d574fdc45c622daa4",
+  "localSource": {
+    "worker/index.ts": "550435d8906087ad7febc2348049b6786a9937e05c2fb5719d712bfad7846397",
+    "src/relay-sender.js": "5b954d213044b90c048a377d4cb237d5af7c858d3607d90892225495f53c4b5a",
+    "src/share.js": "89d50e2ed31bed5b714a2687f30f1a7101e0d350385121aca783d0f2154a3b9c",
+    "src/sink.js": "c2062746f37942c55617e0d5b97c9531ce1ffccb30660679b5a1f90867557470",
+    "src/send-window.js": "3a574d758337fb6380e79ecc8977f856ddb3bbe78b01e35952852d653ef95473",
+    "dist/index.html": "05c9d1a2bafe2715f7b7b78138aa749b40c3c6bb1bfa990ad8b622007a0f461e"
+  },
+  "hostedAssets": {
+    "/assets/index-CAq_iO25.js": "d29a551f464a274bf26eedfdf8e660bedfa27549e430edf2eb84f300b11d86ea"
+  },
+  "dirty": [],
+  "runtimeOverride": null,
+  "serviceOrigin": "https://cd.yash0.in",
+  "runtime": "configured service",
+  "assetOverride": null,
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T11:50:48.328Z"
+}

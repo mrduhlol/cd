@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "input": {
+    "bytes": 16777216,
+    "sha256": "959de812cca889ba1545d1394131849992d457627254125f8fffaafa1262a203"
+  },
+  "method": "Two Chromium processes on one Linux host, production signaling/relay. All variants share one fresh16MiB random input; variant order deployed,candidate / candidate,deployed / deployed,candidate and route order auto,relay / relay,auto / auto,relay. Asset fulfillment changes only root/assets; API and WS stay hosted. Candidate automatic payload uses local WebRTC, so this is frontend/route isolation, not cross-device WAN throughput. No physical phone. All12 outputs verified fullsize/SHA256.",
+  "summary": [
+    {
+      "frontend": "deployed",
+      "route": "auto",
+      "runs": 3,
+      "medianReceiveMs": 5106.699106,
+      "receiveMs": [
+        4646.614597999999,
+        5106.699106,
+        5190.141208999999
+      ],
+      "directPayloadBytes": [
+        0,
+        0,
+        0
+      ],
+      "relayPayloadBytes": [
+        16777216,
+        16777216,
+        16777216
+      ]
+    },
+    {
+      "frontend": "deployed",
+      "route": "relay",
+      "runs": 3,
+      "medianReceiveMs": 5089.651452,
+      "receiveMs": [
+        4456.167603,
+        5334.849845999999,
+        5089.651452
+      ],
+      "directPayloadBytes": [
+        0,
+        0,
+        0
+      ],
+      "relayPayloadBytes": [
+        16777216,
+        16777216,
+        16777216
+      ]
+    },
+    {
+      "frontend": "candidate",
+      "route": "auto",
+      "runs": 3,
+      "medianReceiveMs": 2400.8196430000007,
+      "receiveMs": [
+        2990.2480760000003,
+        2400.8196430000007,
+        2322.73524
+      ],
+      "directPayloadBytes": [
+        16777216,
+        16777216,
+        16777216
+      ],
+      "relayPayloadBytes": [
+        0,
+        3932160,
+        0
+      ]
+    },
+    {
+      "frontend": "candidate",
+      "route": "relay",
+      "runs": 3,
+      "medianReceiveMs": 4630.147209999999,
+      "receiveMs": [
+        4492.721409,
+        5402.889794000001,
+        4630.147209999999
+      ],
+      "directPayloadBytes": [
+        0,
+        0,
+        0
+      ],
+      "relayPayloadBytes": [
+        16777216,
+        16777216,
+        16777216
+      ]
+    }
+  ]
+}
