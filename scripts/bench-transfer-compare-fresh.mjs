@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
-import { mkdtemp, mkdir, open, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, open, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { connect } from 'node:net';
 import { tmpdir, hostname, loadavg } from 'node:os';
@@ -11,6 +11,7 @@ import { join, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { availablePort, buildCLI, cliEnv, startWorker, stopChild } from './harness.mjs';
+import { collectBrowserTrial } from './fresh-browser-child.mjs';
 
 const mib = Number(process.env.CD_FRESH_MIB ?? 600), runs = Number(process.env.CD_FRESH_RUNS ?? 3);
 const timeout = Number(process.env.CD_FRESH_TIMEOUT_MS ?? 180000);
@@ -93,10 +94,13 @@ try {
     try {
       if (tool === 'cd-browser') {
         const browserOutput = join(work, `browser-${run}.json`);
-        const browser = launch(process.execPath, ['scripts/bench-transfer-fresh.mjs'], { ...process.env, CD_FRESH_INPUT: input, CD_FRESH_OUTPUT: browserOutput, CD_FRESH_RUNS: '1' }); active.push(browser.child);
-        const code = await bounded(browser.done);
-        const results = JSON.parse(await readFile(browserOutput, 'utf8'));
-        report.rows.push(...results.rows.map(result => ({ ...result, run, tool, browserCommit: results.commit, input: results.input, load: results.load })));
+        const browser = launch(process.execPath, ['scripts/bench-transfer-fresh.mjs'], { ...process.env, CD_FRESH_INPUT: input, CD_FRESH_OUTPUT: browserOutput, CD_FRESH_RUNS: '1', CD_FRESH_ROUTES: 'auto,relay', CD_FRESH_TIMEOUT_MS: String(timeout) }); active.push(browser.child);
+        const { code, error, results } = await collectBrowserTrial(browser, browserOutput, timeout * 2 + 60000);
+        if (results) {
+          report.rows.push(...results.rows.map(result => ({ ...result, run, tool, browserCommit: results.commit, input: results.input, load: results.load })));
+          await writeFile(output, JSON.stringify(report, null, 2) + '\n');
+        }
+        if (error) throw error;
         assert.equal(code, 0, 'browser child failed; see retained rows');
         assert.equal(results.rows.length, 2);
         assert.ok(results.rows.every(result => result.ok && result.received.sha256 === expected.sha256 && result.received.bytes === expected.bytes));
