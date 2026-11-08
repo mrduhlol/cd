@@ -1,0 +1,26 @@
+{
+  "sourceCommit": "17db2f94e6278691f3d9816d62a55747c35620d1",
+  "verifiedRows": 9,
+  "sizeBytesEach": 629145600,
+  "publicNumericHashRouteFieldsMatchPrivateOriginals": true,
+  "originalArtifactHashLedgerVerified": true,
+  "recordedSourceHashesMatchCurrentFiles": true,
+  "timer": {
+    "start": "immediately before receiver spawn",
+    "end": "receiver close and captured-pipe closure",
+    "evidence": "compare.mjs awaits ro.finished; scripts/harness.mjs captureOutput resolves finished on close"
+  },
+  "goVersion": {
+    "recordedStandaloneCommand": "go1.26.8",
+    "verifiedCLIArtifact": "go1.26.10",
+    "artifactMetadataReadAfterRun": true
+  },
+  "limits": [
+    "Original invocation environment, effective endpoints and working directory not captured",
+    "startWorker can honor runtime, hosted and config overrides",
+    "Runtime configuration, state and rate limits differ; no causal proxy attribution",
+    "Negotiated compression headers unknown",
+    "Payloads were deleted; review checks recorded hashes rather than rehashing original payloads",
+    "No physical-phone, WAN, production maximum or fastest claim"
+  ]
+}

@@ -23,7 +23,7 @@ Order rotated Wrangler/core/Croc, core/Croc/Wrangler, Croc/Wrangler/core. Exact 
 
 This does not isolate a causal proxy cost. Rate limits, state, runtime wiring and assets differ. Actual request/response Sec-WebSocket-Extensions headers were not captured. The optional 16 MiB CD header probe was not attempted; compression negotiation remains unknown. Configuration alone does not prove negotiation.
 
-Timing starts before receiver spawn and ends after the receiver exit event and output capture finishes. It does not wait for the child close event as its endpoint. Full output hashing happens afterward. There is no fsync and OS caches are allowed. Startup/readiness durations were not retained. Load metadata was captured after the run, without per-run normalization. The empty process scan is post-run evidence only.
+Timing starts before receiver spawn and ends after `ro.finished` resolves on receiver `close`, including process and captured-pipe closure. Sender readiness and the later full output hash are outside this interval. Full output hashing happens afterward. There is no fsync and OS caches are allowed. Startup/readiness durations were not retained. Load metadata was captured after the run, without per-run normalization. The empty process scan is post-run evidence only.
 
 Final Croc process text is present in private results but separate final log files were not persisted. Public results omit this text. Exact flags remain in compare.mjs. The earlier 16 MiB Croc smoke passed on its first attempt with matching full hash and size; croc-smoke.json retains its results and commands. Its timing is separate and is not pooled.
 
@@ -31,14 +31,17 @@ No production maximum, fastest, WAN or physical-phone conclusion follows. The or
 
 ## Reproduction and provenance
 
-Source commit: 17db2f94e6278691f3d9816d62a55747c35620d1. metadata.json records source hashes and tool versions. App, Worker and Go sources are unchanged since cf154ff; the intervening diff contains CI and measurement docs. Existing cloud checks at 17db2f9 were reported passing by the parent; this documentation step did not rerun them. Global 8.13 settings were not independently verified here.
+Source commit: 17db2f94e6278691f3d9816d62a55747c35620d1. metadata.json records source hashes and tool versions. App, Worker and Go sources are unchanged since cf154ff; the intervening diff contains CI and measurement docs. Existing cloud checks at 17db2f9 were reported passing by the parent; this documentation step did not rerun them.
+
+The original invocation environment, effective endpoints, and working directory were not captured in the result metadata. `startWorker` honors `CD_BENCH_RUNTIME_BUNDLE`, `CD_VERIFY_URL`, and `CD_VERIFY_WRANGLER_CONFIG`; this batch does not prove those overrides were absent. Runtime labels describe the requested harness legs, not a fully recorded effective configuration. A strict configuration attribution requires a fresh run recording those values. Later environment checks cannot repair this historical gap.
 
 compare.mjs and croc-smoke.mjs are copies of the executed sources with only repository imports and the comparison output root made relative. Their private originals have recorded hashes. These are experiment records, not changes to repository benchmark scripts. To reproduce from the repository root with dependencies installed:
 
 ```sh
-go build -o docs/measurements/browser-stall-2026-11-08/native-runtime-control/cdx ./cmd/cdx
-npx esbuild worker/index.ts --bundle --format=esm --platform=browser --outfile=docs/measurements/browser-stall-2026-11-08/native-runtime-control/worker.mjs
-node docs/measurements/browser-stall-2026-11-08/native-runtime-control/compare.mjs
+go build -buildvcs=false -trimpath -o docs/measurements/browser-stall-2026-11-08/native-runtime-control/cdx ./cmd/cdx
+npx esbuild worker/index.ts --bundle --format=esm --platform=browser --external:cloudflare:workers --outfile=docs/measurements/browser-stall-2026-11-08/native-runtime-control/worker.mjs
+env -u CD_BENCH_RUNTIME_BUNDLE -u CD_VERIFY_URL -u CD_VERIFY_WRANGLER_CONFIG \
+  node docs/measurements/browser-stall-2026-11-08/native-runtime-control/compare.mjs
 ```
 
 Provide Croc 11.6.5 at the source's explicit /tmp/cd-croc-11.6.5/croc path and verify its recorded binary hash first. Run in a disposable copy: the source writes results.json, generates 600 MiB, starts local listeners and removes its generated outputs. Exact binary hashes may depend on build environment; compare them before treating a reproduction as identical. The original build invocation was not retained in this artifact; the commands above are reproduction instructions, not a claimed historical shell transcript. Do not commit generated binaries, bundles, state or payloads.
@@ -53,3 +56,5 @@ Provide Croc 11.6.5 at the source's explicit /tmp/cd-croc-11.6.5/croc path and v
 | run-fixed-20261108b | Nine verified 600 MiB transfers | Only source of the table |
 
 The corrected comparison uses a new input. No batches are pooled. Original scratch remains unchanged; generated payloads had already been deleted by the experiment owner.
+
+Independent review details are in `review.json`. The retained CLI binary hash matches the result, and reading that binary reports Go 1.26.10; the standalone `go version` string in metadata is 1.26.8. This after-run artifact check identifies the compiler of the immutable executable, not the unrecorded invocation environment. Original payloads were already deleted, so review validates recorded hash consistency rather than independently rehashing those files.
