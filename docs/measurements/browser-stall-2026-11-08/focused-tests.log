@@ -1,0 +1,50 @@
+✔ worker writes all partial writes and flushes before acknowledging, then closes once (2.65268ms)
+✔ uses the writable-stream fallback only when sync worker initialization is unavailable (0.885783ms)
+✔ propagates zero writes and flush failures without falling back after initialization (1.401405ms)
+✔ propagates worker crashes during writes and releases the worker (0.308472ms)
+✔ capacity admits complete chunks and prevents an extra chunk overflow (5.352028ms)
+✔ slow delivery shrinks the window while outstanding data remains accounted (0.294299ms)
+✔ sustained full-window receipts grow within the configured maximum (0.288528ms)
+✔ ACK compression and zero RTT do not inflate a window without a delivery interval (0.18514ms)
+✔ invalid ACKs and clocks leave accounting unchanged (0.821534ms)
+✔ tiny chunks use bounded metadata and payload is never retained (13.647478ms)
+✔ bounds reject unsafe allocations (0.411899ms)
+✔ cumulative counts remain exact beyond Number safe integer range (0.394742ms)
+✔ repeatable slow receiver keeps outstanding bytes and metadata bounded (2.906366ms)
+ℹ slow receiver {"seconds":64,"mibPerSecond":1,"maxInFlight":4194304,"maxSamples":16,"finalWindow":1048576}
+✔ adaptive window improves a high bandwidth delayed path without exceeding its cap (1.401927ms)
+ℹ delayed path adaptive={"seconds":7.276171875,"mibPerSecond":35.183336017608845,"maxInFlight":12582912,"maxSamples":48,"finalWindow":12582912} fixed={"seconds":9.723046875,"mibPerSecond":26.329195291470814,"maxInFlight":8388608,"maxSamples":0}
+✔ duplicate acknowledgements still advance the monotonic clock (0.161753ms)
+▶ webkit detection
+  ✔ flags Safari macOS, Safari iOS, and Chrome iOS as WebKit (0.588517ms)
+  ✔ does not flag desktop/Android Chromium or Firefox (0.135101ms)
+✔ webkit detection (1.474006ms)
+▶ tier selection
+  ✔ prefers the file picker whenever it exists, at any size (0.289299ms)
+  ✔ uses OPFS staging without a picker, at any size, on every engine (0.193655ms)
+  ✔ caps every Blob fallback at 256 MiB while preserving the exact boundary (0.16993ms)
+  ✔ accepts plain numbers as well as bigints for sizes (0.132881ms)
+✔ tier selection (1.154898ms)
+▶ capability detection
+  ✔ detects nothing in bare Node (no window/navigator) (0.944684ms)
+  ✔ reads picker and OPFS support from the host (0.238622ms)
+✔ capability detection (1.494155ms)
+▶ download sink lifecycle
+  ✔ refuses oversized Safari blobs when advertised OPFS fails (1.709376ms)
+  ✔ caps declared no-OPFS fallback offers and enforces the actual cumulative write limit (1.873033ms)
+  ✔ removes the staging entry when opening its writable fails (2.396205ms)
+  ✔ coalesces small OPFS writes into large flushes without losing bytes (36.721577ms)
+  ✔ keeps bytes in order with one write in flight at a time (37.917294ms)
+  ✔ surfaces an in-flight write error to the next flush that waits on it (0.492162ms)
+  ✔ surfaces an in-flight write error on the next write even without a flush (0.742015ms)
+  ✔ close waits for a pending write and reports its failure (0.612989ms)
+  ✔ preserves bytes in the fallback and revokes cleanup only once (18.070092ms)
+✔ download sink lifecycle (101.314372ms)
+ℹ tests 32
+ℹ suites 4
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 168.185477

@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "startedAt": "2026-11-08T08:53:30.617Z",
+  "commit": "db6934ba54380f8cd8a0b58157c0a3dcecbcf66c",
+  "host": "omarchy",
+  "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+  "load": [
+    0.54,
+    1.19,
+    2.5
+  ],
+  "mib": 16,
+  "runs": 1,
+  "topology": "two Chromium processes on one Linux host, hosted relay",
+  "method": "Independent random bytes per MiB. Timer starts before receive code entry and ends after download.saveAs. Full output SHA-256 and size verified outside timing. OS page cache allowed; no fsync durability claim. Auto route must disclose actual WebRTC and relay payload bytes. This is not a physical-phone or WAN benchmark.",
+  "rows": [
+    {
+      "run": 0,
+      "route": "auto",
+      "ok": false,
+      "readyMs": 7313.705006000001,
+      "error": "page.waitForEvent: Timeout 45000ms exceeded while waiting for event \"download\"\n=========================== logs ===========================\nwaiting for event \"download\"\n============================================================",
+      "senderState": "transferring",
+      "senderStatus": "Sending...",
+      "transport": {
+        "relay": 9437184,
+        "direct": 0,
+        "firstAt": 24036.5,
+        "lastAt": 49959.40000000596,
+        "maxGapMs": 25858,
+        "records": 36
+      }
+    },
+    {
+      "run": 0,
+      "route": "relay",
+      "ok": false,
+      "readyMs": 2797.2818569999945,
+      "error": "page.waitForEvent: Timeout 45000ms exceeded while waiting for event \"download\"\n=========================== logs ===========================\nwaiting for event \"download\"\n============================================================",
+      "senderState": "transferring",
+      "senderStatus": "Sending...",
+      "transport": {
+        "relay": 9437184,
+        "direct": 0,
+        "firstAt": 10188.89999999851,
+        "lastAt": 50738.10000000149,
+        "maxGapMs": 40487.19999999553,
+        "records": 36
+      }
+    }
+  ],
+  "input": {
+    "bytes": 16777216,
+    "sha256": "27ea3d49a5619877b62314cc8a6df497cdc5a9d65db6c73316f046bc98081380"
+  },
+  "chromium": [
+    "155.0.8059.84",
+    "155.0.8059.84"
+  ],
+  "finishedAt": "2026-11-08T08:55:22.709Z"
+}
