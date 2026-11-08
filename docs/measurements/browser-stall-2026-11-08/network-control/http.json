@@ -1,0 +1,27 @@
+{
+  "expected": "6149cf9dece8458862d01e97c71f58af1f11a58ff4f2032b2b91313a386b552d",
+  "chromium": "155.0.8059.84",
+  "rows": [
+    {
+      "status": 200,
+      "bytes": 16777216,
+      "sha256": "6149cf9dece8458862d01e97c71f58af1f11a58ff4f2032b2b91313a386b552d",
+      "headersMs": 52848.89999999851,
+      "totalMs": 75405.79999999702
+    },
+    {
+      "status": 200,
+      "bytes": 16777216,
+      "sha256": "6149cf9dece8458862d01e97c71f58af1f11a58ff4f2032b2b91313a386b552d",
+      "headersMs": 54604.29999999702,
+      "totalMs": 82398.79999999702
+    },
+    {
+      "status": 200,
+      "bytes": 16777216,
+      "sha256": "6149cf9dece8458862d01e97c71f58af1f11a58ff4f2032b2b91313a386b552d",
+      "headersMs": 32582.20000000298,
+      "totalMs": 57878.89999999851
+    }
+  ]
+}

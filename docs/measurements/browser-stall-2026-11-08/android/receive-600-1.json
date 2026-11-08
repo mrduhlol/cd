@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "commit": "2a011bb60ac8d0d1d120d46d5921207981b863d4",
+  "mib": 600,
+  "serial": "emulator-5554",
+  "filename": "fresh-browser-android-1794131564078.bin",
+  "ok": true,
+  "method": "Real main-page browser sender, explicit relay, real CD Beta receive UI and publication. Transport timing spans first payload send through encrypted COMPLETE after Android publication. UI automation latency is excluded. Full published file is pulled and size/SHA256 verified outside timing. Local Worker through Wrangler development proxy and adb reverse. Emulator result, not physical hardware or WAN.",
+  "expected": {
+    "bytes": 629145600,
+    "sha256": "be6f0a46d943d300e02c548d9cfb44675eec3cb3d3878424101d313f05333b60"
+  },
+  "chromium": "155.0.8059.84",
+  "transport": {
+    "payloadBytes": 629145600,
+    "records": 2400,
+    "firstAt": 58375.29999999702,
+    "completedAt": 106928.40000000596,
+    "lastAt": 102686.79999999702,
+    "maxGapMs": 242.6000000089407,
+    "extensions": "permessage-deflate; client_max_window_bits=15"
+  },
+  "receiveMs": 48553.10000000894,
+  "mibPerSecond": 12.3576043548175,
+  "received": {
+    "bytes": 629145600,
+    "sha256": "be6f0a46d943d300e02c548d9cfb44675eec3cb3d3878424101d313f05333b60"
+  }
+}

@@ -22,6 +22,7 @@ assert.ok(process.env.CD_VERIFY_ANDROID_KILL_PROCESS !== '1' || process.env.CD_V
 const sdk = process.env.ANDROID_HOME ?? process.env.ANDROID_SDK_ROOT;
 const adb = process.env.ADB ?? (sdk ? join(sdk, 'platform-tools', 'adb') : 'adb');
 const work = await mkdtemp(join(tmpdir(), 'cd-android-transfer-'));
+const androidPackage = 'in.yash0.cd.beta';
 let sender;
 let screenOff = false;
 async function command(executable, args) {
@@ -41,12 +42,13 @@ async function digest(path) {
 }
 try {
   assert.equal((await android(['shell', 'getprop', 'ro.kernel.qemu'])).trim(), '1', 'Integration checks require an emulator');
+  assert.match(await android(['shell', 'pm', 'path', androidPackage]), /^package:/m, 'Install CD Beta before running transfer checks');
   const executable = process.env.CD_VERIFY_CLI ?? await buildCLI(work);
   const name = `verify-${route}-${Date.now()}.bin`;
   const source = join(work, name);
   const file = await open(source, 'wx');
   const mebibytes = Number(process.env.CD_VERIFY_ANDROID_MIB ?? 128);
-  assert.ok(Number.isInteger(mebibytes) && mebibytes >= 8 && mebibytes <= 512);
+  assert.ok(Number.isInteger(mebibytes) && mebibytes >= 8 && mebibytes <= 600);
   try {
     for (let i = 0; i < mebibytes; i++) await file.write(randomBytes(1024 * 1024));
   } finally { await file.close(); }
@@ -67,11 +69,11 @@ try {
       for (;;) {
         const match = output.match(/"transferId":"([A-Za-z0-9_-]+)"/);
         if (match) {
-          const files = await android(['shell', 'run-as', 'in.yash0.cd', 'ls', '-l', 'files']);
+          const files = await android(['shell', 'run-as', androidPackage, 'ls', '-l', 'files']);
           const partial = files.split('\n').find(line => line.endsWith(`resume-${match[1]}.part`));
           const checkpointName = `resume-${match[1]}.json`;
           if (partial && Number(partial.trim().split(/\s+/)[4]) >= 1048576 && files.split('\n').some(line => line.endsWith(checkpointName))) {
-            const checkpoint = JSON.parse(await android(['shell', 'run-as', 'in.yash0.cd', 'cat', `files/${checkpointName}`]));
+            const checkpoint = JSON.parse(await android(['shell', 'run-as', androidPackage, 'cat', `files/${checkpointName}`]));
             if (checkpoint.offset >= 1048576) return { root: match[1], committed: checkpoint.offset };
           }
         }
@@ -81,9 +83,9 @@ try {
     })(), 90_000, 'No durable staging progress before interruption');
     await stopChild(sender);
     if (process.env.CD_VERIFY_ANDROID_KILL_PROCESS === '1') {
-      const pid = (await android(['shell', 'pidof', '-s', 'in.yash0.cd'])).trim();
+      const pid = (await android(['shell', 'pidof', '-s', 'in.yash0.cd.beta'])).trim();
       assert.match(pid, /^\d+$/, 'No running CD process to interrupt');
-      await android(['shell', 'run-as', 'in.yash0.cd', 'kill', '-9', pid]);
+      await android(['shell', 'run-as', androidPackage, 'kill', '-9', pid]);
     }
     output = '';
     sender = launch();

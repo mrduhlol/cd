@@ -20,7 +20,7 @@ Install JDK 17 and Android SDK platform 35. Set `ANDROID_HOME` to your SDK locat
 cd android
 ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell am start -n in.yash0.cd/.MainActivity
+adb shell am start -n in.yash0.cd.beta/in.yash0.cd.MainActivity
 ```
 
 For a smaller S24 Ultra APK, first preserve the verified universal APK, then build only arm64:

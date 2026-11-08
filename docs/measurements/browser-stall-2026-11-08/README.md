@@ -90,3 +90,33 @@ CD_FRESH_CROC=/absolute/path/to/checksum-verified/croc \
 The 8 MiB/s floor is below every retained 600 MiB local trial. It is a conservative KB/s-stall detector, not a promise for every network or phone. `ci-gate-64.json` and `ci-gate.log` retain the six passing real transfers. Five gate tests include false high-rate claims, 30-second stalls, hash failures, missing repetitions, and routing failures. CI now runs this check after browser verification. All 168 JavaScript tests, full Go tests, and type checking pass on this checkout. Cloud CI has not yet verified this new step.
 
 The benchmark accepts `CD_FRESH_INPUT` to reuse an existing file of exactly the configured size, and `CD_FRESH_ASSET_DIR` to isolate an alternate frontend from the configured service. It records the runner hash, source hashes, actual served asset names, socket extensions, and failed-request paths. Asset overrides only fulfill the app root and asset requests; transfer traffic still reaches the configured service.
+
+## Same-service HTTP control
+
+A temporary wrapper around the same isolated Worker accepted at most 16 MiB on a private test route and returned those bytes over HTTP. It checked the declared size and bounded the streamed input. The real Chromium client preloaded 16 MiB of random data, timed POST through full response consumption, then verified the response hash outside timing. The exact same file was then sent through actual browser CD forced relay, without replacing CD with a synthetic WebSocket echo.
+
+All three HTTP requests returned 200 with complete matching bytes and hashes. They took 75.41, 82.40, and 57.88 seconds. Time to response headers was 52.85, 54.60, and 32.58 seconds. Header timing includes upload and Worker buffering/processing; it is not an independent upload-capacity measurement.
+
+One CD trial verified the same file in 53.38 seconds. A second failed its 120-second download deadline and retained only partial diagnostic counts. Both trial outcomes are in `network-control/cd-relay.json`; `network-control/http.json` contains all HTTP outcomes. HTTP echoes buffer before responding, while CD streams between two sockets, so these timings do not support a protocol speed ratio.
+
+This control does not establish abundant network capacity or isolate compression/relay code as the cause of the slow hosted runs. The delays affect plain HTTP on the same service too. It provides no evidence about the disconnected physical phone's network. The temporary Worker was deleted after this control; production and the existing test Worker's objects were not changed. The diagnostic route's private path and deployment credentials are excluded from the evidence.
+
+## Android app coverage
+
+A universal debug APK from this checkout passed all 69 Android JVM tests and ran on the dedicated Android 15 x86_64 emulator. The emulator had a newer test version installed, so installation used the platform's data-preserving downgrade option. No app data was cleared. Subsequent benchmark runs pulled the installed `base.apk` and required its SHA-256 to match the checkout's built artifact. The APK hash was `3ce0b8a264537b12febce7c1abe511d36739124ab758c82f0463121723a3eeb0`.
+
+The real browser main page sent three independent 600 MiB random files to CD Beta's Receive UI over v1 relay. Each Android publication was pulled from `Downloads/CD` and its full size and SHA-256 matched the source. Transport times through the encrypted completion record were 48.55, 46.25, and 48.09 seconds. This completion record follows native Android publication, including its sync and pending-file flag update. UI entry latency and the later verification pull/hash are outside those times. The first large trial predates the automatic APK-equality guard; the next two enforced it. All used the same freshly installed APK.
+
+Raw reports are in `android/receive-600-*.json`. The largest measured payload-send pause was below half a second. These are emulator/local-Worker results with an active Wrangler proxy and compression, not physical hardware, mobile Internet, Android Chrome, or paired v2 resume measurements. Native Android and desktop tools have different hardware and timing semantics here; do not treat their rates as a direct competition.
+
+`bench-browser-android-fresh.mjs` reproduces this real UI path. After opening a dedicated emulator with the device tools and installing the current APK, pass the bound `agent-device` executable as `CD_ANDROID_AGENT_DEVICE` and the emulator serial as `CD_ANDROID_SERIAL`. The driver opens CD Beta, enters its Receive screen, fills the generated local invitation, and presses Receive. Every UI action uses that bound device command. Without it, the runner emits a private offer-file path for an operator to drive the same UI. It enforces output hashes and a conservative 4 MiB/s emulator floor for payloads of at least 64 MiB. A final one-MiB test verified the automatic UI driver.
+
+```sh
+ANDROID_HOME=/path/to/android-sdk \
+  CD_ANDROID_AGENT_DEVICE=/path/returned/by/device_open/agent-device \
+  CD_ANDROID_SERIAL=emulator-5554 CD_FRESH_MIB=600 \
+  CD_FRESH_OUTPUT=/tmp/cd-browser-android.json \
+  node scripts/bench-browser-android-fresh.mjs
+```
+
+The existing paired Android verifier addressed the retired `in.yash0.cd` identity and rejected files larger than 512 MiB. It now checks that CD Beta is installed, uses `in.yash0.cd.beta` for app-private access and process recovery, and accepts the requested 600 MiB case. Its paired v2 interruption/screen-off modes have not been rerun in this investigation. CI now includes the existing Android JVM suite; this new cloud job still needs its first run. The browser throughput job passed in cloud CI at commit `2a011bb`. The security job failed twice downloading its pinned scanner with upstream HTTP 504; those failures are not secret-scan findings.
