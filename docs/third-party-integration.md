@@ -75,3 +75,7 @@ The current protocol and security model are described in [Agent transfer protoco
 - Whether invitations are one-recipient or multi-recipient. The existing relay room admits one receiver, so the first SDK should preserve that limit.
 - The production support window and compatibility policy for protocol and SDK versions.
 - Whether public apps need any registration beyond package/app identifiers and abuse controls.
+
+## Android implementation
+
+The first implementation is available in [`android/sdk`](../android/sdk/README.md), with a runnable `:sdk-sample` app. It implements encrypted live v1 transfers and explicit recipient consent. The CD app is not required on either device. This is an initial Android library distributed as source; it is not yet a published Maven artifact. App IDs are public attribution, not authentication or per-app quotas. Resumable v2 transfers, other platform SDKs, developer registration, billing, and offline storage remain future work.

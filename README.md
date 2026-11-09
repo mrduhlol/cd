@@ -92,7 +92,7 @@ One Cloudflare Worker serves the UI, signaling, relay (`/ws/v1`), and code direc
 Each transfer gets its own Durable Object room. Rooms hold one sender and one receiver, limit memory use,
 expire on their own, and keep no file data.
 
-Developers who want to embed CD transfers in another app can read the [third-party integration RFC](docs/third-party-integration.md).
+Developers can embed live encrypted transfers with the [Android SDK and sample](android/sdk/README.md), without requiring the CD app. See the [third-party integration RFC](docs/third-party-integration.md) for the broader platform plan.
 
 ## Paired-device development preview
 
