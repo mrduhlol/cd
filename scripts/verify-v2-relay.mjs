@@ -117,8 +117,16 @@ try {
   assert.ok(attempts.every(status => status === 101 || status === 429));
   console.log('PASS v2 route, advertised support, origin restrictions, native access and normalized upgrade limits');
 
-  const v1 = await connect(c, { type: 'join', protocol: 'cd-transfer-v1', role: 'sender', receiverTokenHash: c.receiverTokenHash }, 1);
+  for (const appId of ['bad id', 'x', 'x'.repeat(161)]) {
+    const response = await request(`/ws/v1/${credentials().id}`, {
+      headers: { Upgrade: 'websocket', 'X-CD-App-ID': appId },
+    });
+    assert.equal(response.status, 400, 'malformed public app ID admitted');
+  }
+  const v1 = await connect(c, { type: 'join', protocol: 'cd-transfer-v1', role: 'sender', receiverTokenHash: c.receiverTokenHash }, 1, { 'X-CD-App-ID': 'com.example.sender' });
   assert.equal((await v1.event('accepted')).protocol, 'cd-transfer-v1');
+  const wrongAppReceiver = await connect(c, { type: 'join', protocol: 'cd-transfer-v1', role: 'receiver', receiverToken: random() }, 1, { 'X-CD-App-ID': 'com.example.sender' });
+  assert.equal((await wrongAppReceiver.event('closed')).code, 4401, 'public app ID must not authorize a transfer');
   const sj = senderJoin(c);
   const sender = await connect(c, sj, 2, { Origin: origin });
   const admitted = await sender.event('accepted');
@@ -142,7 +150,7 @@ try {
   assert.deepEqual(new Uint8Array(await receiver.event('binary')), record, 'relay altered opaque record bytes');
   await interrupt({ sender, receiver });
   assert.equal(v1.closed, false, 'v2 disconnect terminated the v1 room with the same id');
-  const v1Receiver = await connect(c, { type: 'join', protocol: 'cd-transfer-v1', role: 'receiver', receiverToken: c.receiverToken }, 1);
+  const v1Receiver = await connect(c, { type: 'join', protocol: 'cd-transfer-v1', role: 'receiver', receiverToken: c.receiverToken }, 1, { 'X-CD-App-ID': 'com.example.receiver' });
   await v1Receiver.event('accepted');
   await v1.event('peer-joined');
   const replay = await connect(c, senderJoin(c, sj.sessionNonce));

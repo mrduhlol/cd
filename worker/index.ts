@@ -4,7 +4,7 @@ export { DeviceRoom } from './device-room';
 import { clientPrefix, sameOrigin } from './code-security';
 
 type Role = 'sender' | 'receiver';
-type SocketAttachment = { kind: 'pending'; expiresAt: number; transferId?: string; prefix?: string } | { kind: 'peer'; role: Role };
+type SocketAttachment = { kind: 'pending'; expiresAt: number; transferId?: string; prefix?: string; appId?: string } | { kind: 'peer'; role: Role; appId?: string };
 // `code` is the room's short share code while the directory still holds it.
 type CodeHolder = { prefix: string; leaseId: string };
 type ShareCode = { code: string; transferId: string; expiresAt?: number; holder?: CodeHolder };
@@ -50,13 +50,19 @@ function isBase64Url32(value: unknown): value is string {
   return typeof value === 'string' && /^[A-Za-z0-9_-]{43}$/.test(value);
 }
 
+function isPublicAppId(value: unknown): value is string {
+  return typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:-]{2,159}$/.test(value);
+}
+
 function isSocketAttachment(value: unknown): value is SocketAttachment {
   if (!value || typeof value !== 'object' || !('kind' in value)) return false;
   if (value.kind === 'pending') {
     return 'expiresAt' in value && typeof value.expiresAt === 'number' && Number.isFinite(value.expiresAt)
-      && (!('transferId' in value) || typeof value.transferId === 'string');
+      && (!('transferId' in value) || typeof value.transferId === 'string')
+      && (!('appId' in value) || isPublicAppId(value.appId));
   }
-  return value.kind === 'peer' && 'role' in value && (value.role === 'sender' || value.role === 'receiver');
+  return value.kind === 'peer' && 'role' in value && (value.role === 'sender' || value.role === 'receiver')
+    && (!('appId' in value) || isPublicAppId(value.appId));
 }
 
 function parseJoin(message: string): Join | null {
@@ -150,9 +156,11 @@ export class TransferRoom extends DurableObject<Env> {
     const pair = new WebSocketPair();
     const client = pair[0];
     const server = pair[1];
+    const appId = request.headers.get('X-CD-App-ID');
+    if (appId !== null && !isPublicAppId(appId)) return new Response('invalid app id', { status: 400 });
     const expiresAt = Date.now() + JOIN_TIMEOUT_MS;
     const transferId = /^\/ws\/v1\/([A-Za-z0-9_-]{22})$/.exec(new URL(request.url).pathname)?.[1];
-    server.serializeAttachment({ kind: 'pending', expiresAt, transferId, prefix: clientPrefix(request) } satisfies SocketAttachment);
+    server.serializeAttachment({ kind: 'pending', expiresAt, transferId, prefix: clientPrefix(request), ...(appId ? { appId } : {}) } satisfies SocketAttachment);
     this.ctx.acceptWebSocket(server);
     const currentAlarm = await this.ctx.storage.getAlarm();
     if (currentAlarm === null || expiresAt < currentAlarm) await this.ctx.storage.setAlarm(expiresAt);
@@ -173,7 +181,7 @@ export class TransferRoom extends DurableObject<Env> {
       if (typeof message !== 'string') { reject(socket, 4400, 'join required'); return; }
       const join = parseJoin(message);
       if (!join) { reject(socket, 4406, 'invalid protocol join'); return; }
-      await this.admit(socket, join, attachment.transferId, attachment.prefix);
+      await this.admit(socket, join, attachment.transferId, attachment.prefix, attachment.appId);
       return;
     }
     if (this.room.kind !== 'paired') { reject(socket, 4400, 'room is not paired'); return; }
@@ -242,16 +250,16 @@ export class TransferRoom extends DurableObject<Env> {
     await this.scheduleAlarm();
   }
 
-  private async admit(socket: WebSocket, join: Join, transferId: string | undefined, prefix: string | undefined): Promise<void> {
+  private async admit(socket: WebSocket, join: Join, transferId: string | undefined, prefix: string | undefined, appId?: string): Promise<void> {
     if (join.role === 'sender') {
       if (this.room.kind !== 'empty') { reject(socket, 4409, 'sender unavailable'); return; }
       const expiresAt = Date.now() + ROOM_LIFETIME_MS;
       const nextRoom: RoomState = { kind: 'waiting', receiverTokenHash: join.receiverTokenHash, expiresAt, prefix };
-      socket.serializeAttachment({ kind: 'peer', role: 'sender' } satisfies SocketAttachment);
+      socket.serializeAttachment({ kind: 'peer', role: 'sender', ...(appId ? { appId } : {}) } satisfies SocketAttachment);
       await this.ctx.storage.put('room', nextRoom);
       this.room = nextRoom;
       await this.scheduleAlarm();
-      logEvent('sender_admitted');
+      logEvent('sender_admitted', appId ? { appId } : {});
       let claimed: ClaimedCode | null = null;
       if (join.shareKey && transferId) {
         try {
@@ -281,12 +289,12 @@ export class TransferRoom extends DurableObject<Env> {
     if (this.room.kind !== 'waiting' || !equalTokenHashes(suppliedHash, this.room.receiverTokenHash)) { reject(socket, 4401, 'receiver unauthorized'); return; }
     const sender = this.peer('sender');
     if (!sender) { reject(socket, 4404, 'sender unavailable'); return; }
-    socket.serializeAttachment({ kind: 'peer', role: 'receiver' } satisfies SocketAttachment);
+    socket.serializeAttachment({ kind: 'peer', role: 'receiver', ...(appId ? { appId } : {}) } satisfies SocketAttachment);
     const shareCode = this.room.shareCode;
     const nextRoom: RoomState = { kind: 'paired', receiverTokenHash: this.room.receiverTokenHash, expiresAt: this.room.expiresAt };
     await this.ctx.storage.put('room', nextRoom);
     this.room = nextRoom;
-    logEvent('room_paired');
+    logEvent('room_paired', appId ? { appId } : {});
     await this.scheduleAlarm();
     try {
       socket.send(relayEvent('accepted'));
