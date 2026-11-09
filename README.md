@@ -92,6 +92,8 @@ One Cloudflare Worker serves the UI, signaling, relay (`/ws/v1`), and code direc
 Each transfer gets its own Durable Object room. Rooms hold one sender and one receiver, limit memory use,
 expire on their own, and keep no file data.
 
+Developers who want to embed CD transfers in another app can read the [third-party integration RFC](docs/third-party-integration.md).
+
 ## Paired-device development preview
 
 This checkout includes experimental CLI pairing and the device relay. A compatible native receiver is required; Android app sources and an APK are not included here. With a receiver available, build the CLI and run:
