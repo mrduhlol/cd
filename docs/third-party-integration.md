@@ -79,3 +79,5 @@ The current protocol and security model are described in [Agent transfer protoco
 ## Android implementation
 
 The first implementation is available in [`android/sdk`](../android/sdk/README.md), with a runnable `:sdk-sample` app. It implements encrypted live v1 transfers and explicit recipient consent. The CD app is not required on either device. This is an initial Android library distributed as source; it is not yet a published Maven artifact. App IDs are public attribution, not authentication or per-app quotas. Resumable v2 transfers, other platform SDKs, developer registration, billing, and offline storage remain future work.
+
+The SDK README documents the implemented API, cancellation and failure handling, and timeout limits. The API above remains illustrative. This initial implementation does not complete the rollout or all acceptance criteria: CD's Android app still uses its existing transport, and publication, support and deprecation policies, and full cross-client device verification remain future work.

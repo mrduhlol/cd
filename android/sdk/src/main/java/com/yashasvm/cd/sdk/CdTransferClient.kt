@@ -2,6 +2,8 @@ package com.yashasvm.cd.sdk
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
@@ -96,6 +98,8 @@ class CdTransferClient(
                             require(selection.length() == 1 && selection.getInt("chunkSize") == SDK_CHUNK_SIZE)
                             return@withTimeout SDK_CHUNK_SIZE
                         }
+                        is Frame.Failure -> throw frame.error
+                        is Frame.Closed -> error("CD relay closed the connection")
                         else -> Unit
                     }
                 }
@@ -106,6 +110,7 @@ class CdTransferClient(
             var ackedBytes = 0L
             var sentChunks = 0L
             var ackedChunks = 0L
+            val callbackContext = currentCoroutineContext().minusKey(Job)
             withContext(Dispatchers.IO) { source.open().use { input ->
                 val buffer = ByteArray(selectedChunk)
                 while (sentBytes < source.sizeBytes) {
@@ -114,7 +119,7 @@ class CdTransferClient(
                     socket.send(sender.seal(KIND_CHUNK, if (wanted == buffer.size) buffer else buffer.copyOf(wanted)))
                     sentBytes += wanted
                     sentChunks++
-                    emit(onProgress, CdTransferPhase.TRANSFERRING, ackedBytes, source.sizeBytes)
+                    withContext(callbackContext) { emit(onProgress, CdTransferPhase.TRANSFERRING, ackedBytes, source.sizeBytes) }
                     if (sentBytes - ackedBytes >= 4 * ACK_INTERVAL_BYTES || sentBytes == source.sizeBytes) {
                         while (ackedBytes < sentBytes) {
                             val (kind, payload) = withTimeout(90_000L) { nextRecord(socket, receiver) }
@@ -123,7 +128,7 @@ class CdTransferClient(
                             require(counts.bytes in (ackedBytes + 1)..sentBytes && counts.chunks in (ackedChunks + 1)..sentChunks)
                             ackedBytes = counts.bytes
                             ackedChunks = counts.chunks
-                            emit(onProgress, CdTransferPhase.TRANSFERRING, ackedBytes, source.sizeBytes)
+                            withContext(callbackContext) { emit(onProgress, CdTransferPhase.TRANSFERRING, ackedBytes, source.sizeBytes) }
                         }
                     }
                 }
@@ -350,6 +355,10 @@ private class RelaySocket {
             offer(Frame.Binary(bytes.toByteArray()))
         }
         override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) { offer(Frame.Failure(t)) }
+        override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+            offer(Frame.Closed)
+            webSocket.close(1000, "")
+        }
         override fun onClosed(webSocket: WebSocket, code: Int, reason: String) { offer(Frame.Closed) }
     }
     fun attach(value: WebSocket) { socket = value }

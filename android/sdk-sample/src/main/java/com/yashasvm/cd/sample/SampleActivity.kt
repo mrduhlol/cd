@@ -21,7 +21,6 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.io.File
 import kotlin.coroutines.resume
 
 /** Minimal example: the app owns selection, consent, destination and its UI. */
@@ -115,7 +114,7 @@ class SampleActivity : ComponentActivity() {
         if (link.isBlank()) { status.text = "Paste the invitation first."; return }
         try {
             status.text = "Connecting to sender…"
-            client.receive(
+            val output = receiveToCache(cacheDir) { destination -> client.receive(
                 invitation = link,
                 acceptOffer = { offer ->
                     suspendCancellableCoroutine { continuation ->
@@ -130,10 +129,10 @@ class SampleActivity : ComponentActivity() {
                         }
                     }
                 },
-                openDestination = { offer -> File(cacheDir, offer.name).outputStream() },
+                openDestination = { destination.outputStream() },
                 onProgress = ::showProgress,
-            )
-            status.text = "File verified and saved in ${cacheDir.absolutePath}."
+            ) }
+            status.text = "File verified and saved in ${output.absolutePath}."
         } catch (failure: CancellationException) {
             throw failure
         } catch (failure: Exception) {

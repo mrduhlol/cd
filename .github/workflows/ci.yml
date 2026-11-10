@@ -42,11 +42,14 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
-      - name: Run Android unit tests
+      - name: Run Android unit tests and build SDK sample
         # shortcut: HTTP timeout properties are internal; recheck when upgrading Gradle.
         run: >-
           ./gradlew
           -Dorg.gradle.internal.http.connectionTimeout=60000
           -Dorg.gradle.internal.http.socketTimeout=120000
           :app:testDebugUnitTest
+          :sdk:testDebugUnitTest
+          :sdk-sample:testDebugUnitTest
+          :sdk-sample:assembleDebug
         working-directory: android
